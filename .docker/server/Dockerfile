@@ -10,7 +10,6 @@ ARG NEW_UID
 ARG NEW_GID
 ARG MY_USER
 ARG MY_GROUP
-ARG PHPUNIT_VERSION=11
 
 ## ---------------------------------------------------------
 ## Habilitar e instalar extensiones y librerías necesarias
@@ -38,14 +37,6 @@ rm -rf /var/lib/apt/lists/* && \
 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
 ## ---------------------------------------------------------
-## Instalar PHPUnit
-## ---------------------------------------------------------
-
-RUN wget https://phar.phpunit.de/phpunit-${PHPUNIT_VERSION}.phar -O /usr/local/bin/phpunit && \
-chmod +x /usr/local/bin/phpunit && \
-phpunit --version
-
-## ---------------------------------------------------------
 ## Copiar el contenido de la aplicación
 ## ---------------------------------------------------------
 
@@ -57,14 +48,14 @@ COPY . /var/www/html
 
 RUN echo ". /etc/terminal" | tee -a /home/${MY_USER}/.bashrc /root/.bashrc && \
     chown ${MY_USER}:${MY_GROUP} /home/${MY_USER}/.bashrc
-COPY ./php_server/bash/terminal /etc/terminal
-COPY ./php_server/bash/sudo-user /etc/sudoers.d/sudo-user
+COPY ./server/bash/terminal /etc/terminal
+COPY ./server/bash/sudo-user /etc/sudoers.d/sudo-user
 
 ## ---------------------------------------------------------
 ## Copiar y habilitar la configuración de Apache
 ## ---------------------------------------------------------
 
-COPY ./php_server/host/virtual-host.conf /etc/apache2/sites-available/virtual-host.conf
+COPY ./server/host/virtual-host.conf /etc/apache2/sites-available/virtual-host.conf
 RUN a2ensite virtual-host.conf 
 RUN a2dissite 000-default.conf
     

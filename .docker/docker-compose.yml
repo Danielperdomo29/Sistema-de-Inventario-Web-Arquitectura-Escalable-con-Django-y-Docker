@@ -1,24 +1,24 @@
 services:
-  php_apache_ecommerce:
+  server_docker:
     build:
       context: .
-      dockerfile: ./php_server/Dockerfile
+      dockerfile: ./server/Dockerfile
       args:
         NEW_UID: ${NEW_UID}
         NEW_GID: ${NEW_GID}
         MY_USER: ${MY_USER}
         MY_GROUP: ${MY_GROUP}
-    container_name: php_apache_ecommerce
+    container_name: php_apache_python
     ports:
       - "${PHP_APACHE_PORT}:80"
     volumes:
       - ../.:/var/www/html
     networks:
-      - network_ecommerce
+      - network_python
 
   mysql:
     image: mysql:latest
-    container_name: mysql-ecommerce
+    container_name: mysql_python
     ports:
       - "${MYSQL_PORT}:3306"
     environment:
@@ -28,16 +28,16 @@ services:
       MYSQL_ROOT: ${MYSQL_ROOT}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
-      - ./database:/docker-entrypoint-initdb.d
-      - persistent-ecommerce:/var/lib/mysql:rw
+      - ./mysql/database:/docker-entrypoint-initdb.d
+      - persistent_python:/var/lib/mysql:rw
     depends_on:
-      - php_apache_ecommerce
+      - server_docker
     networks:
-      - network_ecommerce
+      - network_python
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin-ecommerce
+    container_name: phpmyadmin_python
     ports:
       - "${PHPMYADMIN_PORT}:80"
     environment:
@@ -45,26 +45,11 @@ services:
     depends_on:
       - mysql
     networks:
-      - network_ecommerce
-
-  phpunit:
-    build:
-      context: .
-      dockerfile: ./php_server/Dockerfile
-      args:
-        NEW_UID: ${NEW_UID}
-        NEW_GID: ${NEW_GID}
-        MY_USER: ${MY_USER}
-        MY_GROUP: ${MY_GROUP}
-    volumes:
-      - .:/app
-    networks:
-      - network_ecommerce
-    entrypoint: ["phpunit", "--configuration", "/app/phpunit.xml"]
+      - network_python
 
 networks:
-  network_ecommerce:
-    name: network_ecommerce
+  network_python:
+    name: network_python
 
 volumes:
-  persistent-ecommerce:
+  persistent_python:

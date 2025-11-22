@@ -54,7 +54,7 @@ El sistema está diseñado inicialmente con **dos roles**:
 
 | **Recurso**                        | **Descripción**                                                                                               | **Enlace**                                              |
 |------------------------------------|---------------------------------------------------------------------------------------------------------------|---------------------------------------------------------|
-| **Plantilla de la aplicación**     | Plantilla utilizada para la interfaz de usuario.                                                              | [Electro Store - Plantilla de eCommerce](https://w3layouts.com/template/electro-store-an-ecommerce-theme-bootstrap-template/)                        |
+| **Plantilla de la aplicación**     | Plantilla utilizada para la interfaz de usuario.                                                              | [Electro Store - Plantilla de eCommerce](https://w3layouts.com/template/electro-store-an_python-theme-bootstrap-template/)                        |
 | **Licencia de la plantilla**       | Licencia de la plantilla bajo Creative Commons Attribution 3.0 Unported.                                      | [Creative Commons License](http://creativecommons.org/licenses/by/3.0/) |
 | **Imágenes de productos**          | Imágenes de productos obtenidas de Amazon.                                                                     | [Amazon](https://www.amazon.com)                         |
 ---

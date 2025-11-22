@@ -64,7 +64,7 @@ clean-docker:
 
 .PHONY: shell
 shell:
-	$(DOCKER_COMPOSE) exec --user pablogarciajc php_apache_ecommerce  /bin/sh -c "cd /var/www/html/; exec bash -l"
+	$(DOCKER_COMPOSE) exec --user pablogarciajc server_docker  /bin/sh -c "cd /var/www/html/; exec bash -l"
 
 
 
