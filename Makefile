@@ -56,16 +56,19 @@ build:
 stop:
 	$(DOCKER_COMPOSE) stop
 
+.PHONY: shell
+shell:
+	$(DOCKER_COMPOSE) exec --user pablogarciajc server_docker  /bin/sh -c "cd /var/www/html/; exec bash -l"
+
+## ---------------------------------------------------------
+## Limpieza de Recursos Docker
+## ---------------------------------------------------------		
+
 .PHONY: clean-docker
 clean-docker:
 	sudo docker rmi -f $$(sudo docker images -q) || true
 	sudo docker volume rm $$(sudo docker volume ls -q) || true
 	sudo docker network prune -f || true
-
-.PHONY: shell
-shell:
-	$(DOCKER_COMPOSE) exec --user pablogarciajc server_docker  /bin/sh -c "cd /var/www/html/; exec bash -l"
-
 
 
 
