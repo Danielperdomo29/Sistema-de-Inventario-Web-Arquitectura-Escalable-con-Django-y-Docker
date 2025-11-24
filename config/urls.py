@@ -31,4 +31,9 @@ urlpatterns = [
     path('ventas/<int:sale_id>/eliminar/', SaleController.delete, name='sales_delete'),
     path('reportes/', ReportController.index, name='reports'),
     path('configuracion/', ConfigController.index, name='config'),
+    path('configuracion/perfil/editar/', ConfigController.edit_profile, name='config_edit_profile'),
+    path('configuracion/perfil/cambiar-password/', ConfigController.change_password, name='config_change_password'),
+    path('configuracion/usuarios/crear/', ConfigController.create_user, name='config_create_user'),
+    path('configuracion/usuarios/<int:user_edit_id>/editar/', ConfigController.edit_user, name='config_edit_user'),
+    path('configuracion/usuarios/<int:user_delete_id>/eliminar/', ConfigController.delete_user, name='config_delete_user'),
 ]

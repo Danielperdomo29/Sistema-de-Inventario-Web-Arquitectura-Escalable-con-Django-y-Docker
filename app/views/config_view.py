@@ -47,8 +47,8 @@ class ConfigView:
                     </div>
                 </div>
                 <div style="margin-top: 20px;">
-                    <button class="btn btn-primary">Editar Perfil</button>
-                    <button class="btn btn-warning" style="margin-left: 10px;">Cambiar Contraseña</button>
+                    <a href="/configuracion/perfil/editar/" class="btn btn-primary">Editar Perfil</a>
+                    <a href="/configuracion/perfil/cambiar-password/" class="btn btn-warning" style="margin-left: 10px;">Cambiar Contraseña</a>
                 </div>
             </div>
         </div>
@@ -92,8 +92,8 @@ class ConfigView:
                     <td>{usuario['rol']}</td>
                     <td>{estado_badge}</td>
                     <td>
-                        <button class="btn btn-warning">Editar</button>
-                        <button class="btn btn-danger">Desactivar</button>
+                        <a href="/configuracion/usuarios/{usuario['id']}/editar/" class="btn btn-warning" style="text-decoration: none;">Editar</a>
+                        <a href="/configuracion/usuarios/{usuario['id']}/eliminar/" class="btn btn-danger" style="text-decoration: none;" onclick="return confirm('¿Está seguro de desactivar este usuario?');">Desactivar</a>
                     </td>
                 </tr>
                 """
@@ -104,7 +104,7 @@ class ConfigView:
         <div class="card">
             <div class="card-header">
                 <span>👥 Usuarios del Sistema</span>
-                <button class="btn btn-primary">+ Nuevo Usuario</button>
+                <a href="/configuracion/usuarios/crear/" class="btn btn-primary">+ Nuevo Usuario</a>
             </div>
             <table>
                 <thead>
@@ -164,3 +164,276 @@ class ConfigView:
         """
         
         return HttpResponse(Layout.render('Configuración', user, 'configuracion', content))
+    
+    @staticmethod
+    def create_user(user, roles, request, error=None):
+        """Vista del formulario de crear usuario"""
+        
+        # Obtener token CSRF
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
+        
+        # Generar opciones de roles
+        role_options = ""
+        for role in roles:
+            role_options += f'<option value="{role["id"]}">{role["nombre"]}</option>'
+        
+        # Mensaje de error
+        error_html = ""
+        if error:
+            error_html = f"""
+            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                {error}
+            </div>
+            """
+        
+        content = f"""
+        <div class="card">
+            <div class="card-header">
+                <span>Crear Nuevo Usuario</span>
+                <a href="/configuracion/" class="btn" style="background: #6b7280; color: white;">← Volver</a>
+            </div>
+            {error_html}
+            <form method="POST" action="/configuracion/usuarios/crear/" style="padding: 20px;">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Usuario *</label>
+                        <input type="text" name="username" required 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Contraseña *</label>
+                        <input type="password" name="password" required 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Nombre Completo</label>
+                        <input type="text" name="nombre_completo" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Email</label>
+                        <input type="email" name="email" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Rol *</label>
+                        <select name="rol_id" required 
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="">Seleccione un rol</option>
+                            {role_options}
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Guardar Usuario</button>
+                    <a href="/configuracion/" class="btn" style="background: #6b7280; color: white; text-decoration: none;">Cancelar</a>
+                </div>
+            </form>
+        </div>
+        """
+        
+        return HttpResponse(Layout.render('Crear Usuario', user, 'configuracion', content))
+    
+    @staticmethod
+    def edit_user(user, user_to_edit, roles, request, error=None):
+        """Vista del formulario de editar usuario"""
+        
+        # Obtener token CSRF
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
+        
+        # Generar opciones de roles
+        role_options = ""
+        for role in roles:
+            selected = 'selected' if role['id'] == user_to_edit.get('rol_id') else ''
+            role_options += f'<option value="{role["id"]}" {selected}>{role["nombre"]}</option>'
+        
+        # Mensaje de error
+        error_html = ""
+        if error:
+            error_html = f"""
+            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                {error}
+            </div>
+            """
+        
+        content = f"""
+        <div class="card">
+            <div class="card-header">
+                <span>Editar Usuario</span>
+                <a href="/configuracion/" class="btn" style="background: #6b7280; color: white;">← Volver</a>
+            </div>
+            {error_html}
+            <form method="POST" action="/configuracion/usuarios/{user_to_edit['id']}/editar/" style="padding: 20px;">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Usuario *</label>
+                        <input type="text" name="username" value="{user_to_edit['username']}" required 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Nombre Completo</label>
+                        <input type="text" name="nombre_completo" value="{user_to_edit.get('nombre_completo', '')}" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Email</label>
+                        <input type="email" name="email" value="{user_to_edit.get('email', '')}" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Rol *</label>
+                        <select name="rol_id" required 
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="">Seleccione un rol</option>
+                            {role_options}
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Actualizar Usuario</button>
+                    <a href="/configuracion/" class="btn" style="background: #6b7280; color: white; text-decoration: none;">Cancelar</a>
+                </div>
+            </form>
+        </div>
+        """
+        
+        return HttpResponse(Layout.render('Editar Usuario', user, 'configuracion', content))
+    
+    @staticmethod
+    def edit_profile(user, user_info, request, error=None):
+        """Vista del formulario de editar perfil del usuario actual"""
+        
+        # Obtener token CSRF
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
+        
+        # Mensaje de error
+        error_html = ""
+        if error:
+            error_html = f"""
+            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                {error}
+            </div>
+            """
+        
+        content = f"""
+        <div class="card">
+            <div class="card-header">
+                <span>Editar Mi Perfil</span>
+                <a href="/configuracion/" class="btn" style="background: #6b7280; color: white;">← Volver</a>
+            </div>
+            {error_html}
+            <form method="POST" action="/configuracion/perfil/editar/" style="padding: 20px;">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Usuario</label>
+                        <input type="text" value="{user_info.get('username', '')}" disabled 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f5f5f5;">
+                        <small style="color: #666;">El usuario no se puede cambiar</small>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Nombre Completo</label>
+                        <input type="text" name="nombre_completo" value="{user_info.get('nombre_completo', '')}" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Email</label>
+                        <input type="email" name="email" value="{user_info.get('email', '')}" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Rol</label>
+                        <input type="text" value="{user_info.get('rol', '')}" disabled 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f5f5f5;">
+                        <small style="color: #666;">El rol no se puede cambiar</small>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Actualizar Perfil</button>
+                    <a href="/configuracion/" class="btn" style="background: #6b7280; color: white; text-decoration: none;">Cancelar</a>
+                </div>
+            </form>
+        </div>
+        """
+        
+        return HttpResponse(Layout.render('Editar Perfil', user, 'configuracion', content))
+    
+    @staticmethod
+    def change_password(user, request, error=None):
+        """Vista del formulario de cambiar contraseña"""
+        
+        # Obtener token CSRF
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
+        
+        # Mensaje de error
+        error_html = ""
+        if error:
+            error_html = f"""
+            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                {error}
+            </div>
+            """
+        
+        content = f"""
+        <div class="card">
+            <div class="card-header">
+                <span>Cambiar Contraseña</span>
+                <a href="/configuracion/" class="btn" style="background: #6b7280; color: white;">← Volver</a>
+            </div>
+            {error_html}
+            <form method="POST" action="/configuracion/perfil/cambiar-password/" style="padding: 20px;">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                
+                <div style="max-width: 500px;">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Contraseña Actual *</label>
+                        <input type="password" name="current_password" required 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Nueva Contraseña *</label>
+                        <input type="password" name="new_password" required 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                        <small style="color: #666;">Mínimo 4 caracteres</small>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Confirmar Nueva Contraseña *</label>
+                        <input type="password" name="confirm_password" required 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+                    <a href="/configuracion/" class="btn" style="background: #6b7280; color: white; text-decoration: none;">Cancelar</a>
+                </div>
+            </form>
+        </div>
+        """
+        
+        return HttpResponse(Layout.render('Cambiar Contraseña', user, 'configuracion', content))
+

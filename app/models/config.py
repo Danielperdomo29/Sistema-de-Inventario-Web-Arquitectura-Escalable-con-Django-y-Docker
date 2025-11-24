@@ -69,4 +69,99 @@ class Config:
             ORDER BY TABLE_ROWS DESC
         """
         return Database.execute_query(query)
+    
+    @staticmethod
+    def get_user_by_id(user_id):
+        """Obtiene un usuario por ID"""
+        query = """
+            SELECT 
+                u.id,
+                u.username,
+                u.nombre_completo,
+                u.email,
+                u.rol_id,
+                u.activo
+            FROM pablogarciajcbd.usuarios u
+            WHERE u.id = %s
+        """
+        result = Database.execute_query(query, (user_id,))
+        return result[0] if result else None
+    
+    @staticmethod
+    def create_user(data):
+        """Crea un nuevo usuario"""
+        query = """
+            INSERT INTO pablogarciajcbd.usuarios 
+            (username, password, nombre_completo, email, rol_id, activo)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        params = (
+            data['username'],
+            data['password'],
+            data['nombre_completo'],
+            data.get('email', ''),
+            data['rol_id'],
+            data.get('activo', 1)
+        )
+        return Database.execute_query(query, params, fetch=False)
+    
+    @staticmethod
+    def update_user(user_id, data):
+        """Actualiza un usuario existente"""
+        query = """
+            UPDATE pablogarciajcbd.usuarios 
+            SET username = %s,
+                nombre_completo = %s,
+                email = %s,
+                rol_id = %s,
+                activo = %s
+            WHERE id = %s
+        """
+        params = (
+            data['username'],
+            data['nombre_completo'],
+            data.get('email', ''),
+            data['rol_id'],
+            data.get('activo', 1),
+            user_id
+        )
+        return Database.execute_query(query, params, fetch=False)
+    
+    @staticmethod
+    def delete_user(user_id):
+        """Desactiva un usuario (soft delete)"""
+        query = "UPDATE pablogarciajcbd.usuarios SET activo = 0 WHERE id = %s"
+        return Database.execute_query(query, (user_id,), fetch=False)
+    
+    @staticmethod
+    def get_roles():
+        """Obtiene todos los roles disponibles"""
+        query = "SELECT id, nombre FROM pablogarciajcbd.roles ORDER BY nombre"
         return Database.execute_query(query)
+    
+    @staticmethod
+    def update_profile(user_id, data):
+        """Actualiza el perfil del usuario actual"""
+        query = """
+            UPDATE pablogarciajcbd.usuarios 
+            SET nombre_completo = %s,
+                email = %s
+            WHERE id = %s
+        """
+        params = (
+            data['nombre_completo'],
+            data.get('email', ''),
+            user_id
+        )
+        return Database.execute_query(query, params, fetch=False)
+    
+    @staticmethod
+    def change_password(user_id, new_password):
+        """Cambia la contraseña del usuario actual"""
+        query = """
+            UPDATE pablogarciajcbd.usuarios 
+            SET password = %s
+            WHERE id = %s
+        """
+        return Database.execute_query(query, (new_password, user_id), fetch=False)
+
