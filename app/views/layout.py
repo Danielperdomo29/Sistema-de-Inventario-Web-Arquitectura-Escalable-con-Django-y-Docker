@@ -7,6 +7,8 @@ class Layout:
         return '''
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="/static/css/main.css">
+        <link rel="stylesheet" href="/static/css/forms.css">
+        <link rel="stylesheet" href="/static/css/dashboard.css">
         '''
     
     @staticmethod

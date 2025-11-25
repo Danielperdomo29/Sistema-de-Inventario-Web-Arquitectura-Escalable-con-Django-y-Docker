@@ -52,6 +52,12 @@ body {
     color: #374151; 
 }
 
+.form-hint {
+    color: #666;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
 .form-control { 
     width: 100%; 
     padding: 12px; 

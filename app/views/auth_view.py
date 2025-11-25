@@ -116,7 +116,7 @@ class AuthView:
             <div class="form-group">
                 <label>Contraseña</label>
                 <input type="password" name="password" class="form-control" required>
-                <small style="color: #666; font-size: 12px;">Mínimo 6 caracteres</small>
+                <small class="form-hint">Mínimo 6 caracteres</small>
             </div>
             <div class="form-group">
                 <label>Confirmar Contraseña</label>
