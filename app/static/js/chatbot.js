@@ -168,30 +168,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Sugerencias rápidas
-    document.querySelectorAll('.suggestion-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (isSending) return;
-            messageInput.value = btn.getAttribute('data-message');
-            sendMessage();
-        });
-    });
-
-    // Ayuda rápida (checkboxes)
-    document.querySelectorAll('.help-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('click', function (e) {
-            e.preventDefault();
-            if (isSending) return;
-            // Desmarcar todos los checkboxes
-            document.querySelectorAll('.help-checkbox').forEach(cb => cb.checked = false);
-            // Marcar solo el actual
-            this.checked = true;
-            messageInput.value = this.value;
-            sendMessage();
-            // Desmarcar el actual tras enviar
-            setTimeout(() => { this.checked = false; }, 300);
-        });
-    });
 
     // ======================
     // Limpiar historial

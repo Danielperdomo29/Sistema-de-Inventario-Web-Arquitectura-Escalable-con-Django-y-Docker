@@ -34,25 +34,8 @@ class ChatbotView:
                 <i class='fas fa-robot welcome-icon'></i>
                 <h3>¡Bienvenido al Asistente Virtual!</h3>
                 <p>Soy tu asistente de inventario con inteligencia artificial.</p>
-                <p>Puedo ayudarte con consultas sobre productos, ventas, compras y más.</p>
-                <p>Escribe <strong>\"ayuda\"</strong> para ver qué puedo hacer.</p>
-            </div>
-            <div id='help-list' class='help-list'>
-                <h4><i class='fas fa-question-circle'></i> ¿En qué puedo ayudarte?</h4>
-                <ul class='list-group'>
-                    <li class='list-group-item'>
-                        <label><input type='checkbox' class='help-checkbox' value='consulta sobre productos'> Consulta sobre productos</label>
-                    </li>
-                    <li class='list-group-item'>
-                        <label><input type='checkbox' class='help-checkbox' value='¿Qué productos tienen stock bajo?'> Productos con stock bajo</label>
-                    </li>
-                    <li class='list-group-item'>
-                        <label><input type='checkbox' class='help-checkbox' value='Resumen de ventas'> Resumen de ventas</label>
-                    </li>
-                    <li class='list-group-item'>
-                        <label><input type='checkbox' class='help-checkbox' value='Resumen de compras'> Resumen de compras</label>
-                    </li>
-                </ul>
+                <p>Puedes preguntarme sobre productos, ventas, compras, stock, proveedores, clientes y cualquier módulo del sistema.</p>
+                <p>Ejemplo: <strong>¿Qué productos tienen stock bajo?</strong></p>
             </div>
         """
         content = f"""
@@ -75,12 +58,6 @@ class ChatbotView:
                     <div class='chat-input-wrapper'>
                         <textarea id='message-input' class='chat-input' rows='1' placeholder='Escribe tu mensaje...'></textarea>
                         <button id='send-btn' class='send-btn'><i class='fas fa-paper-plane'></i></button>
-                    </div>
-                    <div class='chat-suggestions'>
-                        <button class='suggestion-btn' data-message='ayuda'>Ayuda</button>
-                        <button class='suggestion-btn' data-message='¿Qué productos tienen stock bajo?'>Stock bajo</button>
-                        <button class='suggestion-btn' data-message='Resumen de ventas'>Resumen de ventas</button>
-                        <button class='suggestion-btn' data-message='Resumen de compras'>Resumen de compras</button>
                     </div>
                 </div>
             </div>

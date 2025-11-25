@@ -27,7 +27,7 @@ class AIService:
                 "Por favor, configura tu API key en el archivo .env"
             )
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('models/gemini-pro')
+        self.model = genai.GenerativeModel('gemini-pro')
     
     def get_inventory_context(self):
         """Obtiene contexto del inventario actual"""
