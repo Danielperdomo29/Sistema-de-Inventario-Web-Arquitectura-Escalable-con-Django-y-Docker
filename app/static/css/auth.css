@@ -251,3 +251,68 @@ body {
     color: #6b7280;
     font-size: 13px;
 }
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 20px;
+    }
+    
+    .auth-card {
+        padding: 30px 20px;
+        max-width: 100%;
+    }
+    
+    .auth-card h2 {
+        font-size: 1.5rem;
+    }
+    
+    .test-users-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .user-card {
+        padding: 15px 10px;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 25px 15px;
+    }
+    
+    .auth-card h2 {
+        font-size: 1.3rem;
+    }
+    
+    .test-users-section {
+        margin-bottom: 25px;
+        padding-bottom: 25px;
+    }
+    
+    .test-users-title {
+        font-size: 14px;
+    }
+    
+    .test-users-subtitle {
+        font-size: 12px;
+    }
+    
+    .user-card-role {
+        font-size: 13px;
+    }
+    
+    .user-card-username {
+        font-size: 12px;
+    }
+    
+    .btn {
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+}

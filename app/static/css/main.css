@@ -48,6 +48,41 @@ body {
     background: rgba(255,255,255,0.2); 
 }
 
+/* Hamburger Menu */
+.hamburger-menu {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.3s;
+}
+
+.hamburger-menu:hover {
+    transform: scale(1.1);
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
 /* Sidebar */
 .layout { 
     display: flex; 
@@ -58,7 +93,10 @@ body {
     width: 250px; 
     background: white; 
     padding: 20px; 
-    box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+    position: relative;
+    z-index: 999;
 }
 
 .sidebar-menu { 
@@ -138,16 +176,23 @@ body {
 }
 
 /* Table */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 20px;
+}
+
 table { 
     width: 100%; 
-    border-collapse: collapse; 
-    margin-top: 20px; 
+    border-collapse: collapse;
+    min-width: 600px;
 }
 
 th, td { 
     padding: 15px; 
     text-align: left; 
-    border-bottom: 1px solid #f0f0f0; 
+    border-bottom: 1px solid #f0f0f0;
+    white-space: nowrap;
 }
 
 th { 
@@ -158,6 +203,30 @@ th {
 
 tr:hover { 
     background: #f8f9fa; 
+}
+
+/* Responsive tables */
+@media (max-width: 768px) {
+    .table-container {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    th, td {
+        padding: 12px 10px;
+        font-size: 14px;
+    }
+    
+    table {
+        min-width: 700px;
+    }
+}
+
+@media (max-width: 480px) {
+    th, td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
 }
 
 /* Buttons */
@@ -1032,6 +1101,132 @@ table td.empty-message-cell {
     
     .doc-grid-stats {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    /* Mostrar hamburguesa */
+    .hamburger-menu {
+        display: block;
+    }
+    
+    /* Layout responsive */
+    .layout {
+        flex-direction: column;
+    }
+    
+    /* Sidebar móvil */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        padding: 20px;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        overflow-y: auto;
+        z-index: 999;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        padding: 20px 15px;
+    }
+    
+    .navbar {
+        padding: 1rem;
+    }
+    
+    .navbar-content {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .navbar h1 {
+        font-size: 1rem;
+        flex: 1;
+        text-align: center;
+    }
+    
+    .navbar-menu {
+        gap: 10px;
+    }
+    
+    .card {
+        padding: 20px 15px;
+    }
+    
+    .card-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    /* Stats cards */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Buttons */
+    .btn-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar h1 {
+        font-size: 0.85rem;
+    }
+    
+    .navbar-menu span {
+        display: none;
+    }
+    
+    .sidebar {
+        width: 260px;
+    }
+    
+    .sidebar-menu a {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    
+    .main-content {
+        padding: 15px 10px;
+    }
+    
+    .card {
+        padding: 15px 10px;
+    }
+    
+    .card-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    .doc-main-title {
+        font-size: 1.5rem;
+    }
+    
+    .doc-section-title {
+        font-size: 1.2rem;
+    }
+    
+    .documentation-container {
+        padding: 20px 10px;
     }
 }
 

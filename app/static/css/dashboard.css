@@ -52,3 +52,37 @@
     padding: 30px;
     color: #6b7280;
 }
+
+/* Responsive Dashboard */
+@media (max-width: 768px) {
+    .welcome-banner {
+        padding: 20px;
+    }
+    
+    .welcome-banner h1 {
+        font-size: 22px;
+    }
+    
+    .welcome-banner p {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-banner {
+        padding: 15px;
+    }
+    
+    .welcome-banner h1 {
+        font-size: 18px;
+    }
+    
+    .welcome-banner p {
+        font-size: 13px;
+    }
+    
+    .stock-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+}

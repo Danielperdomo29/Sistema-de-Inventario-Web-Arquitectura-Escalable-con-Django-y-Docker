@@ -118,19 +118,21 @@ class DashboardView:
                 <span><i class="fas fa-exclamation-triangle"></i> Productos con Stock Bajo</span>
                 <a href="/productos/" class="btn btn-secondary">Ver Todos</a>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Categoría</th>
-                        <th>Stock Actual</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {stock_rows}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Stock Actual</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {stock_rows}
+                    </tbody>
+                </table>
+            </div>
         </div>
         """
         
@@ -167,21 +169,23 @@ class DashboardView:
                 <span><i class="fas fa-credit-card"></i> Últimas Ventas</span>
                 <a href="/ventas/" class="btn btn-primary">Ver Todas</a>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Total</th>
-                        <th>Estado</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {ventas_rows}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ventas_rows}
+                    </tbody>
+                </table>
+            </div>
         </div>
         """
         
@@ -218,21 +222,23 @@ class DashboardView:
                 <span><i class="fas fa-shopping-bag"></i> Últimas Compras</span>
                 <a href="/compras/" class="btn btn-primary">Ver Todas</a>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Proveedor</th>
-                        <th>Total</th>
-                        <th>Estado</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {compras_rows}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Proveedor</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {compras_rows}
+                    </tbody>
+                </table>
+            </div>
         </div>
         """
         

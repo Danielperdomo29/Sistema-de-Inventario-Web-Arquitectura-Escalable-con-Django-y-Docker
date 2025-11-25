@@ -17,6 +17,9 @@ class Layout:
         return f"""
         <div class="navbar">
             <div class="navbar-content">
+                <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle menu">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <h1>Sistema de Gestión de Inventario</h1>
                 <div class="navbar-menu">
                     <span>Hola, {user['username']}</span>
@@ -53,7 +56,8 @@ class Layout:
             menu_html += f'<li><a href="{item["url"]}" {active_class}>{item["label"]}</a></li>\n'
         
         return f"""
-        <div class="sidebar">
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <div class="sidebar" id="sidebar">
             <ul class="sidebar-menu">
                 {menu_html}
             </ul>
@@ -84,6 +88,7 @@ class Layout:
                     {content}
                 </div>
             </div>
+            <script src="/static/js/main.js"></script>
         </body>
         </html>
         """

@@ -106,21 +106,23 @@ class ConfigView:
                 <span><i class="fas fa-users"></i> Usuarios del Sistema</span>
                 <a href="/configuracion/usuarios/crear/" class="btn btn-primary">+ Nuevo Usuario</a>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Usuario</th>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users_rows}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users_rows}
+                    </tbody>
+                </table>
+            </div>
         </div>
         """
         
@@ -141,18 +143,20 @@ class ConfigView:
         db_section = f"""
         <div class="card">
             <div class="card-header"><i class="fas fa-database"></i> Información de Base de Datos</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tabla</th>
-                        <th>Registros</th>
-                        <th>Tamaño</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {db_rows}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tabla</th>
+                            <th>Registros</th>
+                            <th>Tamaño</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {db_rows}
+                    </tbody>
+                </table>
+            </div>
         </div>
         """
         

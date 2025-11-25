@@ -37,23 +37,25 @@ class SaleView:
                 """
             
             table_content = f"""
-            <table>
-                <thead>
-                    <tr>
-                        <th>Factura</th>
-                        <th>Fecha</th>
-                        <th>Cliente</th>
-                        <th>Documento</th>
-                        <th>Total</th>
-                        <th>Estado</th>
-                        <th>Tipo Pago</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Documento</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Tipo Pago</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows}
+                    </tbody>
+                </table>
+            </div>
             """
         else:
             table_content = """
