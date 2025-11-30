@@ -232,26 +232,13 @@ class AIService:
             return f"Lo siento, hubo un error al procesar tu consulta. Por favor, intenta de nuevo. Error: {str(e)}"
     
     def get_help_message(self):
-        """Retorna mensaje de ayuda"""
-        return """
-        ¡Hola! Soy tu asistente virtual del Sistema de Inventario. Puedo ayudarte con:
-        
-        Consultas sobre productos:
-        - "Buscar producto laptop"
-        - "¿Qué productos tienen stock bajo?"
-        - "Mostrar productos"
-        
-        Información de ventas:
-        - "Resumen de ventas"
-        - "¿Cuánto he vendido?"
-        
-        Información de compras:
-        - "Resumen de compras"
-        - "Total de compras"
-        
-        Ayuda general:
-        - "¿Cómo registro una venta?"
-        - "¿Cómo funciona el sistema?"
-        
-        ¿En qué puedo ayudarte hoy?
-        """
+        """Retorna mensaje de ayuda con los comandos básicos"""
+        return (
+            "Comandos básicos disponibles:\n"
+            "- \"ayuda\" - Muestra qué puede hacer el chatbot\n"
+            "- \"buscar producto [nombre]\" - Busca productos específicos\n"
+            "- \"resumen de ventas\" - Muestra estadísticas de ventas\n"
+            "- \"resumen de compras\" - Muestra estadísticas de compras\n"
+            "- \"productos con stock bajo\" - Lista productos con poco inventario\n"
+            "\n¿En qué puedo ayudarte hoy?"
+        )
