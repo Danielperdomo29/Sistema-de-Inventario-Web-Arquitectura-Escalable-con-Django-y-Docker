@@ -2,10 +2,6 @@
 
 **Sistema de Inventario** es una aplicación completa desarrollada con **Django** bajo el patrón **MVC**, diseñada para administrar inventarios, ventas, compras, productos, clientes, proveedores y almacenes desde un panel de administración intuitivo y moderno.
 
-## Demo del Proyecto
-
-[https://ecommerce.com/](https://ecommerce.pablogarciajc.com/)
-
 | ![Imagen 1](https://pablogarciajc.com/wp-content/uploads/2025/09/ecommerce_11_11.webp) | ![Imagen 2](https://pablogarciajc.com/wp-content/uploads/2025/01/ecommerce_6_webp.png) |
 |-----------|-----------|
 
@@ -29,8 +25,6 @@
 
 ### Chatbot con IA - Sistema de Inventario
 
-## Descripción
-
 Asistente virtual con Inteligencia Artificial integrado al Sistema de Inventario. Utiliza Google Gemini AI para responder preguntas y ayudar con la gestión del inventario mediante lenguaje natural.
 
 - **"ayuda"** - Muestra qué puede hacer el chatbot
@@ -39,7 +33,7 @@ Asistente virtual con Inteligencia Artificial integrado al Sistema de Inventario
 - **"resumen de compras"** - Muestra estadísticas de compras
 - **"productos con stock bajo"** - Lista productos con poco inventario
 
-### Roles de Usuario Iniciales
+## Roles de Usuario Iniciales
 
 El sistema está diseñado con **roles personalizables**:
 
