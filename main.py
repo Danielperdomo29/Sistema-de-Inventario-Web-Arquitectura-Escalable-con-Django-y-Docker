@@ -11,8 +11,9 @@ import django
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Configurar Django
-from config.settings import configure_django
-configure_django()
+# Configurar Django
+# from config.settings import configure_django
+# configure_django()
 
 # Importar después de configurar Django
 from django.core.management import execute_from_command_line

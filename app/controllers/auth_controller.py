@@ -16,8 +16,8 @@ class AuthController:
             user = User.authenticate(username, password)
             
             if user:
-                request.session['user_id'] = user['id']
-                request.session['username'] = user['username']
+                request.session['user_id'] = user.id
+                request.session['username'] = user.username
                 return HttpResponseRedirect('/')
             else:
                 csrf_token = get_token(request)

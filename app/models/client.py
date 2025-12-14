@@ -8,7 +8,7 @@ class Client:
         """Obtiene todos los clientes activos"""
         query = """
             SELECT id, nombre, documento, telefono, email, direccion
-            FROM pablogarciajcbd.clientes
+            FROM clientes
             WHERE activo = 1
             ORDER BY nombre
         """
@@ -19,7 +19,7 @@ class Client:
         """Obtiene un cliente por su ID"""
         query = """
             SELECT id, nombre, documento, telefono, email, direccion
-            FROM pablogarciajcbd.clientes
+            FROM clientes
             WHERE id = %s AND activo = 1
         """
         result = Database.execute_query(query, (client_id,))
@@ -28,7 +28,7 @@ class Client:
     @staticmethod
     def count():
         """Cuenta el total de clientes activos"""
-        query = "SELECT COUNT(*) as total FROM pablogarciajcbd.clientes WHERE activo = 1"
+        query = "SELECT COUNT(*) as total FROM clientes WHERE activo = 1"
         result = Database.execute_query(query)
         return result[0]['total'] if result else 0
     
@@ -36,7 +36,7 @@ class Client:
     def create(data):
         """Crea un nuevo cliente"""
         query = """
-            INSERT INTO pablogarciajcbd.clientes 
+            INSERT INTO clientes 
             (nombre, documento, telefono, email, direccion, activo)
             VALUES (%s, %s, %s, %s, %s, %s)
         """
@@ -54,7 +54,7 @@ class Client:
     def update(client_id, data):
         """Actualiza un cliente existente"""
         query = """
-            UPDATE pablogarciajcbd.clientes 
+            UPDATE clientes 
             SET nombre = %s,
                 documento = %s,
                 telefono = %s,
@@ -77,6 +77,6 @@ class Client:
     @staticmethod
     def delete(client_id):
         """Elimina un cliente (soft delete cambiando activo a 0)"""
-        query = "UPDATE pablogarciajcbd.clientes SET activo = 0 WHERE id = %s"
+        query = "UPDATE clients SET activo = 0 WHERE id = %s"
         return Database.execute_query(query, (client_id,), fetch=False)
 

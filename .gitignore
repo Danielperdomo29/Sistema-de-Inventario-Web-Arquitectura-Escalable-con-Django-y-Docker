@@ -1,37 +1,46 @@
-# Editor
-.vscode/*
-.idea/
-
-# Environment
-.env
-.env.local
-
-# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-*.egg-info/
-dist/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
 *.egg
+MANIFEST
 
-# Django
+# Django stuff:
 *.log
+local_settings.py
 db.sqlite3
 db.sqlite3-journal
-staticfiles/
-media/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
 
 # Docker
-.docker/mysql/data/
+.docker/mysql/database/*
+mysql_data/
+.docker/nginx/log/*
 
-# OS
+# IDEs
+.vscode/
+.idea/
+
+# OS specific
 .DS_Store
 Thumbs.db
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/

@@ -8,7 +8,7 @@ class Warehouse:
         """Obtiene todos los almacenes activos"""
         query = """
             SELECT id, nombre, ubicacion, capacidad
-            FROM pablogarciajcbd.almacenes
+            FROM almacenes
             WHERE activo = 1
             ORDER BY nombre
         """
@@ -19,7 +19,7 @@ class Warehouse:
         """Obtiene un almacén por su ID"""
         query = """
             SELECT id, nombre, ubicacion, capacidad
-            FROM pablogarciajcbd.almacenes
+            FROM almacenes
             WHERE id = %s AND activo = 1
         """
         result = Database.execute_query(query, (warehouse_id,))
@@ -28,7 +28,7 @@ class Warehouse:
     @staticmethod
     def count():
         """Cuenta el total de almacenes activos"""
-        query = "SELECT COUNT(*) as total FROM pablogarciajcbd.almacenes WHERE activo = 1"
+        query = "SELECT COUNT(*) as total FROM almacenes WHERE activo = 1"
         result = Database.execute_query(query)
         return result[0]['total'] if result else 0
     
@@ -36,7 +36,7 @@ class Warehouse:
     def create(data):
         """Crea un nuevo almacén"""
         query = """
-            INSERT INTO pablogarciajcbd.almacenes 
+            INSERT INTO almacenes 
             (nombre, ubicacion, capacidad, activo)
             VALUES (%s, %s, %s, %s)
         """
@@ -52,7 +52,7 @@ class Warehouse:
     def update(warehouse_id, data):
         """Actualiza un almacén existente"""
         query = """
-            UPDATE pablogarciajcbd.almacenes 
+            UPDATE almacenes 
             SET nombre = %s,
                 ubicacion = %s,
                 capacidad = %s,
@@ -71,5 +71,5 @@ class Warehouse:
     @staticmethod
     def delete(warehouse_id):
         """Elimina un almacén (soft delete cambiando activo a 0)"""
-        query = "UPDATE pablogarciajcbd.almacenes SET activo = 0 WHERE id = %s"
+        query = "UPDATE almacenes SET activo = 0 WHERE id = %s"
         return Database.execute_query(query, (warehouse_id,), fetch=False)

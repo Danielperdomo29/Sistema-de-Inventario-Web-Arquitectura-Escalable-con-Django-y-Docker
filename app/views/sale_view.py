@@ -418,7 +418,7 @@ class SaleView:
                             <strong>Tipo de Pago:</strong> {sale.get('tipo_pago', 'N/A')}
                         </div>
                         <div class="mb-2">
-                            <strong>Usuario:</strong> {sale['usuario_nombre']}
+                            <strong>Usuario:</strong> {sale.get('vendedor', 'N/A')}
                         </div>
                         <div class="mb-2">
                             <strong>Notas:</strong> {sale.get('notas', 'Sin notas')}
@@ -468,5 +468,5 @@ class SaleView:
         """
         
         from app.views.layout import Layout
-        return Layout.render(user, content, 'ventas', 'Detalle de Venta')
+        return Layout.render('Detalle de Venta', user, 'ventas', content)
 

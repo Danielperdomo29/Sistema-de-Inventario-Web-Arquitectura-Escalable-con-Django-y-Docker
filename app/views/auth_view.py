@@ -27,19 +27,9 @@ class AuthView:
             <h3 class="test-users-title"><i class="fas fa-bolt"></i> Acceso Rápido</h3>
             <p class="test-users-subtitle">Usuarios ficticios para realizar pruebas</p>
             <div class="test-users-grid">
-                <div class="user-card" data-username="admin" data-password="admin123">
+                <div class="user-card" data-username="admin" data-password="admin">
                     <div class="user-card-role">Administrador</div>
                     <div class="user-card-username">admin</div>
-                    <a href="#" class="user-card-action select-user">Seleccionar aquí</a>
-                </div>
-                <div class="user-card" data-username="jperez" data-password="vendedor123">
-                    <div class="user-card-role">Vendedor</div>
-                    <div class="user-card-username">jperez</div>
-                    <a href="#" class="user-card-action select-user">Seleccionar aquí</a>
-                </div>
-                <div class="user-card" data-username="mgonzalez" data-password="almacen123">
-                    <div class="user-card-role">Almacenero</div>
-                    <div class="user-card-username">mgonzalez</div>
                     <a href="#" class="user-card-action select-user">Seleccionar aquí</a>
                 </div>
             </div>
@@ -66,7 +56,7 @@ class AuthView:
             <p>¿No tienes cuenta? <a href="/register/">Regístrate aquí</a></p>
         </div>
         <div class="auth-copyright">
-            <p>Desarrollado por © Pablo Garcia JC</p>
+            <p>Desarrollado por © Daniel Enrique Perdomo Carvajal</p>
         </div>
     </div>
 </div>

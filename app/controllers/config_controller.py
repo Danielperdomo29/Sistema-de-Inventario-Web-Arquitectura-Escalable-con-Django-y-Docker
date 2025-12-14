@@ -21,7 +21,7 @@ class ConfigController:
             return redirect('/login/')
         
         # Verificar si es superadmin
-        is_superadmin = user.get('username') == 'superadmin'
+        is_superadmin = user.username == 'superadmin'
         
         # Obtener datos de configuración
         data = {
@@ -179,7 +179,7 @@ class ConfigController:
         user_info = Config.get_user_info(user_id)
         
         # Verificar si el usuario está activo (solo usuarios con activo=1 pueden editar estado)
-        is_active_user = user.get('activo') == 1
+        is_active_user = user.is_active
         
         # Si es GET, mostrar formulario
         if request.method == 'GET':
@@ -233,8 +233,7 @@ class ConfigController:
                 confirm_password = request.POST.get('confirm_password')
                 
                 # Validar contraseña actual
-                current_hash = hashlib.md5(current_password.encode()).hexdigest()
-                if current_hash != user['password']:
+                if not user.check_password(current_password):
                     return HttpResponse(ConfigView.change_password(user, request, error='La contraseña actual es incorrecta'))
                 
                 # Validar que las contraseñas coincidan

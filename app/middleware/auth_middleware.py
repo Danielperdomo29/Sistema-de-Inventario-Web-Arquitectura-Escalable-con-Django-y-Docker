@@ -19,7 +19,7 @@ class AuthMiddleware:
         
         # Si activo = 1 → Usuario PUEDE modificar (retorna True)
         # Si activo = 0 → Usuario NO puede modificar (retorna False)
-        is_active = user.get('activo', 0) == 1
+        is_active = user.is_active
         
         return is_active, user
     

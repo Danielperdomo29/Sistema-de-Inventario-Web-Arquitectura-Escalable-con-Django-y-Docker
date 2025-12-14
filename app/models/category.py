@@ -6,7 +6,7 @@ class Category:
         """Obtiene todas las categorías"""
         query = """
             SELECT id, nombre, descripcion 
-            FROM pablogarciajcbd.categorias 
+            FROM categorias 
             WHERE activo = 1
             ORDER BY nombre
         """
@@ -17,7 +17,7 @@ class Category:
         """Obtiene una categoría por su ID"""
         query = """
             SELECT id, nombre, descripcion 
-            FROM pablogarciajcbd.categorias 
+            FROM categorias 
             WHERE id = %s AND activo = 1
         """
         result = Database.execute_query(query, (category_id,))
@@ -26,7 +26,7 @@ class Category:
     @staticmethod
     def count():
         """Cuenta el total de categorías"""
-        query = "SELECT COUNT(*) as total FROM pablogarciajcbd.categorias WHERE activo = 1"
+        query = "SELECT COUNT(*) as total FROM categorias WHERE activo = 1"
         result = Database.execute_query(query)
         return result[0]['total'] if result else 0
     
@@ -34,7 +34,7 @@ class Category:
     def create(data):
         """Crea una nueva categoría"""
         query = """
-            INSERT INTO pablogarciajcbd.categorias (nombre, descripcion, activo)
+            INSERT INTO categorias (nombre, descripcion, activo)
             VALUES (%s, %s, %s)
         """
         params = (
@@ -48,7 +48,7 @@ class Category:
     def update(category_id, data):
         """Actualiza una categoría existente"""
         query = """
-            UPDATE pablogarciajcbd.categorias 
+            UPDATE categorias 
             SET nombre = %s, 
                 descripcion = %s, 
                 activo = %s
@@ -65,6 +65,6 @@ class Category:
     @staticmethod
     def delete(category_id):
         """Elimina una categoría (soft delete cambiando activo a 0)"""
-        query = "UPDATE pablogarciajcbd.categorias SET activo = 0 WHERE id = %s"
+        query = "UPDATE categorias SET activo = 0 WHERE id = %s"
         return Database.execute_query(query, (category_id,), fetch=False)
 

@@ -17,9 +17,9 @@ class Sale:
                 c.nombre as cliente_nombre,
                 c.documento as cliente_documento,
                 u.username as vendedor
-            FROM pablogarciajcbd.ventas v
-            INNER JOIN pablogarciajcbd.clientes c ON v.cliente_id = c.id
-            INNER JOIN pablogarciajcbd.usuarios u ON v.usuario_id = u.id
+            FROM ventas v
+            INNER JOIN clientes c ON v.cliente_id = c.id
+            INNER JOIN usuarios u ON v.usuario_id = u.id
             ORDER BY v.fecha DESC, v.id DESC
         """
         if limit:
@@ -36,9 +36,9 @@ class Sale:
                 c.documento as cliente_documento,
                 c.telefono as cliente_telefono,
                 u.username as vendedor
-            FROM pablogarciajcbd.ventas v
-            INNER JOIN pablogarciajcbd.clientes c ON v.cliente_id = c.id
-            INNER JOIN pablogarciajcbd.usuarios u ON v.usuario_id = u.id
+            FROM ventas v
+            INNER JOIN clientes c ON v.cliente_id = c.id
+            INNER JOIN usuarios u ON v.usuario_id = u.id
             WHERE v.id = %s
         """
         result = Database.execute_query(query, (sale_id,))
@@ -47,7 +47,7 @@ class Sale:
     @staticmethod
     def count():
         """Cuenta el total de ventas"""
-        query = "SELECT COUNT(*) as total FROM pablogarciajcbd.ventas"
+        query = "SELECT COUNT(*) as total FROM ventas"
         result = Database.execute_query(query)
         return result[0]['total'] if result else 0
     
@@ -56,7 +56,7 @@ class Sale:
         """Calcula el total de ventas del mes actual"""
         query = """
             SELECT COALESCE(SUM(total), 0) as total
-            FROM pablogarciajcbd.ventas
+            FROM ventas
             WHERE MONTH(fecha) = MONTH(CURRENT_DATE())
             AND YEAR(fecha) = YEAR(CURRENT_DATE())
             AND estado = 'completada'
@@ -72,8 +72,8 @@ class Sale:
                 dv.*,
                 p.nombre as producto_nombre,
                 p.codigo as producto_codigo
-            FROM pablogarciajcbd.detalle_ventas dv
-            INNER JOIN pablogarciajcbd.productos p ON dv.producto_id = p.id
+            FROM detalle_ventas dv
+            INNER JOIN productos p ON dv.producto_id = p.id
             WHERE dv.venta_id = %s
         """
         return Database.execute_query(query, (sale_id,))
@@ -83,7 +83,7 @@ class Sale:
         """Crea una nueva venta con sus detalles"""
         # Insertar la venta
         query_venta = """
-            INSERT INTO pablogarciajcbd.ventas 
+            INSERT INTO ventas 
             (numero_factura, cliente_id, usuario_id, fecha, total, estado, tipo_pago, notas)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
@@ -103,7 +103,7 @@ class Sale:
         
         # Insertar los detalles
         query_detalle = """
-            INSERT INTO pablogarciajcbd.detalle_ventas 
+            INSERT INTO detalle_ventas 
             (venta_id, producto_id, cantidad, precio_unitario, subtotal)
             VALUES (%s, %s, %s, %s, %s)
         """
@@ -125,7 +125,7 @@ class Sale:
         """Actualiza una venta existente"""
         # Actualizar la venta
         query_venta = """
-            UPDATE pablogarciajcbd.ventas 
+            UPDATE ventas 
             SET numero_factura = %s,
                 cliente_id = %s,
                 fecha = %s,
@@ -148,12 +148,12 @@ class Sale:
         Database.execute_query(query_venta, params_venta, fetch=False)
         
         # Eliminar detalles anteriores
-        query_delete = "DELETE FROM pablogarciajcbd.detalle_ventas WHERE venta_id = %s"
+        query_delete = "DELETE FROM detalle_ventas WHERE venta_id = %s"
         Database.execute_query(query_delete, (sale_id,), fetch=False)
         
         # Insertar nuevos detalles
         query_detalle = """
-            INSERT INTO pablogarciajcbd.detalle_ventas 
+            INSERT INTO detalle_ventas 
             (venta_id, producto_id, cantidad, precio_unitario, subtotal)
             VALUES (%s, %s, %s, %s, %s)
         """
@@ -174,10 +174,10 @@ class Sale:
     def delete(sale_id):
         """Elimina una venta y sus detalles"""
         # Eliminar detalles
-        query_detalle = "DELETE FROM pablogarciajcbd.detalle_ventas WHERE venta_id = %s"
+        query_detalle = "DELETE FROM detalle_ventas WHERE venta_id = %s"
         Database.execute_query(query_detalle, (sale_id,), fetch=False)
         
         # Eliminar venta
-        query_venta = "DELETE FROM pablogarciajcbd.ventas WHERE id = %s"
+        query_venta = "DELETE FROM ventas WHERE id = %s"
         return Database.execute_query(query_venta, (sale_id,), fetch=False)
 

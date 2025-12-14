@@ -25,7 +25,7 @@ class Layout:
                 </button>
                 <h1>Sistema de Inventario</h1>
                 <div class="navbar-menu">
-                    <span>Hola, {user['username']}</span>
+                    <span>Hola, {user.username}</span>
                     <a href="/logout/">Cerrar Sesión</a>
                 </div>
             </div>
@@ -99,7 +99,7 @@ class Layout:
             <script>
                 // Pasar estado del usuario al JavaScript
                 // activo=1 → true (puede modificar), activo=0 → false (no puede modificar)
-                window.userActive = {('true' if user.get('activo', 1) == 1 else 'false')};
+                window.userActive = {('true' if user.is_active else 'false')};
             </script>
             <script src="/static/js/protection.js"></script>
             {chatbot_script}

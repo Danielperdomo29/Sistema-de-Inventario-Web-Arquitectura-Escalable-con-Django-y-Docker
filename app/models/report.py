@@ -12,7 +12,7 @@ class Report:
                 MONTHNAME(fecha) as nombre_mes,
                 COUNT(*) as total_ventas,
                 SUM(total) as monto_total
-            FROM pablogarciajcbd.ventas
+            FROM ventas
             WHERE YEAR(fecha) = YEAR(CURRENT_DATE())
             AND estado = 'completada'
             GROUP BY MONTH(fecha), MONTHNAME(fecha)
@@ -28,9 +28,9 @@ class Report:
                 p.nombre,
                 SUM(dv.cantidad) as total_vendido,
                 SUM(dv.subtotal) as ingresos_totales
-            FROM pablogarciajcbd.detalle_ventas dv
-            INNER JOIN pablogarciajcbd.productos p ON dv.producto_id = p.id
-            INNER JOIN pablogarciajcbd.ventas v ON dv.venta_id = v.id
+            FROM detalle_ventas dv
+            INNER JOIN productos p ON dv.producto_id = p.id
+            INNER JOIN ventas v ON dv.venta_id = v.id
             WHERE v.estado = 'completada'
             GROUP BY p.id, p.nombre
             ORDER BY total_vendido DESC
@@ -46,7 +46,7 @@ class Report:
                 estado,
                 COUNT(*) as cantidad,
                 SUM(total) as monto_total
-            FROM pablogarciajcbd.ventas
+            FROM ventas
             GROUP BY estado
         """
         return Database.execute_query(query)
@@ -60,8 +60,8 @@ class Report:
                 c.documento,
                 COUNT(v.id) as total_compras,
                 SUM(v.total) as monto_total
-            FROM pablogarciajcbd.clientes c
-            INNER JOIN pablogarciajcbd.ventas v ON c.id = v.cliente_id
+            FROM clientes c
+            INNER JOIN ventas v ON c.id = v.cliente_id
             WHERE v.estado = 'completada'
             GROUP BY c.id, c.nombre, c.documento
             ORDER BY total_compras DESC
@@ -77,8 +77,8 @@ class Report:
                 p.nombre,
                 p.stock_actual as stock,
                 c.nombre as categoria
-            FROM pablogarciajcbd.productos p
-            LEFT JOIN pablogarciajcbd.categorias c ON p.categoria_id = c.id
+            FROM productos p
+            LEFT JOIN categorias c ON p.categoria_id = c.id
             WHERE p.stock_actual <= %s
             ORDER BY p.stock_actual ASC
         """
@@ -89,11 +89,11 @@ class Report:
         """Obtiene un resumen general del sistema"""
         query = """
             SELECT 
-                (SELECT COUNT(*) FROM pablogarciajcbd.ventas WHERE estado = 'completada') as total_ventas_completadas,
-                (SELECT COUNT(*) FROM pablogarciajcbd.productos) as total_productos,
-                (SELECT COUNT(*) FROM pablogarciajcbd.clientes WHERE activo = 1) as total_clientes_activos,
-                (SELECT COALESCE(SUM(total), 0) FROM pablogarciajcbd.ventas WHERE estado = 'completada') as ingresos_totales,
-                (SELECT COALESCE(SUM(total), 0) FROM pablogarciajcbd.ventas 
+                (SELECT COUNT(*) FROM ventas WHERE estado = 'completada') as total_ventas_completadas,
+                (SELECT COUNT(*) FROM productos) as total_productos,
+                (SELECT COUNT(*) FROM clientes WHERE activo = 1) as total_clientes_activos,
+                (SELECT COALESCE(SUM(total), 0) FROM ventas WHERE estado = 'completada') as ingresos_totales,
+                (SELECT COALESCE(SUM(total), 0) FROM ventas 
                  WHERE estado = 'completada' 
                  AND MONTH(fecha) = MONTH(CURRENT_DATE())
                  AND YEAR(fecha) = YEAR(CURRENT_DATE())) as ingresos_mes_actual

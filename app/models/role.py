@@ -8,7 +8,7 @@ class Role:
         """Obtiene todos los roles"""
         query = """
             SELECT id, nombre, descripcion, created_at
-            FROM pablogarciajcbd.roles
+            FROM roles
             ORDER BY nombre
         """
         return Database.execute_query(query)
@@ -18,7 +18,7 @@ class Role:
         """Obtiene un rol por su ID"""
         query = """
             SELECT id, nombre, descripcion
-            FROM pablogarciajcbd.roles
+            FROM roles
             WHERE id = %s
         """
         result = Database.execute_query(query, (role_id,))
@@ -27,7 +27,7 @@ class Role:
     @staticmethod
     def count():
         """Cuenta el total de roles"""
-        query = "SELECT COUNT(*) as total FROM pablogarciajcbd.roles"
+        query = "SELECT COUNT(*) as total FROM roles"
         result = Database.execute_query(query)
         return result[0]['total'] if result else 0
     
@@ -35,7 +35,7 @@ class Role:
     def create(data):
         """Crea un nuevo rol"""
         query = """
-            INSERT INTO pablogarciajcbd.roles (nombre, descripcion)
+            INSERT INTO roles (nombre, descripcion)
             VALUES (%s, %s)
         """
         params = (
@@ -48,7 +48,7 @@ class Role:
     def update(role_id, data):
         """Actualiza un rol existente"""
         query = """
-            UPDATE pablogarciajcbd.roles 
+            UPDATE roles 
             SET nombre = %s,
                 descripcion = %s
             WHERE id = %s
@@ -63,5 +63,5 @@ class Role:
     @staticmethod
     def delete(role_id):
         """Elimina un rol (hard delete)"""
-        query = "DELETE FROM pablogarciajcbd.roles WHERE id = %s"
+        query = "DELETE FROM roles WHERE id = %s"
         return Database.execute_query(query, (role_id,), fetch=False)

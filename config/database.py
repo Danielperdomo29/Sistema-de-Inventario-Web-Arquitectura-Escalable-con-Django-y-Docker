@@ -9,9 +9,9 @@ class Database:
         """Obtiene una conexión a MySQL"""
         return MySQLdb.connect(
             host='mysql',
-            user=os.getenv('MYSQL_USER', 'pablogarciajcuser'),
-            password=os.getenv('MYSQL_PASSWORD', 'password'),
-            database=os.getenv('DB_DATABASE', 'pablogarciajcbd'),
+            user=os.getenv('DB_USER', 'root'),
+            password=os.getenv('DB_PASSWORD', 'root'),
+            database=os.getenv('DB_NAME', 'danielclouter'),
             charset='utf8mb4'
         )
     

@@ -37,7 +37,7 @@ class Product:
     def create(data):
         """Crea un nuevo producto"""
         query = """
-            INSERT INTO pablogarciajcbd.productos 
+            INSERT INTO productos 
             (codigo, nombre, descripcion, categoria_id, precio_compra, precio_venta, 
              stock_minimo, stock_actual, proveedor_id, activo)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -60,7 +60,7 @@ class Product:
     def update(product_id, data):
         """Actualiza un producto existente"""
         query = """
-            UPDATE pablogarciajcbd.productos 
+            UPDATE productos 
             SET codigo = %s, 
                 nombre = %s, 
                 descripcion = %s, 
@@ -91,7 +91,7 @@ class Product:
     @staticmethod
     def delete(product_id):
         """Elimina un producto (soft delete cambiando activo a 0)"""
-        query = "UPDATE pablogarciajcbd.productos SET activo = 0 WHERE id = %s"
+        query = "UPDATE productos SET activo = 0 WHERE id = %s"
         return Database.execute_query(query, (product_id,), fetch=False)
     
     @staticmethod
