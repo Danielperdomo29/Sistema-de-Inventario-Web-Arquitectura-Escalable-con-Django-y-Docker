@@ -39,9 +39,6 @@ Esto garantiza aislamiento, facilidad de despliegue y consistencia entre entorno
 
 Como componente adicional, el sistema incorpora un asistente inteligente basado en IA (**Google Gemini**) que permite realizar consultas en lenguaje natural relacionadas con productos, inventario y estadísticas básicas, mejorando la experiencia del usuario y demostrando la integración de tecnologías modernas de inteligencia artificial en aplicaciones empresariales.
 
-## Autores
-
-Desarrollado por © **Daniel Enrique Perdomo Carvajal**
 
 ---
 Este proyecto representa una solución robusta y extensible, ideal como base para sistemas empresariales reales, demostrando competencias en desarrollo backend, contenedorización, diseño de bases de datos, automatización de despliegue y buenas prácticas de ingeniería de software.
