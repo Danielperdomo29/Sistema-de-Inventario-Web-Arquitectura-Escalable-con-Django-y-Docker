@@ -30,14 +30,21 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware', # Required for admin
 ]
 
+# Load env vars
+from dotenv import load_dotenv
+load_dotenv()
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME', 'danielclouter'),
-        'USER': os.getenv('DB_USER', 'pablogarciajcuser'),
+        'NAME': os.getenv('DB_NAME', 'danielper29'),
+        'USER': os.getenv('DB_USER', 'root'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'password'),
-        'HOST': os.getenv('DB_HOST', 'mysql'),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
         'PORT': os.getenv('DB_PORT', '3306'),
+        'OPTIONS': {
+            'connect_timeout': 30,
+        }
     }
 }
 
@@ -49,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
+    'facturacion',
 ]
 
 AUTH_USER_MODEL = 'app.UserAccount'
@@ -58,3 +66,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'app', 'static'),
 ]
+
+# Media files (App uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

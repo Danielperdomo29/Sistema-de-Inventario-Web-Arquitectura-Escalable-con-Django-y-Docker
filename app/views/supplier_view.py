@@ -42,7 +42,7 @@ class SupplierView:
                     <tr>
                         <th>#</th>
                         <th>Nombre</th>
-                        <th>RUC</th>
+                        <th>NIT</th>
                         <th>Teléfono</th>
                         <th>Email</th>
                         <th>Acciones</th>

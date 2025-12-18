@@ -1,72 +1,65 @@
-from config.database import Database
+from django.db import models
 
-class Supplier:
+class Supplier(models.Model):
+    """Modelo de Proveedor"""
+    nombre = models.CharField(max_length=200)
+    ruc = models.CharField(max_length=50, blank=True, null=True)
+    telefono = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    direccion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'proveedores'
+        verbose_name = 'Proveedor'
+        verbose_name_plural = 'Proveedores'
+
+    def __str__(self):
+        return self.nombre
+    
     @staticmethod
     def get_all():
         """Obtener todos los proveedores activos"""
-        query = "SELECT * FROM proveedores WHERE activo = 1 ORDER BY nombre"
-        return Database.execute_query(query)
+        return list(Supplier.objects.filter(activo=True).values().order_by('nombre'))
     
     @staticmethod
     def get_by_id(supplier_id):
         """Obtener un proveedor por ID"""
-        query = "SELECT * FROM proveedores WHERE id = %s AND activo = 1"
-        result = Database.execute_query(query, (supplier_id,))
-        return result[0] if result else None
+        try:
+            return Supplier.objects.filter(id=supplier_id, activo=True).values().first()
+        except Exception:
+            return None
     
     @staticmethod
     def count():
         """Contar total de proveedores activos"""
-        query = "SELECT COUNT(*) as total FROM proveedores WHERE activo = 1"
-        result = Database.execute_query(query)
-        return result[0]['total'] if result else 0
+        return Supplier.objects.filter(activo=True).count()
     
     @staticmethod
     def create(data):
         """Crear un nuevo proveedor"""
-        query = """
-            INSERT INTO proveedores (nombre, ruc, telefono, email, direccion)
-            VALUES (%s, %s, %s, %s, %s)
-        """
-        return Database.execute_query(
-            query,
-            (
-                data['nombre'],
-                data.get('ruc', ''),
-                data.get('telefono', ''),
-                data.get('email', ''),
-                data.get('direccion', '')
-            ),
-            fetch=False
+        supplier = Supplier.objects.create(
+            nombre=data['nombre'],
+            ruc=data.get('ruc', ''),
+            telefono=data.get('telefono', ''),
+            email=data.get('email', ''),
+            direccion=data.get('direccion', ''),
+             activo=True
         )
+        return supplier.id
     
     @staticmethod
     def update(supplier_id, data):
         """Actualizar un proveedor"""
-        query = """
-            UPDATE proveedores
-            SET nombre = %s,
-                ruc = %s,
-                telefono = %s,
-                email = %s,
-                direccion = %s
-            WHERE id = %s
-        """
-        return Database.execute_query(
-            query,
-            (
-                data['nombre'],
-                data.get('ruc', ''),
-                data.get('telefono', ''),
-                data.get('email', ''),
-                data.get('direccion', ''),
-                supplier_id
-            ),
-            fetch=False
+        return Supplier.objects.filter(id=supplier_id).update(
+            nombre=data['nombre'],
+            ruc=data.get('ruc', ''),
+            telefono=data.get('telefono', ''),
+            email=data.get('email', ''),
+            direccion=data.get('direccion', '')
         )
     
     @staticmethod
     def delete(supplier_id):
         """Eliminar lógicamente un proveedor"""
-        query = "UPDATE proveedores SET activo = 0 WHERE id = %s"
-        return Database.execute_query(query, (supplier_id,), fetch=False)
+        return Supplier.objects.filter(id=supplier_id).update(activo=False)

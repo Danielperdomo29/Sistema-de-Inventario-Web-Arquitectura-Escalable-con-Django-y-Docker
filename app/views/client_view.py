@@ -100,7 +100,7 @@ class ClientView:
                     </div>
                     
                     <div>
-                        <label class="form-label">Documento (DNI/RUC)</label>
+                        <label class="form-label">Documento (NIT/C.C)</label>
                         <input type="text" name="documento" class="form-input">
                     </div>
                     

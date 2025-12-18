@@ -1,4 +1,5 @@
 from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
 from app.models.user import User
 from app.models.product import Product
 from app.models.category import Category
@@ -14,22 +15,15 @@ class DashboardController:
     """Controlador del Dashboard"""
     
     @staticmethod
+    @login_required(login_url='/login/')
     def index(request):
         """Muestra el dashboard"""
-        # Verificar autenticación
-        user_id = request.session.get('user_id')
-        
-        if not user_id:
-            return HttpResponseRedirect('/login/')
-        
-        # Obtener datos del usuario
-        user = User.get_by_id(user_id)
-        
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect('/login/')
+        # Obtenemos el usuario directamente del request (autenticación Django)
+        user = request.user
         
         # Obtener estadísticas principales
+        # Nota: Los modelos serán refactorizados a ORM, asegurando que estos métodos
+        # sigan existiendo o se adapten.
         stats = {
             'total_productos': Product.count(),
             'total_categorias': Category.count(),

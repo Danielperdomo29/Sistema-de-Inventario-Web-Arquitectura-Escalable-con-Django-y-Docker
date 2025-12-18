@@ -15,6 +15,7 @@ class AuthView:
     <title>Iniciar Sesión - Sistema de Inventario</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="stylesheet" href="/static/css/theme-green.css">
 </head>
 <body>
 <!-- Spinner -->
@@ -22,18 +23,6 @@ class AuthView:
 
 <div class="auth-container">
     <div class="auth-card">
-            <!-- Usuarios de Prueba -->
-        <div class="test-users-section">
-            <h3 class="test-users-title"><i class="fas fa-bolt"></i> Acceso Rápido</h3>
-            <p class="test-users-subtitle">Usuarios ficticios para realizar pruebas</p>
-            <div class="test-users-grid">
-                <div class="user-card" data-username="admin" data-password="admin">
-                    <div class="user-card-role">Administrador</div>
-                    <div class="user-card-username">admin</div>
-                    <a href="#" class="user-card-action select-user">Seleccionar aquí</a>
-                </div>
-            </div>
-        </div>
         <h2><i class="fas fa-lock"></i> Iniciar Sesión</h2>
         <p>Bienvenido al Sistema de Inventario</p>
         {error_html}

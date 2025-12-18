@@ -182,8 +182,22 @@ class SaleController:
             request.session.flush()
             return HttpResponseRedirect('/login/')
         
-        # Eliminar la venta
-        Sale.delete(sale_id)
+        # Verificar si tiene factura DIAN asociada
+        sale = Sale.objects.get(id=sale_id)
+        if hasattr(sale, 'factura_dian'):
+            # Anulación lógica
+            # En producción esto debería disparar una Nota Crédito
+            sale.estado = 'anulada'
+            sale.save()
+            # Opcional: Agregar mensaje flash indicando que se anuló en lugar de eliminar
+        else:
+            # Eliminar la venta física (si no tiene restricciones ForeingKey extras)
+            try:
+                Sale.delete(sale_id)
+            except Exception:
+                # Si falla por integridad con otros modelos, podríamos marcar como cancelada
+                sale.estado = 'cancelada'
+                sale.save()
         
         # Redireccionar a la lista
         return HttpResponseRedirect('/ventas/')

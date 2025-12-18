@@ -1,70 +1,57 @@
-from config.database import Database
+from django.db import models
 
-class Category:
+class Category(models.Model):
+    """Modelo de Categoría"""
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'categorias'
+        verbose_name = 'Categoría'
+        verbose_name_plural = 'Categorías'
+
+    def __str__(self):
+        return self.nombre
+    
     @staticmethod
     def get_all():
         """Obtiene todas las categorías"""
-        query = """
-            SELECT id, nombre, descripcion 
-            FROM categorias 
-            WHERE activo = 1
-            ORDER BY nombre
-        """
-        return Database.execute_query(query)
+        return list(Category.objects.filter(activo=True).values('id', 'nombre', 'descripcion').order_by('nombre'))
     
     @staticmethod
     def get_by_id(category_id):
         """Obtiene una categoría por su ID"""
-        query = """
-            SELECT id, nombre, descripcion 
-            FROM categorias 
-            WHERE id = %s AND activo = 1
-        """
-        result = Database.execute_query(query, (category_id,))
-        return result[0] if result else None
+        try:
+            return Category.objects.filter(id=category_id, activo=True).values('id', 'nombre', 'descripcion').first()
+        except Exception:
+            return None
     
     @staticmethod
     def count():
         """Cuenta el total de categorías"""
-        query = "SELECT COUNT(*) as total FROM categorias WHERE activo = 1"
-        result = Database.execute_query(query)
-        return result[0]['total'] if result else 0
+        return Category.objects.filter(activo=True).count()
     
     @staticmethod
     def create(data):
         """Crea una nueva categoría"""
-        query = """
-            INSERT INTO categorias (nombre, descripcion, activo)
-            VALUES (%s, %s, %s)
-        """
-        params = (
-            data['nombre'],
-            data.get('descripcion', ''),
-            data.get('activo', 1)
+        cat = Category.objects.create(
+            nombre=data['nombre'],
+            descripcion=data.get('descripcion', ''),
+            activo=data.get('activo', True)
         )
-        return Database.execute_query(query, params, fetch=False)
+        return cat.id
     
     @staticmethod
     def update(category_id, data):
         """Actualiza una categoría existente"""
-        query = """
-            UPDATE categorias 
-            SET nombre = %s, 
-                descripcion = %s, 
-                activo = %s
-            WHERE id = %s
-        """
-        params = (
-            data['nombre'],
-            data.get('descripcion', ''),
-            data.get('activo', 1),
-            category_id
+        return Category.objects.filter(id=category_id).update(
+            nombre=data['nombre'],
+            descripcion=data.get('descripcion', ''),
+            activo=data.get('activo', True)
         )
-        return Database.execute_query(query, params, fetch=False)
     
     @staticmethod
     def delete(category_id):
         """Elimina una categoría (soft delete cambiando activo a 0)"""
-        query = "UPDATE categorias SET activo = 0 WHERE id = %s"
-        return Database.execute_query(query, (category_id,), fetch=False)
-
+        return Category.objects.filter(id=category_id).update(activo=False)

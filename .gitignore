@@ -26,11 +26,16 @@ MANIFEST
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+media/dian/
+*.sql
+*.dump
 
 # Environment variables
+.evn.example
 .env
 .env.local
 .env.*.local
+*.env
 
 # Docker
 .docker/mysql/database/*
@@ -40,7 +45,26 @@ mysql_data/
 # IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS specific
 .DS_Store
 Thumbs.db
+
+# Python virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# Migration backups
+**/migrations/*.pyc
+backup_*.sql
+migrate_*.ps1

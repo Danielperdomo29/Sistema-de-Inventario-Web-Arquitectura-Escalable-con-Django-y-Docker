@@ -1,7 +1,8 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.db import models
 from app.models.user import User
-from app.models.sale import Sale
+from app.models.sale import Sale, SaleDetail
 from app.models.product import Product
 from app.views.sale_detail_view import SaleDetailView
 
@@ -16,22 +17,25 @@ class SaleDetailController:
         if not user:
             return HttpResponseRedirect('/login/')
         
-        # Obtener todos los detalles de todas las ventas
-        query = """
-            SELECT dv.*, 
-                   p.nombre as producto_nombre,
-                   v.numero_factura,
-                   v.fecha as fecha_venta,
-                   c.nombre as cliente_nombre
-            FROM detalle_ventas dv
-            INNER JOIN productos p ON dv.producto_id = p.id
-            INNER JOIN ventas v ON dv.venta_id = v.id
-            INNER JOIN clientes c ON v.cliente_id = c.id
-            ORDER BY v.fecha DESC, dv.id DESC
-        """
-        from config.database import Database
-        details = Database.execute_query(query)
+        # Obtener todos los detalles usando ORM
+        # Usamos select_related para traer datos de producto, venta y cliente en una sola query eficiente
+        details_qs = SaleDetail.objects.select_related('producto', 'venta', 'venta__cliente').order_by('-venta__fecha', '-id').all()
         
+        details = []
+        for d in details_qs:
+            details.append({
+                'id': d.id,
+                'venta_id': d.venta_id,
+                'producto_id': d.producto_id,
+                'cantidad': d.cantidad,
+                'precio_unitario': float(d.precio_unitario),
+                'subtotal': float(d.subtotal),
+                'producto_nombre': d.producto.nombre,
+                'numero_factura': d.venta.numero_factura,
+                'fecha_venta': d.venta.fecha,
+                'cliente_nombre': d.venta.cliente.nombre
+            })
+            
         return HttpResponse(SaleDetailView.index(user, details, request))
     
     @staticmethod
@@ -61,27 +65,26 @@ class SaleDetailController:
                 if precio_unitario < 0:
                     raise ValueError("El precio unitario no puede ser negativo")
                 
-                subtotal = cantidad * precio_unitario
-                
-                # Insertar el detalle
-                query = """
-                    INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario, subtotal)
-                    VALUES (%s, %s, %s, %s, %s)
-                """
-                from config.database import Database
-                Database.execute_query(query, (venta_id, producto_id, cantidad, precio_unitario, subtotal), fetch=False)
-                
-                # Actualizar el total de la venta
-                update_query = """
-                    UPDATE ventas 
-                    SET total = (
-                        SELECT SUM(subtotal) 
-                        FROM detalle_ventas 
-                        WHERE venta_id = %s
+                # Transaction atomic para garantizar consistencia
+                from django.db import transaction
+                with transaction.atomic():
+                    subtotal = cantidad * precio_unitario
+                    
+                    # 1. Crear Detalle
+                    SaleDetail.objects.create(
+                        venta_id=venta_id,
+                        producto_id=producto_id,
+                        cantidad=cantidad,
+                        precio_unitario=precio_unitario,
+                        subtotal=subtotal
                     )
-                    WHERE id = %s
-                """
-                Database.execute_query(update_query, (venta_id, venta_id), fetch=False)
+                    
+                    # 2. Recalcular Total Venta (ORM aggregation)
+                    new_total = SaleDetail.objects.filter(venta_id=venta_id).aggregate(
+                        total=models.Sum('subtotal')
+                    )['total'] or 0
+                    
+                    Sale.objects.filter(id=venta_id).update(total=new_total)
                 
                 return HttpResponseRedirect('/detalle-ventas/')
                 
@@ -107,21 +110,23 @@ class SaleDetailController:
         if not user:
             return HttpResponseRedirect('/login/')
         
-        # Obtener el detalle
-        query = """
-            SELECT dv.*, v.numero_factura, p.nombre as producto_nombre
-            FROM detalle_ventas dv
-            INNER JOIN ventas v ON dv.venta_id = v.id
-            INNER JOIN productos p ON dv.producto_id = p.id
-            WHERE dv.id = %s
-        """
-        from config.database import Database
-        result = Database.execute_query(query, (detail_id,))
-        
-        if not result:
+        # Obtener detalle via ORM
+        try:
+            d_obj = SaleDetail.objects.select_related('venta', 'producto').get(id=detail_id)
+        except SaleDetail.DoesNotExist:
             return HttpResponseRedirect('/detalle-ventas/')
-        
-        detail = result[0]
+            
+        # Diccionario para vista
+        detail_dict = {
+            'id': d_obj.id,
+            'venta_id': d_obj.venta_id,
+            'producto_id': d_obj.producto_id,
+            'cantidad': d_obj.cantidad,
+            'precio_unitario': float(d_obj.precio_unitario),
+            'subtotal': float(d_obj.subtotal),
+            'numero_factura': d_obj.venta.numero_factura,
+            'producto_nombre': d_obj.producto.nombre
+        }
         
         if request.method == 'POST':
             try:
@@ -134,40 +139,33 @@ class SaleDetailController:
                 if precio_unitario < 0:
                     raise ValueError("El precio unitario no puede ser negativo")
                 
-                subtotal = cantidad * precio_unitario
-                
-                # Actualizar el detalle
-                update_query = """
-                    UPDATE detalle_ventas
-                    SET cantidad = %s,
-                        precio_unitario = %s,
-                        subtotal = %s
-                    WHERE id = %s
-                """
-                Database.execute_query(update_query, (cantidad, precio_unitario, subtotal, detail_id), fetch=False)
-                
-                # Actualizar el total de la venta
-                update_total_query = """
-                    UPDATE ventas 
-                    SET total = (
-                        SELECT SUM(subtotal) 
-                        FROM detalle_ventas 
-                        WHERE venta_id = %s
-                    )
-                    WHERE id = %s
-                """
-                Database.execute_query(update_total_query, (detail['venta_id'], detail['venta_id']), fetch=False)
+                from django.db import transaction, models
+                with transaction.atomic():
+                    subtotal = cantidad * precio_unitario
+                    
+                    # Actualizar objeto
+                    d_obj.cantidad = cantidad
+                    d_obj.precio_unitario = precio_unitario
+                    d_obj.subtotal = subtotal
+                    d_obj.save()
+                    
+                    # Actualizar total venta
+                    new_total = SaleDetail.objects.filter(venta_id=d_obj.venta_id).aggregate(
+                        total=models.Sum('subtotal')
+                    )['total'] or 0
+                    
+                    Sale.objects.filter(id=d_obj.venta_id).update(total=new_total)
                 
                 return HttpResponseRedirect('/detalle-ventas/')
                 
             except Exception as e:
                 products = Product.get_all()
                 error_message = f"Error al actualizar el detalle: {str(e)}"
-                return HttpResponse(SaleDetailView.edit(user, detail, products, request, error_message))
+                return HttpResponse(SaleDetailView.edit(user, detail_dict, products, request, error_message))
         
         # GET request
         products = Product.get_all()
-        return HttpResponse(SaleDetailView.edit(user, detail, products, request))
+        return HttpResponse(SaleDetailView.edit(user, detail_dict, products, request))
     
     @staticmethod
     def delete(request, detail_id):
@@ -181,29 +179,24 @@ class SaleDetailController:
         
         if request.method == 'POST':
             try:
-                # Obtener la venta_id antes de eliminar
-                query = "SELECT venta_id FROM detalle_ventas WHERE id = %s"
-                from config.database import Database
-                result = Database.execute_query(query, (detail_id,))
-                
-                if result:
-                    venta_id = result[0]['venta_id']
-                    
-                    # Eliminar el detalle
-                    delete_query = "DELETE FROM detalle_ventas WHERE id = %s"
-                    Database.execute_query(delete_query, (detail_id,), fetch=False)
-                    
-                    # Actualizar el total de la venta
-                    update_query = """
-                        UPDATE ventas 
-                        SET total = COALESCE((
-                            SELECT SUM(subtotal) 
-                            FROM detalle_ventas 
-                            WHERE venta_id = %s
-                        ), 0)
-                        WHERE id = %s
-                    """
-                    Database.execute_query(update_query, (venta_id, venta_id), fetch=False)
+                from django.db import transaction, models
+                with transaction.atomic():
+                    try:
+                        d_obj = SaleDetail.objects.get(id=detail_id)
+                        venta_id = d_obj.venta_id
+                        
+                        # Eliminar
+                        d_obj.delete()
+                        
+                        # Actualizar total venta
+                        new_total = SaleDetail.objects.filter(venta_id=venta_id).aggregate(
+                            total=models.Sum('subtotal')
+                        )['total'] or 0
+                        
+                        Sale.objects.filter(id=venta_id).update(total=new_total)
+                        
+                    except SaleDetail.DoesNotExist:
+                        pass # Ya no existe, ignorar
                 
             except Exception as e:
                 print(f"Error al eliminar detalle: {str(e)}")
@@ -220,29 +213,27 @@ class SaleDetailController:
         if not user:
             return HttpResponseRedirect('/login/')
         
-        # Obtener el detalle con toda la información
-        query = """
-            SELECT dv.*, 
-                   p.nombre as producto_nombre,
-                   p.precio_venta as producto_precio,
-                   v.numero_factura,
-                   v.fecha as fecha_venta,
-                   v.total as venta_total,
-                   v.estado as venta_estado,
-                   v.tipo_pago,
-                   c.nombre as cliente_nombre,
-                   c.documento as cliente_documento
-            FROM detalle_ventas dv
-            INNER JOIN productos p ON dv.producto_id = p.id
-            INNER JOIN ventas v ON dv.venta_id = v.id
-            INNER JOIN clientes c ON v.cliente_id = c.id
-            WHERE dv.id = %s
-        """
-        from config.database import Database
-        result = Database.execute_query(query, (detail_id,))
-        
-        if not result:
+        try:
+            d = SaleDetail.objects.select_related('venta', 'venta__cliente', 'producto').get(id=detail_id)
+            
+            detail = {
+                'id': d.id,
+                'venta_id': d.venta_id,
+                'producto_id': d.producto_id,
+                'cantidad': d.cantidad,
+                'precio_unitario': float(d.precio_unitario),
+                'subtotal': float(d.subtotal),
+                'producto_nombre': d.producto.nombre,
+                'producto_precio': float(d.producto.precio_venta),
+                'numero_factura': d.venta.numero_factura,
+                'fecha_venta': d.venta.fecha,
+                'venta_total': float(d.venta.total),
+                'venta_estado': d.venta.estado,
+                'tipo_pago': d.venta.tipo_pago,
+                'cliente_nombre': d.venta.cliente.nombre,
+                'cliente_documento': d.venta.cliente.documento
+            }
+            return HttpResponse(SaleDetailView.view(user, detail))
+            
+        except SaleDetail.DoesNotExist:
             return HttpResponseRedirect('/detalle-ventas/')
-        
-        detail = result[0]
-        return HttpResponse(SaleDetailView.view(user, detail))

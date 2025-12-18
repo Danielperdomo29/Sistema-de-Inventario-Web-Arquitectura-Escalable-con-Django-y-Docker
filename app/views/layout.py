@@ -11,6 +11,7 @@ class Layout:
         <link rel="stylesheet" href="/static/css/dashboard.css">
         <link rel="stylesheet" href="/static/css/swal.css">
         <link rel="stylesheet" href="/static/css/chatbot.css">
+        <link rel="stylesheet" href="/static/css/theme-green.css">
         <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
         '''
     

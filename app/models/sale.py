@@ -1,183 +1,182 @@
-from config.database import Database
+from django.db import models
+from django.utils import timezone
+from django.db.models import Sum
+from app.models.client import Client
+from app.models.user_account import UserAccount
+from app.models.product import Product
 
-class Sale:
+class Sale(models.Model):
     """Modelo de Venta"""
+    numero_factura = models.CharField(max_length=50, unique=True)
+    cliente = models.ForeignKey(Client, on_delete=models.PROTECT, db_column='cliente_id')
+    usuario = models.ForeignKey(UserAccount, on_delete=models.PROTECT, db_column='usuario_id')
+    fecha = models.DateTimeField()
+    total = models.DecimalField(max_digits=12, decimal_places=2)
+    estado = models.CharField(max_length=20, default='completada')
+    tipo_pago = models.CharField(max_length=20, default='efectivo')
+    notas = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'ventas'
+        verbose_name = 'Venta'
+        verbose_name_plural = 'Ventas'
     
     @staticmethod
     def get_all(limit=None):
         """Obtiene todas las ventas con información del cliente"""
-        query = """
-            SELECT 
-                v.id,
-                v.numero_factura,
-                v.fecha,
-                v.total,
-                v.estado,
-                v.tipo_pago,
-                c.nombre as cliente_nombre,
-                c.documento as cliente_documento,
-                u.username as vendedor
-            FROM ventas v
-            INNER JOIN clientes c ON v.cliente_id = c.id
-            INNER JOIN usuarios u ON v.usuario_id = u.id
-            ORDER BY v.fecha DESC, v.id DESC
-        """
+        sales = Sale.objects.select_related('cliente', 'usuario').order_by('-fecha', '-id')
         if limit:
-            query += f" LIMIT {limit}"
-        return Database.execute_query(query)
+            sales = sales[:limit]
+        
+        data = []
+        for s in sales:
+            data.append({
+                'id': s.id,
+                'numero_factura': s.numero_factura,
+                'fecha': s.fecha,
+                'total': s.total,
+                'estado': s.estado,
+                'tipo_pago': s.tipo_pago,
+                'cliente_nombre': s.cliente.nombre,
+                'cliente_documento': s.cliente.documento,
+                'vendedor': s.usuario.username,
+                'factura_dian': getattr(s, 'factura_dian', None)
+            })
+        return data
     
     @staticmethod
     def get_by_id(sale_id):
         """Obtiene una venta por su ID"""
-        query = """
-            SELECT 
-                v.*,
-                c.nombre as cliente_nombre,
-                c.documento as cliente_documento,
-                c.telefono as cliente_telefono,
-                u.username as vendedor
-            FROM ventas v
-            INNER JOIN clientes c ON v.cliente_id = c.id
-            INNER JOIN usuarios u ON v.usuario_id = u.id
-            WHERE v.id = %s
-        """
-        result = Database.execute_query(query, (sale_id,))
-        return result[0] if result else None
+        try:
+            s = Sale.objects.select_related('cliente', 'usuario').get(id=sale_id)
+            return {
+                'id': s.id,
+                'numero_factura': s.numero_factura,
+                'cliente_id': s.cliente_id,
+                'fecha': s.fecha,
+                'total': s.total,
+                'estado': s.estado,
+                'tipo_pago': s.tipo_pago,
+                'notas': s.notas,
+                'cliente_nombre': s.cliente.nombre,
+                'cliente_documento': s.cliente.documento,
+                'cliente_telefono': s.cliente.telefono,
+                'vendedor': s.usuario.username,
+                'factura_dian': getattr(s, 'factura_dian', None)
+            }
+        except Sale.DoesNotExist:
+            return None
     
     @staticmethod
     def count():
         """Cuenta el total de ventas"""
-        query = "SELECT COUNT(*) as total FROM ventas"
-        result = Database.execute_query(query)
-        return result[0]['total'] if result else 0
+        return Sale.objects.count()
     
     @staticmethod
     def total_ventas_mes():
         """Calcula el total de ventas del mes actual"""
-        query = """
-            SELECT COALESCE(SUM(total), 0) as total
-            FROM ventas
-            WHERE MONTH(fecha) = MONTH(CURRENT_DATE())
-            AND YEAR(fecha) = YEAR(CURRENT_DATE())
-            AND estado = 'completada'
-        """
-        result = Database.execute_query(query)
-        return result[0]['total'] if result else 0
+        now = timezone.now()
+        total = Sale.objects.filter(
+            fecha__year=now.year,
+            fecha__month=now.month,
+            estado='completada' # Use value from legacy query? 'completada' was hardcoded
+        ).aggregate(Sum('total'))['total__sum']
+        return total if total else 0
     
     @staticmethod
     def get_details(sale_id):
         """Obtiene los detalles de una venta"""
-        query = """
-            SELECT 
-                dv.*,
-                p.nombre as producto_nombre,
-                p.codigo as producto_codigo
-            FROM detalle_ventas dv
-            INNER JOIN productos p ON dv.producto_id = p.id
-            WHERE dv.venta_id = %s
-        """
-        return Database.execute_query(query, (sale_id,))
+        details = SaleDetail.objects.filter(venta_id=sale_id).select_related('producto')
+        data = []
+        for d in details:
+            data.append({
+                'id': d.id,
+                'venta_id': d.venta_id,
+                'producto_id': d.producto_id,
+                'cantidad': d.cantidad,
+                'precio_unitario': d.precio_unitario,
+                'subtotal': d.subtotal,
+                'producto_nombre': d.producto.nombre,
+                'producto_codigo': d.producto.codigo
+            })
+        return data
     
     @staticmethod
     def create(data, details):
         """Crea una nueva venta con sus detalles"""
-        # Insertar la venta
-        query_venta = """
-            INSERT INTO ventas 
-            (numero_factura, cliente_id, usuario_id, fecha, total, estado, tipo_pago, notas)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        params_venta = (
-            data['numero_factura'],
-            data['cliente_id'],
-            data['usuario_id'],
-            data['fecha'],
-            data['total'],
-            data.get('estado', 'completada'),
-            data.get('tipo_pago', 'efectivo'),
-            data.get('notas', '')
-        )
-        
-        # Ejecutar y obtener el ID insertado (lastrowid)
-        venta_id = Database.execute_query(query_venta, params_venta, fetch=False)
-        
-        # Insertar los detalles
-        query_detalle = """
-            INSERT INTO detalle_ventas 
-            (venta_id, producto_id, cantidad, precio_unitario, subtotal)
-            VALUES (%s, %s, %s, %s, %s)
-        """
-        
-        for detail in details:
-            params_detalle = (
-                venta_id,
-                detail['producto_id'],
-                detail['cantidad'],
-                detail['precio_unitario'],
-                detail['subtotal']
-            )
-            Database.execute_query(query_detalle, params_detalle, fetch=False)
-        
-        return venta_id
+        from django.db import transaction
+        try:
+            with transaction.atomic():
+                venta = Sale.objects.create(
+                    numero_factura=data['numero_factura'],
+                    cliente_id=data['cliente_id'],
+                    usuario_id=data['usuario_id'],
+                    fecha=data['fecha'],
+                    total=data['total'],
+                    estado=data.get('estado', 'completada'),
+                    tipo_pago=data.get('tipo_pago', 'efectivo'),
+                    notas=data.get('notas', '')
+                )
+                
+                for detail in details:
+                    SaleDetail.objects.create(
+                        venta=venta,
+                        producto_id=detail['producto_id'],
+                        cantidad=detail['cantidad'],
+                        precio_unitario=detail['precio_unitario'],
+                        subtotal=detail['subtotal']
+                    )
+                return venta.id
+        except Exception as e:
+            # Log error?
+            raise e
     
     @staticmethod
     def update(sale_id, data, details):
         """Actualiza una venta existente"""
-        # Actualizar la venta
-        query_venta = """
-            UPDATE ventas 
-            SET numero_factura = %s,
-                cliente_id = %s,
-                fecha = %s,
-                total = %s,
-                estado = %s,
-                tipo_pago = %s,
-                notas = %s
-            WHERE id = %s
-        """
-        params_venta = (
-            data['numero_factura'],
-            data['cliente_id'],
-            data['fecha'],
-            data['total'],
-            data.get('estado', 'completada'),
-            data.get('tipo_pago', 'efectivo'),
-            data.get('notas', ''),
-            sale_id
-        )
-        Database.execute_query(query_venta, params_venta, fetch=False)
-        
-        # Eliminar detalles anteriores
-        query_delete = "DELETE FROM detalle_ventas WHERE venta_id = %s"
-        Database.execute_query(query_delete, (sale_id,), fetch=False)
-        
-        # Insertar nuevos detalles
-        query_detalle = """
-            INSERT INTO detalle_ventas 
-            (venta_id, producto_id, cantidad, precio_unitario, subtotal)
-            VALUES (%s, %s, %s, %s, %s)
-        """
-        
-        for detail in details:
-            params_detalle = (
-                sale_id,
-                detail['producto_id'],
-                detail['cantidad'],
-                detail['precio_unitario'],
-                detail['subtotal']
+        from django.db import transaction
+        with transaction.atomic():
+            Sale.objects.filter(id=sale_id).update(
+                numero_factura=data['numero_factura'],
+                cliente_id=data['cliente_id'],
+                fecha=data['fecha'],
+                total=data['total'],
+                estado=data.get('estado', 'completada'),
+                tipo_pago=data.get('tipo_pago', 'efectivo'),
+                notas=data.get('notas', '')
             )
-            Database.execute_query(query_detalle, params_detalle, fetch=False)
-        
+            
+            # Eliminar detalles anteriores
+            SaleDetail.objects.filter(venta_id=sale_id).delete()
+            
+            # Insertar nuevos detalles
+            for detail in details:
+                SaleDetail.objects.create(
+                    venta_id=sale_id,
+                    producto_id=detail['producto_id'],
+                    cantidad=detail['cantidad'],
+                    precio_unitario=detail['precio_unitario'],
+                    subtotal=detail['subtotal']
+                )
         return True
     
     @staticmethod
     def delete(sale_id):
         """Elimina una venta y sus detalles"""
-        # Eliminar detalles
-        query_detalle = "DELETE FROM detalle_ventas WHERE venta_id = %s"
-        Database.execute_query(query_detalle, (sale_id,), fetch=False)
-        
-        # Eliminar venta
-        query_venta = "DELETE FROM ventas WHERE id = %s"
-        return Database.execute_query(query_venta, (sale_id,), fetch=False)
+        # Cascade delete should handle details if configured, but let's be explicit or rely on Django
+        # Django defaults to CASCADE for ForeignKey unless specified otherwise. 
+        # But SaleDetail FK definition below needs to be checked.
+        return Sale.objects.filter(id=sale_id).delete()
 
+
+class SaleDetail(models.Model):
+    """Modelo de Detalle de Venta"""
+    venta = models.ForeignKey(Sale, on_delete=models.CASCADE, db_column='venta_id', related_name='detalles')
+    producto = models.ForeignKey(Product, on_delete=models.PROTECT, db_column='producto_id')
+    cantidad = models.IntegerField()
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        db_table = 'detalle_ventas'
+        verbose_name = 'Detalle de Venta'

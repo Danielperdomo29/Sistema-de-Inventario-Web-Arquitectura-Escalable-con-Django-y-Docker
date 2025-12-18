@@ -58,7 +58,7 @@ class DocumentationView:
                             <h3><i class="fas fa-truck"></i> Proveedores</h3>
                         </div>
                         <div class="doc-card-body">
-                            <p>Gestiona proveedores con RUC, datos de contacto y seguimiento de estado. Vincula productos a sus proveedores.</p>
+                            <p>Gestiona proveedores con NIT, datos de contacto y seguimiento de estado. Vincula productos a sus proveedores.</p>
                         </div>
                     </div>
                     

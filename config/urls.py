@@ -1,5 +1,6 @@
 from django.urls import path
 from django.conf import settings
+from django.urls import include
 from django.conf.urls.static import static
 from app.controllers.auth_controller import AuthController
 from app.controllers.dashboard_controller import DashboardController
@@ -86,8 +87,10 @@ urlpatterns = [
     path('chatbot/send/', ChatbotController.send_message, name='chatbot_send'),
     path('chatbot/clear-history/', ChatbotController.clear_history, name='chatbot_clear_history'),
     path('chatbot/history/', ChatbotController.get_history, name='chatbot_history'),
+    path('dian/', include('facturacion.urls')),
 ]
 
 # Servir archivos estáticos en desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

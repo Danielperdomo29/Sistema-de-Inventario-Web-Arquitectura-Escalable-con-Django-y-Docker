@@ -4,25 +4,14 @@ from django.contrib.auth.models import AbstractUser
 class UserAccount(AbstractUser):
     """
     Modelo de usuario personalizado que extiende AbstractUser.
-    Reemplaza la tabla 'usuarios' antigua.
+    Usa la tabla estándar 'auth_user' de Django.
     """
-    # Campos adicionales si son necesarios, pero AbstractUser ya tiene:
-    # username, first_name, last_name, email, password, is_staff, is_active, date_joined
     
     # Mapeo de campos requeridos por el sistema antiguo
-    # nombre_completo se puede obtener de get_full_name()
-    # rol_id era usado antes. Podríamos agregar un campo rol o usar Groups de Django.
-    
-    # Para mantener compatibilidad simple, agregamos rol_id como entero por ahora,
-    # o mejor, un campo de elección o clave foránea si tuviéramos tabla de roles.
-    # El sistema anterior tenía tabla 'roles'.
-    
     rol_id = models.IntegerField(default=2, help_text="1: Admin, 2: Cliente/Usuario")
     
-    # is_active viene de AbstractUser.
-    
     class Meta:
-        db_table = 'auth_users'  # Nombre solicitado por el usuario
+        db_table = 'auth_user'  # Corregido de 'auth_users' a 'auth_user' para estándar Django
         verbose_name = 'Usuario del Sistema'
         verbose_name_plural = 'Usuarios del Sistema'
 
@@ -35,9 +24,6 @@ class UserAccount(AbstractUser):
 
     @property
     def rol(self):
-        try:
-            from app.models.role import Role
-            r = Role.get_by_id(self.rol_id)
-            return r['nombre'] if r else "Usuario"
-        except Exception:
-            return "Usuario"
+        # Mapeo simple de roles para compatibilidad
+        roles = {1: "Administrador", 2: "Usuario"}
+        return roles.get(self.rol_id, "Usuario")

@@ -1,82 +1,66 @@
-from config.database import Database
+from django.db import models
 
-class Client:
+class Client(models.Model):
     """Modelo de Cliente"""
+    nombre = models.CharField(max_length=200)
+    documento = models.CharField(max_length=50, blank=True, null=True)
+    telefono = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    direccion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'clientes'
+        verbose_name = 'Cliente'
+        verbose_name_plural = 'Clientes'
+
+    def __str__(self):
+        return self.nombre
     
     @staticmethod
     def get_all():
         """Obtiene todos los clientes activos"""
-        query = """
-            SELECT id, nombre, documento, telefono, email, direccion
-            FROM clientes
-            WHERE activo = 1
-            ORDER BY nombre
-        """
-        return Database.execute_query(query)
+        return list(Client.objects.filter(activo=True).values('id', 'nombre', 'documento', 'telefono', 'email', 'direccion').order_by('nombre'))
     
     @staticmethod
     def get_by_id(client_id):
         """Obtiene un cliente por su ID"""
-        query = """
-            SELECT id, nombre, documento, telefono, email, direccion
-            FROM clientes
-            WHERE id = %s AND activo = 1
-        """
-        result = Database.execute_query(query, (client_id,))
-        return result[0] if result else None
+        try:
+            return Client.objects.filter(id=client_id, activo=True).values('id', 'nombre', 'documento', 'telefono', 'email', 'direccion').first()
+        except Exception:
+            return None
     
     @staticmethod
     def count():
         """Cuenta el total de clientes activos"""
-        query = "SELECT COUNT(*) as total FROM clientes WHERE activo = 1"
-        result = Database.execute_query(query)
-        return result[0]['total'] if result else 0
+        return Client.objects.filter(activo=True).count()
     
     @staticmethod
     def create(data):
         """Crea un nuevo cliente"""
-        query = """
-            INSERT INTO clientes 
-            (nombre, documento, telefono, email, direccion, activo)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        params = (
-            data['nombre'],
-            data.get('documento', ''),
-            data.get('telefono', ''),
-            data.get('email', ''),
-            data.get('direccion', ''),
-            data.get('activo', 1)
+        client = Client.objects.create(
+            nombre=data['nombre'],
+            documento=data.get('documento', ''),
+            telefono=data.get('telefono', ''),
+            email=data.get('email', ''),
+            direccion=data.get('direccion', ''),
+            activo=data.get('activo', True)
         )
-        return Database.execute_query(query, params, fetch=False)
+        return client.id
     
     @staticmethod
     def update(client_id, data):
         """Actualiza un cliente existente"""
-        query = """
-            UPDATE clientes 
-            SET nombre = %s,
-                documento = %s,
-                telefono = %s,
-                email = %s,
-                direccion = %s,
-                activo = %s
-            WHERE id = %s
-        """
-        params = (
-            data['nombre'],
-            data.get('documento', ''),
-            data.get('telefono', ''),
-            data.get('email', ''),
-            data.get('direccion', ''),
-            data.get('activo', 1),
-            client_id
+        return Client.objects.filter(id=client_id).update(
+            nombre=data['nombre'],
+            documento=data.get('documento', ''),
+            telefono=data.get('telefono', ''),
+            email=data.get('email', ''),
+            direccion=data.get('direccion', ''),
+            activo=data.get('activo', True)
         )
-        return Database.execute_query(query, params, fetch=False)
     
     @staticmethod
     def delete(client_id):
         """Elimina un cliente (soft delete cambiando activo a 0)"""
-        query = "UPDATE clients SET activo = 0 WHERE id = %s"
-        return Database.execute_query(query, (client_id,), fetch=False)
-
+        return Client.objects.filter(id=client_id).update(activo=False)

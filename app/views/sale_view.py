@@ -5,6 +5,21 @@ class SaleView:
     """Vista de Ventas"""
     
     @staticmethod
+    def _get_dian_button(sale):
+        factura = sale.get('factura_dian')
+        if factura:
+            return f'<a href="/media/{factura.archivo_pdf}" target="_blank" class="btn btn-success no-underline" title="{factura.numero_factura}"><i class="fas fa-file-pdf"></i> PDF</a>'
+        else:
+            return f'<a href="/dian/generar/{sale["id"]}/" class="btn btn-info no-underline"><i class="fas fa-bolt"></i> Generar</a>'
+    @staticmethod
+    def _get_delete_button(sale):
+        factura = sale.get('factura_dian')
+        if factura:
+            return f'<a href="/ventas/{sale["id"]}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm(\'La venta tiene Factura DIAN. Se procederá a ANULARLA en lugar de eliminarla. ¿Continuar?\');">Anular</a>'
+        else:
+            return f'<a href="/ventas/{sale["id"]}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm(\'¿Está seguro de eliminar esta venta?\');">Eliminar</a>'
+
+    @staticmethod
     def index(user, sales):
         """Renderiza la página de listado de ventas"""
         
@@ -30,8 +45,11 @@ class SaleView:
                     <td>{badge}</td>
                     <td>{sale['tipo_pago'].capitalize()}</td>
                     <td>
+                        {SaleView._get_dian_button(sale)}
+                    </td>
+                    <td>
                         <a href="/ventas/{sale['id']}/editar/" class="btn btn-warning no-underline">Editar</a>
-                        <a href="/ventas/{sale['id']}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm('¿Está seguro de eliminar esta venta?');">Eliminar</a>
+                        {SaleView._get_delete_button(sale)}
                     </td>
                 </tr>
                 """
@@ -48,6 +66,7 @@ class SaleView:
                             <th>Total</th>
                             <th>Estado</th>
                             <th>Tipo Pago</th>
+                            <th>DIAN</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -433,6 +452,9 @@ class SaleView:
                         <h5 class="mb-0">Totales</h5>
                     </div>
                     <div class="card-body">
+                         <div class="mb-3 text-center">
+                            {SaleView._get_dian_button(sale)}
+                        </div>
                         <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                             <span class="h4 mb-0">Total:</span>
                             <span class="h3 mb-0 text-success">S/ {sale['total']:.2f}</span>

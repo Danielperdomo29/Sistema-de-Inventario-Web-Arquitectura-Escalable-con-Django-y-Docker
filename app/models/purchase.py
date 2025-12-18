@@ -1,172 +1,169 @@
-from config.database import Database
+from django.db import models
+from django.utils import timezone
+from django.db.models import Sum
+from app.models.supplier import Supplier
+from app.models.user_account import UserAccount
+from app.models.product import Product
 
-class Purchase:
+class Purchase(models.Model):
+    """Modelo de Compra"""
+    numero_factura = models.CharField(max_length=50)
+    proveedor = models.ForeignKey(Supplier, on_delete=models.PROTECT, db_column='proveedor_id')
+    usuario = models.ForeignKey(UserAccount, on_delete=models.PROTECT, db_column='usuario_id')
+    fecha = models.DateTimeField()
+    total = models.DecimalField(max_digits=12, decimal_places=2)
+    estado = models.CharField(max_length=20, default='pendiente')
+    notas = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'compras'
+        verbose_name = 'Compra'
+        verbose_name_plural = 'Compras'
+    
     @staticmethod
     def get_all(limit=None):
         """Obtener todas las compras con información del proveedor y usuario"""
-        query = """
-            SELECT c.*, 
-                   p.nombre as proveedor_nombre,
-                   u.username as usuario_nombre
-            FROM compras c
-            INNER JOIN proveedores p ON c.proveedor_id = p.id
-            INNER JOIN usuarios u ON c.usuario_id = u.id
-            ORDER BY c.fecha DESC, c.id DESC
-        """
+        purchases = Purchase.objects.select_related('proveedor', 'usuario').order_by('-fecha', '-id')
         if limit:
-            query += f" LIMIT {limit}"
-        return Database.execute_query(query)
+            purchases = purchases[:limit]
+            
+        data = []
+        for p in purchases:
+            data.append({
+                'id': p.id,
+                'numero_factura': p.numero_factura,
+                'fecha': p.fecha,
+                'total': p.total,
+                'estado': p.estado,
+                'proveedor_nombre': p.proveedor.nombre,
+                'usuario_nombre': p.usuario.username
+            })
+        return data
     
     @staticmethod
     def get_by_id(purchase_id):
         """Obtener una compra por ID con información del proveedor y usuario"""
-        query = """
-            SELECT c.*, 
-                   p.nombre as proveedor_nombre,
-                   u.username as usuario_nombre
-            FROM compras c
-            INNER JOIN proveedores p ON c.proveedor_id = p.id
-            INNER JOIN usuarios u ON c.usuario_id = u.id
-            WHERE c.id = %s
-        """
-        result = Database.execute_query(query, (purchase_id,))
-        return result[0] if result else None
+        try:
+            p = Purchase.objects.select_related('proveedor', 'usuario').get(id=purchase_id)
+            return {
+                'id': p.id,
+                'numero_factura': p.numero_factura,
+                'proveedor_id': p.proveedor_id,
+                'fecha': p.fecha,
+                'total': p.total,
+                'estado': p.estado,
+                'notas': p.notas,
+                'proveedor_nombre': p.proveedor.nombre,
+                'usuario_nombre': p.usuario.username
+            }
+        except Purchase.DoesNotExist:
+            return None
     
     @staticmethod
     def count():
         """Contar total de compras"""
-        query = "SELECT COUNT(*) as total FROM compras"
-        result = Database.execute_query(query)
-        return result[0]['total'] if result else 0
+        return Purchase.objects.count()
+    
+    @staticmethod
+    def total_compras_mes():
+        """Calcula el total de compras del mes actual"""
+        now = timezone.now()
+        total = Purchase.objects.filter(
+            fecha__year=now.year,
+            fecha__month=now.month
+        ).aggregate(Sum('total'))['total__sum']
+        return total if total else 0
     
     @staticmethod
     def create(data, details):
         """Crear una nueva compra con sus detalles"""
-        # Insertar la compra
-        query = """
-            INSERT INTO compras (numero_factura, proveedor_id, usuario_id, fecha, total, estado, notas)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-        purchase_id = Database.execute_query(
-            query,
-            (
-                data['numero_factura'],
-                data['proveedor_id'],
-                data['usuario_id'],
-                data['fecha'],
-                data['total'],
-                data.get('estado', 'pendiente'),
-                data.get('notas', '')
-            ),
-            fetch=False
-        )
-        
-        # Insertar los detalles de la compra
-        if purchase_id and details:
-            detail_query = """
-                INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario, subtotal)
-                VALUES (%s, %s, %s, %s, %s)
-            """
-            for detail in details:
-                Database.execute_query(
-                    detail_query,
-                    (
-                        purchase_id,
-                        detail['producto_id'],
-                        detail['cantidad'],
-                        detail['precio_unitario'],
-                        detail['subtotal']
-                    ),
-                    fetch=False
+        from django.db import transaction
+        try:
+            with transaction.atomic():
+                purchase = Purchase.objects.create(
+                    numero_factura=data['numero_factura'],
+                    proveedor_id=data['proveedor_id'],
+                    usuario_id=data['usuario_id'],
+                    fecha=data['fecha'],
+                    total=data['total'],
+                    estado=data.get('estado', 'pendiente'),
+                    notas=data.get('notas', '')
                 )
-        
-        return purchase_id
+                
+                if details:
+                    for detail in details:
+                        PurchaseDetail.objects.create(
+                            compra=purchase,
+                            producto_id=detail['producto_id'],
+                            cantidad=detail['cantidad'],
+                            precio_unitario=detail['precio_unitario'],
+                            subtotal=detail['subtotal']
+                        )
+                return purchase.id
+        except Exception:
+            return None
     
     @staticmethod
     def update(purchase_id, data):
         """Actualizar una compra"""
-        query = """
-            UPDATE compras
-            SET numero_factura = %s,
-                proveedor_id = %s,
-                fecha = %s,
-                total = %s,
-                estado = %s,
-                notas = %s
-            WHERE id = %s
-        """
-        return Database.execute_query(
-            query,
-            (
-                data['numero_factura'],
-                data['proveedor_id'],
-                data['fecha'],
-                data['total'],
-                data['estado'],
-                data.get('notas', ''),
-                purchase_id
-            ),
-            fetch=False
+        return Purchase.objects.filter(id=purchase_id).update(
+            numero_factura=data['numero_factura'],
+            proveedor_id=data['proveedor_id'],
+            fecha=data['fecha'],
+            total=data['total'],
+            estado=data['estado'],
+            notas=data.get('notas', '')
         )
     
     @staticmethod
     def delete(purchase_id):
         """Eliminar una compra y sus detalles"""
-        # Primero eliminar los detalles
-        detail_query = "DELETE FROM detalle_compras WHERE compra_id = %s"
-        Database.execute_query(detail_query, (purchase_id,), fetch=False)
-        
-        # Luego eliminar la compra
-        query = "DELETE FROM compras WHERE id = %s"
-        return Database.execute_query(query, (purchase_id,), fetch=False)
+        # Cascade should handle details
+        return Purchase.objects.filter(id=purchase_id).delete()
     
     @staticmethod
     def get_details(purchase_id):
         """Obtener los detalles de una compra"""
-        query = """
-            SELECT dc.*, p.nombre as producto_nombre
-            FROM detalle_compras dc
-            INNER JOIN productos p ON dc.producto_id = p.id
-            WHERE dc.compra_id = %s
-            ORDER BY dc.id
-        """
-        return Database.execute_query(query, (purchase_id,))
+        details = PurchaseDetail.objects.filter(compra_id=purchase_id).select_related('producto').order_by('id')
+        data = []
+        for d in details:
+            data.append({
+                'id': d.id,
+                'compra_id': d.compra_id,
+                'producto_id': d.producto_id,
+                'cantidad': d.cantidad,
+                'precio_unitario': d.precio_unitario,
+                'subtotal': d.subtotal,
+                'producto_nombre': d.producto.nombre
+            })
+        return data
     
     @staticmethod
     def update_details(purchase_id, details):
         """Actualizar los detalles de una compra"""
-        # Eliminar detalles existentes
-        delete_query = "DELETE FROM detalle_compras WHERE compra_id = %s"
-        Database.execute_query(delete_query, (purchase_id,), fetch=False)
-        
-        # Insertar nuevos detalles
-        if details:
-            insert_query = """
-                INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario, subtotal)
-                VALUES (%s, %s, %s, %s, %s)
-            """
-            for detail in details:
-                Database.execute_query(
-                    insert_query,
-                    (
-                        purchase_id,
-                        detail['producto_id'],
-                        detail['cantidad'],
-                        detail['precio_unitario'],
-                        detail['subtotal']
-                    ),
-                    fetch=False
-                )
+        from django.db import transaction
+        with transaction.atomic():
+            PurchaseDetail.objects.filter(compra_id=purchase_id).delete()
+            
+            if details:
+                for detail in details:
+                    PurchaseDetail.objects.create(
+                        compra_id=purchase_id,
+                        producto_id=detail['producto_id'],
+                        cantidad=detail['cantidad'],
+                        precio_unitario=detail['precio_unitario'],
+                        subtotal=detail['subtotal']
+                    )
         return True
-    
-    @staticmethod
-    def total_compras_mes():
-        """Calcula el total de compras del mes actual"""
-        query = """
-            SELECT COALESCE(SUM(total), 0) as total
-            FROM compras
-            WHERE MONTH(fecha) = MONTH(CURRENT_DATE())
-            AND YEAR(fecha) = YEAR(CURRENT_DATE())
-        """
-        result = Database.execute_query(query, fetch=True)
-        return result[0]['total'] if result else 0
+
+class PurchaseDetail(models.Model):
+    """Modelo de Detalle de Compra"""
+    compra = models.ForeignKey(Purchase, on_delete=models.CASCADE, db_column='compra_id', related_name='detalles')
+    producto = models.ForeignKey(Product, on_delete=models.PROTECT, db_column='producto_id')
+    cantidad = models.IntegerField()
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        db_table = 'detalle_compras'
+        verbose_name = 'Detalle de Compra'

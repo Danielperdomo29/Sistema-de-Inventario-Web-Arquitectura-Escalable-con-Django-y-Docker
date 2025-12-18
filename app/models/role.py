@@ -1,67 +1,56 @@
-from config.database import Database
+from django.db import models
 
-class Role:
+class Role(models.Model):
     """Modelo de Rol"""
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        db_table = 'roles'
+        verbose_name = 'Rol'
+        verbose_name_plural = 'Roles'
     
+    def __str__(self):
+        return self.nombre
+
+    # Métodos estáticos para compatibilidad con controladores existentes
     @staticmethod
     def get_all():
         """Obtiene todos los roles"""
-        query = """
-            SELECT id, nombre, descripcion, created_at
-            FROM roles
-            ORDER BY nombre
-        """
-        return Database.execute_query(query)
+        return list(Role.objects.all().values('id', 'nombre', 'descripcion', 'created_at').order_by('nombre'))
     
     @staticmethod
     def get_by_id(role_id):
         """Obtiene un rol por su ID"""
-        query = """
-            SELECT id, nombre, descripcion
-            FROM roles
-            WHERE id = %s
-        """
-        result = Database.execute_query(query, (role_id,))
-        return result[0] if result else None
+        try:
+            return Role.objects.values('id', 'nombre', 'descripcion').get(id=role_id)
+        except Role.DoesNotExist:
+            return None
     
     @staticmethod
     def count():
         """Cuenta el total de roles"""
-        query = "SELECT COUNT(*) as total FROM roles"
-        result = Database.execute_query(query)
-        return result[0]['total'] if result else 0
+        return Role.objects.count()
     
     @staticmethod
     def create(data):
         """Crea un nuevo rol"""
-        query = """
-            INSERT INTO roles (nombre, descripcion)
-            VALUES (%s, %s)
-        """
-        params = (
-            data['nombre'],
-            data.get('descripcion', '')
+        role = Role.objects.create(
+            nombre=data['nombre'],
+            descripcion=data.get('descripcion', '')
         )
-        return Database.execute_query(query, params, fetch=False)
+        return role.id
     
     @staticmethod
     def update(role_id, data):
         """Actualiza un rol existente"""
-        query = """
-            UPDATE roles 
-            SET nombre = %s,
-                descripcion = %s
-            WHERE id = %s
-        """
-        params = (
-            data['nombre'],
-            data.get('descripcion', ''),
-            role_id
+        return Role.objects.filter(id=role_id).update(
+            nombre=data['nombre'],
+            descripcion=data.get('descripcion', '')
         )
-        return Database.execute_query(query, params, fetch=False)
     
     @staticmethod
     def delete(role_id):
         """Elimina un rol (hard delete)"""
-        query = "DELETE FROM roles WHERE id = %s"
-        return Database.execute_query(query, (role_id,), fetch=False)
+        return Role.objects.filter(id=role_id).delete()
