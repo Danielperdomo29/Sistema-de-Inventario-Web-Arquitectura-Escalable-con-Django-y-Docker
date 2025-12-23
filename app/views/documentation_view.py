@@ -274,128 +274,7 @@ class DocumentationView:
                     </div>
                 </div>
             </section>
-            
-            <!-- Usuarios de Prueba -->
-            <section class="doc-section">
-                <h2 class="doc-section-title"><i class="fas fa-users-cog"></i> Usuarios Ficticios para Pruebas</h2>
-                <p class="doc-note"><i class="fas fa-info-circle"></i> Todos los usuarios tienen la contraseña: <code>password</code></p>
-                <div class="doc-grid">
-                    <div class="doc-card doc-card-user">
-                        <div class="doc-card-header bg-gradient-purple">
-                            <h3><i class="fas fa-user-shield"></i> Administrador</h3>
-                        </div>
-                        <div class="doc-card-body">
-                            <p><strong>Email:</strong> admin@inventario.com</p>
-                            <p><strong>Usuario:</strong> admin</p>
-                            <p><strong>Contraseña:</strong> password</p>
-                            <p><strong>Rol:</strong> Administrador</p>
-                        </div>
-                    </div>
-                                        
-                    <div class="doc-card doc-card-user">
-                        <div class="doc-card-header bg-gradient-pink">
-                            <h3><i class="fas fa-user-tie"></i> Juan Pérez</h3>
-                        </div>
-                        <div class="doc-card-body">
-                            <p><strong>Email:</strong> jperez@inventario.com</p>
-                            <p><strong>Usuario:</strong> jperez</p>
-                            <p><strong>Contraseña:</strong> password</p>
-                            <p><strong>Rol:</strong> Gerente</p>
-                        </div>
-                    </div>
-                    
-                    <div class="doc-card doc-card-user">
-                        <div class="doc-card-header bg-gradient-cyan">
-                            <h3><i class="fas fa-user"></i> María González</h3>
-                        </div>
-                        <div class="doc-card-body">
-                            <p><strong>Email:</strong> mgonzalez@inventario.com</p>
-                            <p><strong>Usuario:</strong> mgonzalez</p>
-                            <p><strong>Contraseña:</strong> password</p>
-                            <p><strong>Rol:</strong> Vendedor</p>
-                        </div>
-                    </div>
-                    
-                    <div class="doc-card doc-card-user">
-                        <div class="doc-card-header bg-gradient-green">
-                            <h3><i class="fas fa-user"></i> Carlos Rodríguez</h3>
-                        </div>
-                        <div class="doc-card-body">
-                            <p><strong>Email:</strong> crodriguez@inventario.com</p>
-                            <p><strong>Usuario:</strong> crodriguez</p>
-                            <p><strong>Contraseña:</strong> password</p>
-                            <p><strong>Rol:</strong> Almacenero</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Datos Demo -->
-            <section class="doc-section">
-                <h2 class="doc-section-title"><i class="fas fa-database"></i> Base de Datos de Demostración</h2>
-                <div class="doc-grid doc-grid-stats">
-                    <div class="doc-stat-card">
-                        <div class="doc-stat-icon bg-gradient-purple">
-                            <i class="fas fa-box"></i>
-                        </div>
-                        <div class="doc-stat-info">
-                            <h3>80</h3>
-                            <p>Productos</p>
-                        </div>
-                    </div>
-                    
-                    <div class="doc-stat-card">
-                        <div class="doc-stat-icon bg-gradient-pink">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="doc-stat-info">
-                            <h3>25</h3>
-                            <p>Clientes</p>
-                        </div>
-                    </div>
-                    
-                    <div class="doc-stat-card">
-                        <div class="doc-stat-icon bg-gradient-cyan">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <div class="doc-stat-info">
-                            <h3>20</h3>
-                            <p>Compras</p>
-                        </div>
-                    </div>
-                    
-                    <div class="doc-stat-card">
-                        <div class="doc-stat-icon bg-gradient-green">
-                            <i class="fas fa-cash-register"></i>
-                        </div>
-                        <div class="doc-stat-info">
-                            <h3>35</h3>
-                            <p>Ventas</p>
-                        </div>
-                    </div>
-                    
-                    <div class="doc-stat-card">
-                        <div class="doc-stat-icon bg-gradient-purple">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <div class="doc-stat-info">
-                            <h3>5</h3>
-                            <p>Proveedores</p>
-                        </div>
-                    </div>
-                    
-                    <div class="doc-stat-card">
-                        <div class="doc-stat-icon bg-gradient-pink">
-                            <i class="fas fa-tags"></i>
-                        </div>
-                        <div class="doc-stat-info">
-                            <h3>7</h3>
-                            <p>Categorías</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
+                        
             <!-- Contacto -->
             <section class="doc-section">
                 <h2 class="doc-section-title"><i class="fas fa-address-card"></i> Contáctame / Sígueme en Redes Sociales</h2>
@@ -406,7 +285,7 @@ class DocumentationView:
                         </div>
                         <div class="doc-card-body">
                             <p>Visita mi perfil en GitHub para ver mis proyectos y contribuciones al código abierto.</p>
-                            <a href="https://github.com/PabloGarciaJC" target="_blank" class="btn btn-primary">
+                            <a href="https://github.com/Danielperdomo29" target="_blank" class="btn btn-primary">
                                 <i class="fab fa-github"></i> Ir a GitHub
                             </a>
                         </div>
@@ -418,7 +297,7 @@ class DocumentationView:
                         </div>
                         <div class="doc-card-body">
                             <p>Conéctate conmigo en LinkedIn para seguir mi carrera profesional y establecer conexiones.</p>
-                            <a href="https://www.linkedin.com/in/pablogarciajc/" target="_blank" class="btn btn-primary">
+                            <a href="https://www.linkedin.com/in/daniel-enrique-perdomo-carvajal-3a472a187/" target="_blank" class="btn btn-primary">
                                 <i class="fab fa-linkedin"></i> Ir a LinkedIn
                             </a>
                         </div>
@@ -430,7 +309,7 @@ class DocumentationView:
                         </div>
                         <div class="doc-card-body">
                             <p>Visita mi canal de YouTube para ver videos sobre desarrollo web, tutoriales y más.</p>
-                            <a href="https://www.youtube.com/channel/UC5I4oY7BeNwT4gBu1ZKsEhw" target="_blank" class="btn btn-primary">
+                            <a href="https://www.youtube.com/@danielenriqueperdomocarvaj9476" target="_blank" class="btn btn-primary">
                                 <i class="fab fa-youtube"></i> Ir a YouTube
                             </a>
                         </div>
@@ -442,7 +321,7 @@ class DocumentationView:
                         </div>
                         <div class="doc-card-body">
                             <p>Visita mi página web personal donde encontrarás más sobre mis proyectos y servicios.</p>
-                            <a href="https://pablogarciajc.com/" target="_blank" class="btn btn-primary">
+                            <a href="https://danielperdevsecops.online/" target="_blank" class="btn btn-primary">
                                 <i class="fas fa-globe"></i> Ir a mi sitio web
                             </a>
                         </div>
@@ -454,7 +333,7 @@ class DocumentationView:
                         </div>
                         <div class="doc-card-body">
                             <p>Conéctate conmigo en Facebook y mantente al tanto de mis actualizaciones personales y profesionales.</p>
-                            <a href="https://www.facebook.com/PabloGarciaJC" target="_blank" class="btn btn-primary">
+                            <a href="https://web.facebook.com/Danielerdomocarvajal.Programmer?rdid=aPusEBUgF5YRemaP&share_url=https%3A%2F%2Fweb.facebook.com%2Fshare%2F1RcKAmZMcM%2F%3F_rdc%3D1%26_rdr" target="_blank" class="btn btn-primary">
                                 <i class="fab fa-facebook"></i> Ir a Facebook
                             </a>
                         </div>
@@ -466,7 +345,7 @@ class DocumentationView:
                         </div>
                         <div class="doc-card-body">
                             <p>Sigue mi cuenta de Instagram para ver fotos, proyectos y más contenido relacionado con mi trabajo.</p>
-                            <a href="https://www.instagram.com/pablogarciajc/" target="_blank" class="btn btn-primary">
+                            <a href="https://www.instagram.com/danenriper/" target="_blank" class="btn btn-primary">
                                 <i class="fab fa-instagram"></i> Ir a Instagram
                             </a>
                         </div>
@@ -474,12 +353,12 @@ class DocumentationView:
                     
                     <div class="doc-card doc-card-social">
                         <div class="doc-card-header">
-                            <h3><i class="fab fa-twitter"></i> Twitter</h3>
+                            <h3><i class="fab fa-twitter"></i> Threads</h3>
                         </div>
                         <div class="doc-card-body">
-                            <p>Sigue mi cuenta de Twitter para estar al tanto de mis proyectos, pensamientos y actualizaciones.</p>
-                            <a href="https://x.com/PabloGarciaJC?t=lct1gxvE8DkqAr8dgxrHIw&s=09" target="_blank" class="btn btn-primary">
-                                <i class="fab fa-twitter"></i> Ir a Twitter
+                            <p>Sigue mi cuenta de threads para estar al tanto de mis proyectos, pensamientos y actualizaciones.</p>
+                            <a href="https://www.threads.com/@danenriper" target="_blank" class="btn btn-primary">
+                                <i class="fab fa-twitter"></i> Ir a threads
                             </a>
                         </div>
                     </div>
