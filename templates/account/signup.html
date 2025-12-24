@@ -1,0 +1,115 @@
+{% extends "account/base.html" %}
+
+{% block title %}Crear Cuenta - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2><i class="fas fa-user-plus"></i> Crear Cuenta</h2>
+        <p>Regístrate para acceder al sistema</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <form method="POST" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Nombre de Usuario</label>
+                <input type="text" 
+                       name="username" 
+                       class="form-control" 
+                       placeholder="Elige un nombre de usuario"
+                       value="{{ form.username.value|default:'' }}"
+                       required
+                       autofocus>
+                {% if form.username.errors %}
+                    <div class="alert alert-error" style="margin-top: 8px;">
+                        {% for error in form.username.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" 
+                       name="email" 
+                       class="form-control" 
+                       placeholder="tu-email@ejemplo.com"
+                       value="{{ form.email.value|default:'' }}"
+                       required>
+                <small class="form-hint">Usaremos este email para enviarte la confirmación</small>
+                {% if form.email.errors %}
+                    <div class="alert alert-error" style="margin-top: 8px;">
+                        {% for error in form.email.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" 
+                       name="password1" 
+                       class="form-control" 
+                       placeholder="••••••••"
+                       required>
+                <small class="form-hint">Mínimo 8 caracteres</small>
+                {% if form.password1.errors %}
+                    <div class="alert alert-error" style="margin-top: 8px;">
+                        {% for error in form.password1.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label>Confirmar Contraseña</label>
+                <input type="password" 
+                       name="password2" 
+                       class="form-control" 
+                       placeholder="••••••••"
+                       required>
+                {% if form.password2.errors %}
+                    <div class="alert alert-error" style="margin-top: 8px;">
+                        {% for error in form.password2.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+            {% endif %}
+            
+            <button type="submit" class="btn btn-primary">Crear Cuenta</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>¿Ya tienes una cuenta? <a href="{% url 'account_login' %}">Inicia sesión aquí</a></p>
+        </div>
+        
+        <div class="auth-copyright">
+            <p>Desarrollado por © Daniel Enrique Perdomo Carvajal</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

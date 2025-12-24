@@ -84,5 +84,15 @@ class AuthController:
     @staticmethod
     def logout(request):
         """Cierra sesión"""
-        auth_logout(request) # Limpia la sesión de Django
-        return redirect('/login/')
+        # Verificar si el usuario usa allauth
+        uses_allauth = False
+        if request.user.is_authenticated and hasattr(request.user, 'use_allauth'):
+            uses_allauth = request.user.use_allauth
+        
+        auth_logout(request)  # Limpia la sesión de Django
+        
+        # Redirigir según el sistema usado
+        if uses_allauth:
+            return redirect('/accounts/login/')
+        else:
+            return redirect('/login/')

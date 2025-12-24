@@ -1,7 +1,38 @@
+# Django Core
 Django>=5.0
 pymysql>=1.1.0
 cryptography>=41.0.0
-google-generativeai
-python-dotenv
+python-dotenv>=1.0.0
+
+# Authentication & Security
+django-allauth==0.63.3
+django-crispy-forms==2.3
+crispy-bootstrap5==2024.2
+
+# Security
+django-cors-headers==4.3.1
+django-csp==3.8
+argon2-cffi==23.1.0
+safety>=3.0.0
+bandit>=1.7.0
+python-decouple==3.8
+django-environ==0.11.2
+django-defender==0.9.7
+django-axes==6.5.1
+argon2-cffi==23.1.0
+
+# Async Tasks
+celery==5.3.6
+redis==5.0.5
+django-celery-beat==2.6.0
+
+# Web Server
+gunicorn==21.2.0
+
+# File Processing
 lxml>=5.1.0
 reportlab>=4.1.0
+Pillow==10.3.0
+
+# AI Integration
+google-generativeai

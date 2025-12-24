@@ -1,25 +1,34 @@
-import google.generativeai as genai
-from config.database import Database
-from app.models.product import Product
-from app.models.category import Category
-from app.models.sale import Sale
-from app.models.purchase import Purchase
-from app.models.client import Client
-from app.models.supplier import Supplier
-from app.models.warehouse import Warehouse
-from app.models.inventory_movement import InventoryMovement
-from dotenv import load_dotenv
-import json
+"""
+Servicio de IA para el chatbot usando Google Gemini.
+Utiliza lazy imports para evitar problemas de dependencias circulares durante la inicialización de Django.
+"""
 import os
+from dotenv import load_dotenv
 
 # Cargar variables de entorno
 load_dotenv()
+
+# Imports que no dependen de Django
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
+
+import json
+
+
 
 class AIService:
     """Servicio de IA para el chatbot usando Google Gemini"""
     
     def __init__(self):
         # Configurar la API key de Gemini desde variable de entorno
+        if genai is None:
+            raise ImportError(
+                "google-generativeai no está instalado. "
+                "Ejecuta: pip install google-generativeai"
+            )
+        
         api_key = os.getenv('GEMINI_API_KEY')
         if not api_key or api_key == 'tu-api-key-aqui':
             raise ValueError(
@@ -29,9 +38,33 @@ class AIService:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-pro')
     
+    def _get_models(self):
+        """
+        Lazy import de modelos Django para evitar dependencias circulares.
+        Los modelos se importan solo cuando se necesitan.
+        """
+        from app.models.product import Product
+        from app.models.category import Category
+        from app.models.sale import Sale
+        from app.models.purchase import Purchase
+        from app.models.warehouse import Warehouse
+        
+        return {
+            'Product': Product,
+            'Category': Category,
+            'Sale': Sale,
+            'Purchase': Purchase,
+            'Warehouse': Warehouse,
+        }
+    
     def get_inventory_context(self):
         """Obtiene contexto del inventario actual"""
         try:
+            models = self._get_models()
+            Product = models['Product']
+            Category = models['Category']
+            Warehouse = models['Warehouse']
+            
             # Obtener estadísticas generales
             products = Product.get_all()
             categories = Category.get_all()
@@ -60,10 +93,15 @@ class AIService:
             return context
         except Exception as e:
             return f"Error al obtener contexto del inventario: {str(e)}"
+
+    
     
     def search_products(self, query):
         """Busca productos por nombre"""
         try:
+            models = self._get_models()
+            Product = models['Product']
+            
             products = Product.get_all()
             query_lower = query.lower()
             
@@ -86,10 +124,14 @@ class AIService:
             return response
         except Exception as e:
             return f"Error al buscar productos: {str(e)}"
+
     
     def get_sales_summary(self):
         """Obtiene resumen de ventas"""
         try:
+            models = self._get_models()
+            Sale = models['Sale']
+            
             sales = Sale.get_all()
             
             if not sales:
@@ -114,6 +156,9 @@ class AIService:
     def get_purchases_summary(self):
         """Obtiene resumen de compras"""
         try:
+            models = self._get_models()
+            Purchase = models['Purchase']
+            
             purchases = Purchase.get_all()
             
             if not purchases:
@@ -141,6 +186,9 @@ class AIService:
             
             # Consulta general de productos
             if any(word in message_lower for word in ['todos los productos', 'listar productos', 'mostrar productos', 'cuántos productos', 'consulta', 'productos disponibles', 'stock bajo', 'productos con stock']):
+                models = self._get_models()
+                Product = models['Product']
+                
                 products = Product.get_all()
                 if not products:
                     return "No hay productos registrados en el sistema."

@@ -20,6 +20,7 @@ from app.controllers.config_controller import ConfigController
 from app.controllers.documentation_controller import DocumentationController
 from app.controllers.chatbot_controller import ChatbotController
 
+# URLs del sistema de inventario (existentes - sin cambios)
 urlpatterns = [
     path('', DashboardController.index, name='dashboard'),
     path('login/', AuthController.login, name='login'),
@@ -90,7 +91,24 @@ urlpatterns = [
     path('dian/', include('facturacion.urls')),
 ]
 
+# Django-Allauth URLs (solo si está activado)
+# Prefijo 'accounts/' para evitar conflictos con rutas existentes
+if getattr(settings, 'ENABLE_ALLAUTH', False):
+    urlpatterns += [
+        # URLs de allauth con prefijo 'accounts/'
+        # Ejemplos de rutas generadas:
+        # - /accounts/signup/ - Registro
+        # - /accounts/login/ - Login
+        # - /accounts/logout/ - Logout
+        # - /accounts/password/reset/ - Reset de contraseña
+        # - /accounts/password/change/ - Cambiar contraseña
+        # - /accounts/email/ - Gestión de emails
+        # - /accounts/confirm-email/<key>/ - Confirmar email
+        path('accounts/', include('allauth.urls')),
+    ]
+
 # Servir archivos estáticos en desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

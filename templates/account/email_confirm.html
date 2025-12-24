@@ -1,0 +1,44 @@
+{% extends "account/base.html" %}
+
+{% block title %}Confirmar Email - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        {% if confirmation %}
+            <h2><i class="fas fa-check-circle"></i> Confirmar Email</h2>
+            <p>Confirma tu dirección de email</p>
+            
+            <div class="alert" style="background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; text-align: center;">
+                <i class="fas fa-envelope"></i> Por favor, confirma que <strong>{{ confirmation.email_address.email }}</strong> es tu dirección de email.
+            </div>
+            
+            <form method="POST" action="{% url 'account_confirm_email' confirmation.key %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Confirmar Email
+                </button>
+            </form>
+        {% else %}
+            <h2><i class="fas fa-times-circle"></i> Enlace Inválido</h2>
+            <p>Este enlace no es válido</p>
+            
+            <div class="alert alert-error" style="text-align: center;">
+                <i class="fas fa-exclamation-triangle"></i> Este enlace de confirmación es inválido o ha expirado.
+            </div>
+            
+            <a href="{% url 'account_email' %}" class="btn btn-primary">
+                <i class="fas fa-envelope"></i> Solicitar Nuevo Email
+            </a>
+        {% endif %}
+        
+        <div class="auth-footer">
+            <p><a href="{% url 'account_login' %}"><i class="fas fa-arrow-left"></i> Volver al Login</a></p>
+        </div>
+        
+        <div class="auth-copyright">
+            <p>Desarrollado por © Daniel Enrique Perdomo Carvajal</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "account/base.html" %}
+
+{% block title %}Verifica tu Email - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2><i class="fas fa-envelope-open-text"></i> Verifica tu Email</h2>
+        <p>¡Email Enviado!</p>
+        
+        <div class="alert" style="background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; text-align: center;">
+            <i class="fas fa-info-circle"></i> Hemos enviado un email de confirmación a <strong>{{ email }}</strong>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0; color: #666;">
+            <p><strong>Próximos pasos:</strong></p>
+            <ol style="text-align: left; margin: 15px auto; max-width: 300px;">
+                <li>Revisa tu bandeja de entrada</li>
+                <li>Abre el email de confirmación</li>
+                <li>Haz clic en el enlace de verificación</li>
+                <li>¡Listo! Podrás iniciar sesión</li>
+            </ol>
+        </div>
+        
+        <div class="alert" style="background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; font-size: 13px;">
+            <strong><i class="fas fa-exclamation-triangle"></i> ¿No ves el email?</strong>
+            <ul style="margin: 8px 0 0 20px; text-align: left;">
+                <li>Revisa tu carpeta de spam</li>
+                <li>Verifica que el email sea correcto</li>
+                <li>Espera unos minutos</li>
+            </ul>
+        </div>
+        
+        <div class="auth-footer">
+            <p><a href="{% url 'account_login' %}"><i class="fas fa-arrow-left"></i> Volver al Login</a></p>
+        </div>
+        
+        <div class="auth-copyright">
+            <p>Desarrollado por © Daniel Enrique Perdomo Carvajal</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
