@@ -1,7 +1,7 @@
 """
-Decoradores de seguridad para vistas fiscales.
+Decoradores de seguridad para el módulo fiscal.
 
-Proporcionan control de acceso a nivel de función/método.
+Proporcionan control de acceso a nivel de función/vista.
 """
 from functools import wraps
 from django.core.exceptions import PermissionDenied
@@ -17,10 +17,9 @@ def require_fiscal_permission(permission):
         permission: Nombre del permiso (sin prefijo 'fiscal.')
     
     Examples:
-        >>> @require_fiscal_permission('change_fiscal')
-        >>> def update_perfil_fiscal(request, pk):
-        ...     # Solo usuarios con fiscal.change_fiscal pueden acceder
-        ...     pass
+        @require_fiscal_permission('change_fiscal_data')
+        def update_perfil(request, pk):
+            ...
     """
     def decorator(view_func):
         @wraps(view_func)
@@ -30,17 +29,6 @@ def require_fiscal_permission(permission):
             full_permission = f'fiscal.{permission}'
             
             if not request.user.has_perm(full_permission):
-                # Auditar intento de acceso no autorizado
-                FiscalAuditLog.log_action(
-                    action='VIEW',
-                    model_name='Permission',
-                    object_id=permission,
-                    user=request.user,
-                    request=request,
-                    success=False,
-                    error_message=f'Permission denied: {full_permission}'
-                )
-                
                 raise PermissionDenied(
                     f"Requiere permiso: {full_permission}"
                 )
@@ -56,43 +44,39 @@ def audit_fiscal_action(action, model_name):
     Decorador que audita automáticamente una acción fiscal.
     
     Args:
-        action: Tipo de acción (CREATE, UPDATE, DELETE, VIEW, EXPORT)
+        action: Tipo de acción (VIEW, CREATE, UPDATE, DELETE, EXPORT)
         model_name: Nombre del modelo
     
     Examples:
-        >>> @audit_fiscal_action('EXPORT', 'PerfilFiscal')
-        >>> def export_perfiles(request):
-        ...     # La exportación se auditará automáticamente
-        ...     pass
+        @audit_fiscal_action('VIEW', 'PerfilFiscal')
+        def view_perfil(request, pk):
+            ...
     """
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            # Ejecutar la vista
+            # Ejecutar vista
+            response = view_func(request, *args, **kwargs)
+            
+            # Auditar acción
             try:
-                result = view_func(request, *args, **kwargs)
-                success = True
-                error_message = ''
-            except Exception as e:
-                success = False
-                error_message = str(e)
-                raise
-            finally:
-                # Auditar la acción
                 object_id = kwargs.get('pk', kwargs.get('id', 'N/A'))
                 
-                if request.user.is_authenticated:
-                    FiscalAuditLog.log_action(
-                        action=action,
-                        model_name=model_name,
-                        object_id=object_id,
-                        user=request.user,
-                        request=request,
-                        success=success,
-                        error_message=error_message
-                    )
+                FiscalAuditLog.log_action(
+                    action=action,
+                    model_name=model_name,
+                    object_id=object_id,
+                    user=request.user,
+                    request=request,
+                    success=True
+                )
+            except Exception as e:
+                # No fallar la vista si falla la auditoría
+                import logging
+                logger = logging.getLogger('fiscal_audit')
+                logger.error(f"Failed to audit action: {e}")
             
-            return result
+            return response
         
         return wrapper
     return decorator
@@ -100,36 +84,36 @@ def audit_fiscal_action(action, model_name):
 
 def require_staff_or_owner(get_object_func):
     """
-    Decorador que requiere que el usuario sea staff o dueño del objeto.
+    Decorador que requiere ser staff o dueño del objeto.
     
     Args:
-        get_object_func: Función que retorna el objeto a verificar
+        get_object_func: Función que obtiene el objeto desde request/args/kwargs
     
     Examples:
-        >>> def get_perfil(request, pk):
-        ...     return PerfilFiscal.objects.get(pk=pk)
-        >>> 
-        >>> @require_staff_or_owner(get_perfil)
-        >>> def update_perfil(request, pk):
-        ...     # Solo staff o creador pueden modificar
-        ...     pass
+        def get_perfil(request, pk):
+            return PerfilFiscal.objects.get(pk=pk)
+        
+        @require_staff_or_owner(get_perfil)
+        def update_perfil(request, pk):
+            ...
     """
     def decorator(view_func):
         @wraps(view_func)
         @login_required
         def wrapper(request, *args, **kwargs):
-            # Obtener el objeto
+            # Obtener objeto
             obj = get_object_func(request, *args, **kwargs)
             
-            # Verificar si es staff o dueño
+            # Verificar permisos
+            is_staff = request.user.is_staff or request.user.is_superuser
             is_owner = (
                 hasattr(obj, 'created_by') and
                 obj.created_by == request.user
             )
             
-            if not (request.user.is_staff or is_owner):
+            if not (is_staff or is_owner):
                 raise PermissionDenied(
-                    "Solo el creador o staff pueden modificar este objeto"
+                    "Solo el creador o staff puede acceder a este recurso"
                 )
             
             return view_func(request, *args, **kwargs)
@@ -138,42 +122,41 @@ def require_staff_or_owner(get_object_func):
     return decorator
 
 
-class fiscal_permission_required:
+def rate_limit_fiscal(max_requests=100, window_seconds=60):
     """
-    Decorador de clase para requerir múltiples permisos fiscales.
+    Decorador de rate limiting para endpoints fiscales.
+    
+    Args:
+        max_requests: Máximo de requests permitidos
+        window_seconds: Ventana de tiempo en segundos
     
     Examples:
-        >>> @fiscal_permission_required(['view_fiscal', 'export_fiscal'])
-        >>> def export_all_data(request):
-        ...     # Requiere ambos permisos
-        ...     pass
+        @rate_limit_fiscal(max_requests=50, window_seconds=60)
+        def export_data(request):
+            ...
     """
-    
-    def __init__(self, permissions):
-        """
-        Args:
-            permissions: Lista de permisos requeridos (sin prefijo 'fiscal.')
-        """
-        if isinstance(permissions, str):
-            permissions = [permissions]
-        
-        self.permissions = [f'fiscal.{p}' for p in permissions]
-    
-    def __call__(self, view_func):
+    def decorator(view_func):
         @wraps(view_func)
-        @login_required
         def wrapper(request, *args, **kwargs):
-            # Verificar todos los permisos
-            missing_perms = [
-                perm for perm in self.permissions
-                if not request.user.has_perm(perm)
-            ]
+            from django.core.cache import cache
             
-            if missing_perms:
+            # Generar cache key por usuario
+            cache_key = f'fiscal_rate_limit_{request.user.id}'
+            
+            # Obtener contador actual
+            current_count = cache.get(cache_key, 0)
+            
+            # Verificar límite
+            if current_count >= max_requests:
                 raise PermissionDenied(
-                    f"Faltan permisos: {', '.join(missing_perms)}"
+                    f"Rate limit excedido. Máximo {max_requests} "
+                    f"requests por {window_seconds} segundos."
                 )
+            
+            # Incrementar contador
+            cache.set(cache_key, current_count + 1, window_seconds)
             
             return view_func(request, *args, **kwargs)
         
         return wrapper
+    return decorator

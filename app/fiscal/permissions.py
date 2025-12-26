@@ -10,27 +10,22 @@ class FiscalDataPermission(permissions.BasePermission):
     """
     Permisos granulares para datos fiscales.
     
-    Niveles de permisos:
-    - fiscal.view_fiscal: Ver datos fiscales
-    - fiscal.add_fiscal: Crear datos fiscales
-    - fiscal.change_fiscal: Modificar datos fiscales
-    - fiscal.delete_fiscal: Eliminar datos fiscales
-    - fiscal.audit_fiscal: Ver logs de auditoría
-    - fiscal.export_fiscal: Exportar datos fiscales
-    
-    Examples:
-        >>> # En una vista DRF
-        >>> class PerfilFiscalViewSet(viewsets.ModelViewSet):
-        ...     permission_classes = [FiscalDataPermission]
+    Niveles de permiso:
+    - fiscal.view_fiscal_data: Ver datos fiscales
+    - fiscal.add_fiscal_data: Crear datos fiscales
+    - fiscal.change_fiscal_data: Modificar datos fiscales
+    - fiscal.delete_fiscal_data: Eliminar datos fiscales
+    - fiscal.audit_fiscal_data: Ver logs de auditoría
+    - fiscal.export_fiscal_data: Exportar datos fiscales
     """
     
     def has_permission(self, request, view):
         """
-        Verifica si el usuario tiene permiso para la acción.
+        Verifica permisos a nivel de vista.
         
         Args:
             request: Request de Django
-            view: Vista actual
+            view: Vista siendo accedida
         
         Returns:
             bool: True si tiene permiso
@@ -39,23 +34,23 @@ class FiscalDataPermission(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         
-        # Superusuarios tienen todos los permisos
+        # Superusuarios tienen acceso total
         if request.user.is_superuser:
             return True
         
-        # Mapear métodos HTTP a permisos
+        # Verificar permisos según método HTTP
         if request.method in permissions.SAFE_METHODS:
             # GET, HEAD, OPTIONS
-            return request.user.has_perm('fiscal.view_fiscal')
+            return request.user.has_perm('fiscal.view_fiscal_data')
         
-        if request.method == 'POST':
-            return request.user.has_perm('fiscal.add_fiscal')
+        elif request.method == 'POST':
+            return request.user.has_perm('fiscal.add_fiscal_data')
         
-        if request.method in ['PUT', 'PATCH']:
-            return request.user.has_perm('fiscal.change_fiscal')
+        elif request.method in ['PUT', 'PATCH']:
+            return request.user.has_perm('fiscal.change_fiscal_data')
         
-        if request.method == 'DELETE':
-            return request.user.has_perm('fiscal.delete_fiscal')
+        elif request.method == 'DELETE':
+            return request.user.has_perm('fiscal.delete_fiscal_data')
         
         return False
     
@@ -65,66 +60,70 @@ class FiscalDataPermission(permissions.BasePermission):
         
         Args:
             request: Request de Django
-            view: Vista actual
-            obj: Objeto específico
+            view: Vista siendo accedida
+            obj: Objeto siendo accedido
         
         Returns:
-            bool: True si tiene permiso sobre el objeto
+            bool: True si tiene permiso
         """
         # Superusuarios tienen acceso total
         if request.user.is_superuser:
             return True
         
-        # Lectura: cualquiera con permiso view_fiscal
+        # Lectura: cualquiera con permiso view
         if request.method in permissions.SAFE_METHODS:
-            return request.user.has_perm('fiscal.view_fiscal')
+            return request.user.has_perm('fiscal.view_fiscal_data')
         
-        # Modificación/eliminación: solo staff o creador
+        # Modificación/Eliminación: verificar ownership o staff
         if request.method in ['PUT', 'PATCH', 'DELETE']:
-            # Verificar si el objeto tiene campo created_by
-            if hasattr(obj, 'created_by'):
-                return (
-                    request.user.is_staff or
-                    obj.created_by == request.user
-                )
+            # Staff puede modificar todo
+            if request.user.is_staff:
+                return request.user.has_perm('fiscal.change_fiscal_data')
             
-            # Si no tiene created_by, solo staff puede modificar
-            return request.user.is_staff
+            # Usuarios normales solo sus propios datos
+            # (si el modelo tiene created_by)
+            if hasattr(obj, 'created_by'):
+                return obj.created_by == request.user
         
         return False
 
 
 class AuditLogPermission(permissions.BasePermission):
     """
-    Permisos específicos para logs de auditoría.
+    Permisos para acceder a logs de auditoría.
     
-    Solo usuarios con permiso audit_fiscal pueden ver logs.
+    Solo usuarios con permiso especial pueden ver auditoría.
     """
     
     def has_permission(self, request, view):
-        """Verifica permiso para ver audit logs"""
+        """Verifica permiso para ver auditoría"""
         if not request.user or not request.user.is_authenticated:
             return False
         
-        if request.user.is_superuser:
-            return True
+        # Solo lectura permitida en auditoría
+        if request.method not in permissions.SAFE_METHODS:
+            return False
         
-        return request.user.has_perm('fiscal.audit_fiscal')
+        # Requiere permiso especial
+        return (
+            request.user.is_superuser or
+            request.user.has_perm('fiscal.audit_fiscal_data')
+        )
 
 
-class ExportDataPermission(permissions.BasePermission):
+class ExportPermission(permissions.BasePermission):
     """
     Permisos para exportar datos fiscales.
     
-    Requiere permiso especial export_fiscal.
+    Exportación requiere permiso especial por sensibilidad de datos.
     """
     
     def has_permission(self, request, view):
-        """Verifica permiso para exportar datos"""
+        """Verifica permiso para exportar"""
         if not request.user or not request.user.is_authenticated:
             return False
         
-        if request.user.is_superuser:
-            return True
-        
-        return request.user.has_perm('fiscal.export_fiscal')
+        return (
+            request.user.is_superuser or
+            request.user.has_perm('fiscal.export_fiscal_data')
+        )
