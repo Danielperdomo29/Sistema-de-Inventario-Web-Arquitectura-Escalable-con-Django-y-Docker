@@ -77,7 +77,7 @@ class PerfilFiscal(models.Model):
     
     # Relaciones (OneToOne con Client o Supplier)
     cliente = models.OneToOneField(
-        'Client',
+        'app.Client',
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -86,7 +86,7 @@ class PerfilFiscal(models.Model):
     )
     
     proveedor = models.OneToOneField(
-        'Supplier',
+        'app.Supplier',
         on_delete=models.CASCADE,
         null=True,
         blank=True,
