@@ -2,14 +2,28 @@
 Tests para encriptación de datos fiscales.
 """
 import pytest
+from cryptography.fernet import Fernet
 from app.fiscal.encryption import FiscalEncryption
 from app.fiscal.fields import EncryptedCharField, EncryptedEmailField
+
+
+# Clave fija para tests
+TEST_ENCRYPTION_KEY = Fernet.generate_key()
+
+
+@pytest.fixture
+def fixed_encryption_key(monkeypatch):
+    """Fixture que establece una clave fija para tests"""
+    monkeypatch.setattr(
+        'app.fiscal.encryption.FiscalEncryption.get_key',
+        lambda: TEST_ENCRYPTION_KEY
+    )
 
 
 class TestFiscalEncryption:
     """Tests para utilidades de encriptación"""
     
-    def test_encrypt_decrypt_string(self):
+    def test_encrypt_decrypt_string(self, fixed_encryption_key):
         """Test: Encripta y desencripta correctamente"""
         original = "900123456"
         encrypted = FiscalEncryption.encrypt(original)
@@ -18,17 +32,17 @@ class TestFiscalEncryption:
         assert decrypted == original
         assert encrypted != original  # Debe estar encriptado
     
-    def test_encrypt_empty_string(self):
+    def test_encrypt_empty_string(self, fixed_encryption_key):
         """Test: Maneja strings vacíos"""
         assert FiscalEncryption.encrypt('') == ''
         assert FiscalEncryption.decrypt('') == ''
     
-    def test_encrypt_none(self):
+    def test_encrypt_none(self, fixed_encryption_key):
         """Test: Maneja None"""
         assert FiscalEncryption.encrypt(None) is None
         assert FiscalEncryption.decrypt(None) is None
     
-    def test_encrypt_unicode(self):
+    def test_encrypt_unicode(self, fixed_encryption_key):
         """Test: Maneja caracteres Unicode"""
         original = "Calle 123 #45-67 Bogotá"
         encrypted = FiscalEncryption.encrypt(original)
@@ -43,7 +57,7 @@ class TestFiscalEncryption:
         assert isinstance(key, str)
         assert len(key) == 44  # Fernet keys are 44 chars base64
     
-    def test_different_encryptions(self):
+    def test_different_encryptions(self, fixed_encryption_key):
         """Test: Misma entrada produce diferentes salidas (por IV)"""
         # Nota: Fernet usa timestamp, así que puede ser igual si es muy rápido
         # Este test verifica que al menos encripta
@@ -59,7 +73,7 @@ class TestFiscalEncryption:
 class TestEncryptedFields:
     """Tests para campos encriptados"""
     
-    def test_encrypted_char_field_basic(self):
+    def test_encrypted_char_field_basic(self, fixed_encryption_key):
         """Test: EncryptedCharField encripta/desencripta"""
         field = EncryptedCharField(max_length=500)
         
@@ -70,7 +84,7 @@ class TestEncryptedFields:
         assert decrypted == original
         assert encrypted != original
     
-    def test_encrypted_email_field(self):
+    def test_encrypted_email_field(self, fixed_encryption_key):
         """Test: EncryptedEmailField funciona"""
         field = EncryptedEmailField(max_length=500)
         
@@ -80,7 +94,7 @@ class TestEncryptedFields:
         
         assert decrypted == original
     
-    def test_encrypted_field_none(self):
+    def test_encrypted_field_none(self, fixed_encryption_key):
         """Test: Campos encriptados manejan None"""
         field = EncryptedCharField(max_length=500)
         

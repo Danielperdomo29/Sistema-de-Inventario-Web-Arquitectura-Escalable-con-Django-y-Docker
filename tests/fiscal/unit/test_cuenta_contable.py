@@ -126,15 +126,16 @@ class TestCuentaContableValidation:
             tipo='ACTIVO'
         )
         
-        # When/Then
-        with pytest.raises(IntegrityError):
-            CuentaContable.objects.create(
+        # When/Then - El modelo valida antes de guardar
+        with pytest.raises(ValidationError):
+            cuenta = CuentaContable(
                 codigo='1',  # Duplicado
                 nombre='OTRO',
                 nivel=1,
                 naturaleza='D',
                 tipo='ACTIVO'
             )
+            cuenta.full_clean()
     
     def test_nivel_coherente_con_codigo(self):
         """Test: Nivel debe ser coherente con longitud del código"""

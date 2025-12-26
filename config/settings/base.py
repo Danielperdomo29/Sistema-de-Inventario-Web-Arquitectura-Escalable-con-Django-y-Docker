@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app",
+    "app.fiscal.apps.FiscalConfig",  # Fiscal module
     "facturacion",
 ]
 
