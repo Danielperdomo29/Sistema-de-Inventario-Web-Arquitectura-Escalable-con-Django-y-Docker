@@ -1,9 +1,11 @@
-from config.database import Database
 from datetime import datetime
+
+from config.database import Database
+
 
 class ChatbotMessage:
     """Modelo para mensajes del chatbot"""
-    
+
     @staticmethod
     def create_table():
         """Crea la tabla de mensajes del chatbot"""
@@ -17,7 +19,7 @@ class ChatbotMessage:
         )
         """
         Database.execute_query(query)
-    
+
     @staticmethod
     def save(user_id, message, response):
         """Guarda un mensaje y su respuesta"""
@@ -26,7 +28,7 @@ class ChatbotMessage:
         VALUES (%s, %s, %s, %s)
         """
         Database.execute_query(query, (user_id, message, response, datetime.now()), fetch=False)
-    
+
     @staticmethod
     def get_history(user_id, limit=10):
         """Obtiene el historial de conversación del usuario"""
@@ -38,29 +40,31 @@ class ChatbotMessage:
         LIMIT %s
         """
         results = Database.execute_query(query, (user_id, limit), fetch=True)
-        
+
         if not results:
             return []
-        
+
         messages = []
         for row in results:
-            messages.append({
-                'id': row['id'],
-                'user_id': row['user_id'],
-                'message': row['message'],
-                'response': row['response'],
-                'created_at': row['created_at']
-            })
-        
+            messages.append(
+                {
+                    "id": row["id"],
+                    "user_id": row["user_id"],
+                    "message": row["message"],
+                    "response": row["response"],
+                    "created_at": row["created_at"],
+                }
+            )
+
         # Invertir para mostrar del más antiguo al más reciente
         return list(reversed(messages))
-    
+
     @staticmethod
     def delete_history(user_id):
         """Elimina el historial de un usuario"""
         query = "DELETE FROM chatbot_messages WHERE user_id = %s"
         Database.execute_query(query, (user_id,), fetch=False)
-    
+
     @staticmethod
     def get_all_messages(user_id):
         """Obtiene todos los mensajes de un usuario"""
@@ -71,18 +75,20 @@ class ChatbotMessage:
         ORDER BY created_at ASC
         """
         results = Database.execute_query(query, (user_id,), fetch=True)
-        
+
         if not results:
             return []
-        
+
         messages = []
         for row in results:
-            messages.append({
-                'id': row['id'],
-                'user_id': row['user_id'],
-                'message': row['message'],
-                'response': row['response'],
-                'created_at': row['created_at']
-            })
-        
+            messages.append(
+                {
+                    "id": row["id"],
+                    "user_id": row["user_id"],
+                    "message": row["message"],
+                    "response": row["response"],
+                    "created_at": row["created_at"],
+                }
+            )
+
         return messages

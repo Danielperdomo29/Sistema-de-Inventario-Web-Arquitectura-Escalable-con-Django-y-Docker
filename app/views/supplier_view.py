@@ -1,15 +1,20 @@
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
+
 from app.views.layout import Layout
+
 
 class SupplierView:
     @staticmethod
     def index(user, suppliers, total, request):
         """Vista de lista de proveedores"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         rows = ""
         if suppliers:
             for idx, supplier in enumerate(suppliers, 1):
@@ -34,7 +39,7 @@ class SupplierView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -62,7 +67,7 @@ class SupplierView:
                 <p>Comienza agregando tu primer proveedor</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -72,16 +77,19 @@ class SupplierView:
             {table_content}
         </div>
         """
-        
-        return Layout.render('Proveedores', user, 'proveedores', content)
-    
+
+        return Layout.render("Proveedores", user, "proveedores", content)
+
     @staticmethod
     def create(user, request, error=None):
         """Vista de formulario para crear proveedor"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         error_html = ""
         if error:
             error_html = f"""
@@ -89,7 +97,7 @@ class SupplierView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -138,16 +146,19 @@ class SupplierView:
             </form>
         </div>
         """
-        
-        return Layout.render('Nuevo Proveedor', user, 'proveedores', content)
-    
+
+        return Layout.render("Nuevo Proveedor", user, "proveedores", content)
+
     @staticmethod
     def edit(user, supplier, request, error=None):
         """Vista de formulario para editar proveedor"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         error_html = ""
         if error:
             error_html = f"""
@@ -155,7 +166,7 @@ class SupplierView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -204,5 +215,5 @@ class SupplierView:
             </form>
         </div>
         """
-        
-        return Layout.render('Editar Proveedor', user, 'proveedores', content)
+
+        return Layout.render("Editar Proveedor", user, "proveedores", content)

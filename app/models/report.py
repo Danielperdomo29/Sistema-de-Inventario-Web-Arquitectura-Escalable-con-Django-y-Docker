@@ -1,8 +1,9 @@
 from config.database import Database
 
+
 class Report:
     """Modelo para generación de reportes y estadísticas"""
-    
+
     @staticmethod
     def ventas_por_mes():
         """Obtiene las ventas totales por mes del año actual"""
@@ -19,7 +20,7 @@ class Report:
             ORDER BY mes
         """
         return Database.execute_query(query)
-    
+
     @staticmethod
     def productos_mas_vendidos(limit=10):
         """Obtiene los productos más vendidos"""
@@ -37,7 +38,7 @@ class Report:
             LIMIT %s
         """
         return Database.execute_query(query, (limit,))
-    
+
     @staticmethod
     def ventas_por_estado():
         """Obtiene el resumen de ventas por estado"""
@@ -50,7 +51,7 @@ class Report:
             GROUP BY estado
         """
         return Database.execute_query(query)
-    
+
     @staticmethod
     def clientes_frecuentes(limit=10):
         """Obtiene los clientes con más compras"""
@@ -68,7 +69,7 @@ class Report:
             LIMIT %s
         """
         return Database.execute_query(query, (limit,))
-    
+
     @staticmethod
     def inventario_bajo_stock(minimo=10):
         """Obtiene productos con stock bajo"""
@@ -83,7 +84,7 @@ class Report:
             ORDER BY p.stock_actual ASC
         """
         return Database.execute_query(query, (minimo,))
-    
+
     @staticmethod
     def resumen_general():
         """Obtiene un resumen general del sistema"""

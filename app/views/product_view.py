@@ -1,16 +1,18 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class ProductView:
     """Vista de Productos"""
-    
+
     @staticmethod
     def index(user, request_path, products):
         """Vista de lista de productos"""
-        
+
         # Generar filas de la tabla
         if products:
-            rows = ''
+            rows = ""
             for product in products:
                 rows += f"""
                 <tr>
@@ -25,7 +27,7 @@ class ProductView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -53,7 +55,7 @@ class ProductView:
                 <p>Comienza agregando tu primer producto</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -63,22 +65,23 @@ class ProductView:
             {table_content}
         </div>
         """
-        
-        return HttpResponse(Layout.render('Productos', user, 'productos', content))
-    
+
+        return HttpResponse(Layout.render("Productos", user, "productos", content))
+
     @staticmethod
     def create(user, categories, request, error=None):
         """Vista del formulario de crear producto"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Generar opciones de categorías
         category_options = ""
         for category in categories:
             category_options += f'<option value="{category["id"]}">{category["nombre"]}</option>'
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -87,7 +90,7 @@ class ProductView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -149,23 +152,26 @@ class ProductView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Crear Producto', user, 'productos', content))
-    
+
+        return HttpResponse(Layout.render("Crear Producto", user, "productos", content))
+
     @staticmethod
     def edit(user, product, categories, request, error=None):
         """Vista del formulario de editar producto"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Generar opciones de categorías
         category_options = ""
         for category in categories:
-            selected = 'selected' if category['id'] == product.get('categoria_id') else ''
-            category_options += f'<option value="{category["id"]}" {selected}>{category["nombre"]}</option>'
-        
+            selected = "selected" if category["id"] == product.get("categoria_id") else ""
+            category_options += (
+                f'<option value="{category["id"]}" {selected}>{category["nombre"]}</option>'
+            )
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -174,7 +180,7 @@ class ProductView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -236,6 +242,5 @@ class ProductView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Editar Producto', user, 'productos', content))
 
+        return HttpResponse(Layout.render("Editar Producto", user, "productos", content))

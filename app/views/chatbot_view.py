@@ -1,13 +1,15 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class ChatbotView:
     """Vista del Chatbot con IA"""
-    
+
     @staticmethod
     def render(user, history):
         """Renderiza la interfaz del chatbot"""
-        
+
         # Construir mensajes del historial
         history_html = ""
         if history:
@@ -74,10 +76,5 @@ class ChatbotView:
         </div>
         <script src='/static/js/chatbot.js'></script>
         """
-        html = Layout.render(
-            title="Chatbot IA",
-            user=user,
-            active_page="chatbot",
-            content=content
-        )
+        html = Layout.render(title="Chatbot IA", user=user, active_page="chatbot", content=content)
         return HttpResponse(html)

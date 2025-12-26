@@ -1,10 +1,10 @@
 class Layout:
     """Layouts y componentes compartidos"""
-    
+
     @staticmethod
     def get_styles():
         """Carga los estilos CSS desde archivo externo"""
-        return '''
+        return """
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="/static/css/main.css">
         <link rel="stylesheet" href="/static/css/forms.css">
@@ -13,8 +13,8 @@ class Layout:
         <link rel="stylesheet" href="/static/css/chatbot.css">
         <link rel="stylesheet" href="/static/css/theme-green.css">
         <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-        '''
-    
+        """
+
     @staticmethod
     def navbar(user):
         """Componente de Navbar"""
@@ -32,34 +32,42 @@ class Layout:
             </div>
         </div>
         """
-    
+
     @staticmethod
-    def sidebar(active_page=''):
+    def sidebar(active_page=""):
         """Componente de Sidebar"""
         menu_items = [
-            {'url': '/', 'label': 'Dashboard', 'key': 'dashboard'},
-            {'url': '/productos/', 'label': 'Productos', 'key': 'productos'},
-            {'url': '/categorias/', 'label': 'Categorías', 'key': 'categorias'},
-            {'url': '/clientes/', 'label': 'Clientes', 'key': 'clientes'},
-            {'url': '/proveedores/', 'label': 'Proveedores', 'key': 'proveedores'},
-            {'url': '/almacenes/', 'label': 'Almacenes', 'key': 'almacenes'},
-            {'url': '/movimientos-inventario/', 'label': 'Movimientos Inventario', 'key': 'movimientos-inventario'},
-            {'url': '/roles/', 'label': 'Roles', 'key': 'roles'},
-            {'url': '/ventas/', 'label': 'Ventas', 'key': 'ventas'},
-            {'url': '/detalle-ventas/', 'label': 'Detalle Ventas', 'key': 'detalle-ventas'},
-            {'url': '/compras/', 'label': 'Compras', 'key': 'compras'},
-            {'url': '/detalle-compras/', 'label': 'Detalle Compras', 'key': 'detalle-compras'},
-            {'url': '/reportes/', 'label': 'Reportes', 'key': 'reportes'},
-            {'url': '/chatbot/', 'label': '<i class="fas fa-robot"></i> Chatbot IA', 'key': 'chatbot'},
-            {'url': '/configuracion/', 'label': 'Configuración', 'key': 'configuracion'},
-            {'url': '/documentacion/', 'label': 'Documentación', 'key': 'documentacion'},
+            {"url": "/", "label": "Dashboard", "key": "dashboard"},
+            {"url": "/productos/", "label": "Productos", "key": "productos"},
+            {"url": "/categorias/", "label": "Categorías", "key": "categorias"},
+            {"url": "/clientes/", "label": "Clientes", "key": "clientes"},
+            {"url": "/proveedores/", "label": "Proveedores", "key": "proveedores"},
+            {"url": "/almacenes/", "label": "Almacenes", "key": "almacenes"},
+            {
+                "url": "/movimientos-inventario/",
+                "label": "Movimientos Inventario",
+                "key": "movimientos-inventario",
+            },
+            {"url": "/roles/", "label": "Roles", "key": "roles"},
+            {"url": "/ventas/", "label": "Ventas", "key": "ventas"},
+            {"url": "/detalle-ventas/", "label": "Detalle Ventas", "key": "detalle-ventas"},
+            {"url": "/compras/", "label": "Compras", "key": "compras"},
+            {"url": "/detalle-compras/", "label": "Detalle Compras", "key": "detalle-compras"},
+            {"url": "/reportes/", "label": "Reportes", "key": "reportes"},
+            {
+                "url": "/chatbot/",
+                "label": '<i class="fas fa-robot"></i> Chatbot IA',
+                "key": "chatbot",
+            },
+            {"url": "/configuracion/", "label": "Configuración", "key": "configuracion"},
+            {"url": "/documentacion/", "label": "Documentación", "key": "documentacion"},
         ]
-        
+
         menu_html = ""
         for item in menu_items:
-            active_class = 'class="active"' if item['key'] == active_page else ''
+            active_class = 'class="active"' if item["key"] == active_page else ""
             menu_html += f'<li><a href="{item["url"]}" {active_class}>{item["label"]}</a></li>\n'
-        
+
         return f"""
         <div class="sidebar-overlay" id="sidebar-overlay"></div>
         <div class="sidebar" id="sidebar">
@@ -68,14 +76,14 @@ class Layout:
             </ul>
         </div>
         """
-    
+
     @staticmethod
     def render(title, user, active_page, content):
         """Renderiza el layout completo"""
         styles = Layout.get_styles()
         navbar = Layout.navbar(user)
         sidebar = Layout.sidebar(active_page)
-        
+
         chatbot_script = ""
         if active_page == "chatbot":
             chatbot_script = '<script src="/static/js/chatbot.js"></script>'

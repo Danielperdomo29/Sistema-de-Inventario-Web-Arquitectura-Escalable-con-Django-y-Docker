@@ -1,24 +1,29 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class InventoryMovementView:
     @staticmethod
     def index(user, movements, request):
         """Vista de lista de movimientos de inventario"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         # Tabla de movimientos
         rows = ""
         if movements:
             for idx, movement in enumerate(movements, 1):
                 tipo_badge = {
-                    'entrada': '<span class="badge badge-success">Entrada</span>',
-                    'salida': '<span class="badge badge-warning">Salida</span>',
-                    'ajuste': '<span class="badge badge-info">Ajuste</span>'
-                }.get(movement['tipo_movimiento'], movement['tipo_movimiento'])
-                
+                    "entrada": '<span class="badge badge-success">Entrada</span>',
+                    "salida": '<span class="badge badge-warning">Salida</span>',
+                    "ajuste": '<span class="badge badge-info">Ajuste</span>',
+                }.get(movement["tipo_movimiento"], movement["tipo_movimiento"])
+
                 rows += f"""
                 <tr>
                     <td>{idx}</td>
@@ -42,7 +47,7 @@ class InventoryMovementView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -73,7 +78,7 @@ class InventoryMovementView:
                 <p>Comienza registrando el primer movimiento</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -83,16 +88,19 @@ class InventoryMovementView:
             {table_content}
         </div>
         """
-        
-        return Layout.render('Movimientos de Inventario', user, 'movimientos-inventario', content)
-    
+
+        return Layout.render("Movimientos de Inventario", user, "movimientos-inventario", content)
+
     @staticmethod
     def create(user, products, warehouses, request, error=None):
         """Vista de formulario para crear movimiento de inventario"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         error_html = ""
         if error:
             error_html = f"""
@@ -100,17 +108,17 @@ class InventoryMovementView:
                 {error}
             </div>
             """
-        
+
         # Select de productos
         product_options = '<option value="">Seleccione un producto</option>'
         for product in products:
             product_options += f'<option value="{product["id"]}">{product["nombre"]}</option>'
-        
+
         # Select de almacenes
         warehouse_options = '<option value="">Seleccione un almacén</option>'
         for warehouse in warehouses:
             warehouse_options += f'<option value="{warehouse["id"]}">{warehouse["nombre"]}</option>'
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -168,16 +176,19 @@ class InventoryMovementView:
             </form>
         </div>
         """
-        
-        return Layout.render('Nuevo Movimiento', user, 'movimientos-inventario', content)
-    
+
+        return Layout.render("Nuevo Movimiento", user, "movimientos-inventario", content)
+
     @staticmethod
     def edit(user, movement, products, warehouses, request, error=None):
         """Vista de formulario para editar movimiento de inventario"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         error_html = ""
         if error:
             error_html = f"""
@@ -185,30 +196,34 @@ class InventoryMovementView:
                 {error}
             </div>
             """
-        
+
         # Select de productos
         product_options = ""
         for product in products:
-            selected = 'selected' if product['id'] == movement['producto_id'] else ''
-            product_options += f'<option value="{product["id"]}" {selected}>{product["nombre"]}</option>'
-        
+            selected = "selected" if product["id"] == movement["producto_id"] else ""
+            product_options += (
+                f'<option value="{product["id"]}" {selected}>{product["nombre"]}</option>'
+            )
+
         # Select de almacenes
         warehouse_options = ""
         for warehouse in warehouses:
-            selected = 'selected' if warehouse['id'] == movement['almacen_id'] else ''
-            warehouse_options += f'<option value="{warehouse["id"]}" {selected}>{warehouse["nombre"]}</option>'
-        
+            selected = "selected" if warehouse["id"] == movement["almacen_id"] else ""
+            warehouse_options += (
+                f'<option value="{warehouse["id"]}" {selected}>{warehouse["nombre"]}</option>'
+            )
+
         # Select de tipo de movimiento
         tipos = [
-            {'value': 'entrada', 'label': 'Entrada'},
-            {'value': 'salida', 'label': 'Salida'},
-            {'value': 'ajuste', 'label': 'Ajuste'}
+            {"value": "entrada", "label": "Entrada"},
+            {"value": "salida", "label": "Salida"},
+            {"value": "ajuste", "label": "Ajuste"},
         ]
         tipo_options = ""
         for tipo in tipos:
-            selected = 'selected' if tipo['value'] == movement['tipo_movimiento'] else ''
+            selected = "selected" if tipo["value"] == movement["tipo_movimiento"] else ""
             tipo_options += f'<option value="{tipo["value"]}" {selected}>{tipo["label"]}</option>'
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -263,19 +278,19 @@ class InventoryMovementView:
             </form>
         </div>
         """
-        
-        return Layout.render('Editar Movimiento', user, 'movimientos-inventario', content)
-    
+
+        return Layout.render("Editar Movimiento", user, "movimientos-inventario", content)
+
     @staticmethod
     def view(user, movement):
         """Vista de detalle de movimiento de inventario"""
-        
+
         tipo_badge = {
-            'entrada': '<span class="badge badge-success">Entrada</span>',
-            'salida': '<span class="badge badge-warning">Salida</span>',
-            'ajuste': '<span class="badge badge-info">Ajuste</span>'
-        }.get(movement['tipo_movimiento'], movement['tipo_movimiento'])
-        
+            "entrada": '<span class="badge badge-success">Entrada</span>',
+            "salida": '<span class="badge badge-warning">Salida</span>',
+            "ajuste": '<span class="badge badge-info">Ajuste</span>',
+        }.get(movement["tipo_movimiento"], movement["tipo_movimiento"])
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -335,5 +350,5 @@ class InventoryMovementView:
             </div>
         </div>
         """
-        
-        return Layout.render('Ver Movimiento', user, 'movimientos-inventario', content)
+
+        return Layout.render("Ver Movimiento", user, "movimientos-inventario", content)

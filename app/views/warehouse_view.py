@@ -1,13 +1,15 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class WarehouseView:
     """Vista de Almacenes"""
-    
+
     @staticmethod
     def index(user, warehouses):
         """Renderiza la página de listado de almacenes"""
-        
+
         # Generar las filas de la tabla
         if warehouses:
             rows = ""
@@ -24,7 +26,7 @@ class WarehouseView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -51,7 +53,7 @@ class WarehouseView:
                 <p>Comienza agregando tu primer almacén</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -61,17 +63,18 @@ class WarehouseView:
             {table_content}
         </div>
         """
-        
-        return HttpResponse(Layout.render('Almacenes', user, 'almacenes', content))
-    
+
+        return HttpResponse(Layout.render("Almacenes", user, "almacenes", content))
+
     @staticmethod
     def create(user, request, error=None):
         """Vista del formulario de crear almacén"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -80,7 +83,7 @@ class WarehouseView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -118,17 +121,18 @@ class WarehouseView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Crear Almacén', user, 'almacenes', content))
-    
+
+        return HttpResponse(Layout.render("Crear Almacén", user, "almacenes", content))
+
     @staticmethod
     def edit(user, warehouse, request, error=None):
         """Vista del formulario de editar almacén"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -137,7 +141,7 @@ class WarehouseView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -175,5 +179,5 @@ class WarehouseView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Editar Almacén', user, 'almacenes', content))
+
+        return HttpResponse(Layout.render("Editar Almacén", user, "almacenes", content))

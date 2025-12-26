@@ -1,11 +1,11 @@
 class AuthView:
     """Vista de Autenticación"""
-    
+
     @staticmethod
-    def login(error=None, csrf_token=''):
+    def login(error=None, csrf_token=""):
         """Vista de login"""
-        error_html = f'<div class="alert alert-error">{error}</div>' if error else ''
-        
+        error_html = f'<div class="alert alert-error">{error}</div>' if error else ""
+
         return f"""
 <!DOCTYPE html>
 <html lang="es">
@@ -54,17 +54,17 @@ class AuthView:
 </body>
 </html>
 """
-    
+
     @staticmethod
-    def register(errors=None, csrf_token='', form_data=None):
+    def register(errors=None, csrf_token="", form_data=None):
         """Vista de registro"""
         form_data = form_data or {}
-        errors_html = ''
-        
+        errors_html = ""
+
         if errors:
-            errors_list = ''.join([f'<li>{error}</li>' for error in errors])
+            errors_list = "".join([f"<li>{error}</li>" for error in errors])
             errors_html = f'<div class="alert alert-error"><ul>{errors_list}</ul></div>'
-        
+
         return f"""
 <!DOCTYPE html>
 <html lang="es">

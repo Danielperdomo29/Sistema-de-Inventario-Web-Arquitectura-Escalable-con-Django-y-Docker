@@ -1,13 +1,15 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class DocumentationView:
     """Vista de Documentación del Sistema"""
-    
+
     @staticmethod
     def index(user, request_path):
         """Renderiza la página de documentación completa"""
-        
+
         content = f"""
         <div class="documentation-container">
             <h1 class="doc-main-title"><i class="fas fa-book"></i> Documentación del Sistema</h1>
@@ -366,5 +368,5 @@ class DocumentationView:
             </section>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Documentación', user, 'documentacion', content))
+
+        return HttpResponse(Layout.render("Documentación", user, "documentacion", content))

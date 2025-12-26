@@ -1,0 +1,76 @@
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  | migrations
+  | venv
+  | env
+  | __pycache__
+  | \.git
+  | \.pytest_cache
+  | \.mypy_cache
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip = ["migrations", "venv", "env"]
+known_first_party = ["app", "config"]
+known_django = ["django"]
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "security: Security tests",
+    "slow: Slow running tests",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/venv/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+fail_under = 80
+
+[tool.pylint.master]
+ignore = ["migrations", "venv", "env"]
+jobs = 0  # Use all CPUs
+
+[tool.pylint.messages_control]
+max-line-length = 100
+disable = [
+    "C0111",  # missing-docstring (handled in code reviews)
+    "R0903",  # too-few-public-methods (Django models)
+    "W0212",  # protected-access (Django internals)
+]
+
+[tool.pylint.design]
+max-args = 7
+max-locals = 15
+max-returns = 6
+max-branches = 12
+max-attributes = 10
+
+[tool.bandit]
+exclude_dirs = ["/venv/", "/env/", "/migrations/", "/tests/"]
+skips = ["B101"]  # assert_used (needed for tests)

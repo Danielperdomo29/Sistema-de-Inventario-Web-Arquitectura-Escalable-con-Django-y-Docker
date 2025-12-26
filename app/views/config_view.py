@@ -1,18 +1,20 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class ConfigView:
     """Vista de Configuración"""
-    
+
     @staticmethod
     def index(user, data):
         """Renderiza la página de configuración del sistema"""
-        
-        user_info = data.get('user_info', {})
-        system_stats = data.get('system_stats', {})
-        all_users = data.get('all_users', [])
-        database_info = data.get('database_info', [])
-        
+
+        user_info = data.get("user_info", {})
+        system_stats = data.get("system_stats", {})
+        all_users = data.get("all_users", [])
+        database_info = data.get("database_info", [])
+
         # Sección de información del usuario
         user_section = f"""
         <div class="card">
@@ -53,7 +55,7 @@ class ConfigView:
             </div>
         </div>
         """
-        
+
         # Sección de estadísticas del sistema
         stats_section = f"""
         <div class="card">
@@ -78,12 +80,16 @@ class ConfigView:
             </div>
         </div>
         """
-        
+
         # Sección de usuarios del sistema
         users_rows = ""
         if all_users:
             for usuario in all_users:
-                estado_badge = '<span class="badge badge-success">Activo</span>' if usuario['activo'] else '<span class="badge badge-inactive">Inactivo</span>'
+                estado_badge = (
+                    '<span class="badge badge-success">Activo</span>'
+                    if usuario["activo"]
+                    else '<span class="badge badge-inactive">Inactivo</span>'
+                )
                 users_rows += f"""
                 <tr>
                     <td>{usuario['username']}</td>
@@ -99,7 +105,7 @@ class ConfigView:
                 """
         else:
             users_rows = '<tr><td colspan="6" class="empty-state">No hay usuarios</td></tr>'
-        
+
         users_section = f"""
         <div class="card">
             <div class="card-header">
@@ -125,7 +131,7 @@ class ConfigView:
             </div>
         </div>
         """
-        
+
         # Sección de información de base de datos
         db_rows = ""
         if database_info:
@@ -138,8 +144,10 @@ class ConfigView:
                 </tr>
                 """
         else:
-            db_rows = '<tr><td colspan="3" class="empty-state">No hay información disponible</td></tr>'
-        
+            db_rows = (
+                '<tr><td colspan="3" class="empty-state">No hay información disponible</td></tr>'
+            )
+
         db_section = f"""
         <div class="card">
             <div class="card-header"><i class="fas fa-database"></i> Información de Base de Datos</div>
@@ -159,29 +167,30 @@ class ConfigView:
             </div>
         </div>
         """
-        
+
         content = f"""
         {user_section}
         {stats_section}
         {users_section}
         {db_section}
         """
-        
-        return HttpResponse(Layout.render('Configuración', user, 'configuracion', content))
-    
+
+        return HttpResponse(Layout.render("Configuración", user, "configuracion", content))
+
     @staticmethod
     def create_user(user, roles, request, error=None):
         """Vista del formulario de crear usuario"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Generar opciones de roles
         role_options = ""
         for role in roles:
             role_options += f'<option value="{role["id"]}">{role["nombre"]}</option>'
-        
+
         # Mensaje de error
         error_html = ""
         if error:
@@ -190,7 +199,7 @@ class ConfigView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -238,23 +247,24 @@ class ConfigView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Crear Usuario', user, 'configuracion', content))
-    
+
+        return HttpResponse(Layout.render("Crear Usuario", user, "configuracion", content))
+
     @staticmethod
     def edit_user(user, user_to_edit, roles, request, error=None):
         """Vista del formulario de editar usuario"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Generar opciones de roles
         role_options = ""
         for role in roles:
-            selected = 'selected' if role['id'] == user_to_edit.get('rol_id') else ''
+            selected = "selected" if role["id"] == user_to_edit.get("rol_id") else ""
             role_options += f'<option value="{role["id"]}" {selected}>{role["nombre"]}</option>'
-        
+
         # Mensaje de error
         error_html = ""
         if error:
@@ -263,7 +273,7 @@ class ConfigView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -314,17 +324,18 @@ class ConfigView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Editar Usuario', user, 'configuracion', content))
-    
+
+        return HttpResponse(Layout.render("Editar Usuario", user, "configuracion", content))
+
     @staticmethod
     def edit_profile(user, user_info, request, is_admin=False, error=None):
         """Vista del formulario de editar perfil del usuario actual"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error
         error_html = ""
         if error:
@@ -333,7 +344,7 @@ class ConfigView:
                 {error}
             </div>
             """
-        
+
         # Campo de estado solo si es administrador
         estado_field = ""
         if is_admin:
@@ -355,7 +366,7 @@ class ConfigView:
                        class="form-input-disabled">
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -403,17 +414,18 @@ class ConfigView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Editar Perfil', user, 'configuracion', content))
-    
+
+        return HttpResponse(Layout.render("Editar Perfil", user, "configuracion", content))
+
     @staticmethod
     def change_password(user, request, error=None):
         """Vista del formulario de cambiar contraseña"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error
         error_html = ""
         if error:
@@ -422,7 +434,7 @@ class ConfigView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -461,6 +473,5 @@ class ConfigView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Cambiar Contraseña', user, 'configuracion', content))
 
+        return HttpResponse(Layout.render("Cambiar Contraseña", user, "configuracion", content))
