@@ -1,3 +1,4 @@
+from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
@@ -9,6 +10,7 @@ from app.controllers.client_controller import ClientController
 from app.controllers.config_controller import ConfigController
 from app.controllers.dashboard_controller import DashboardController
 from app.controllers.documentation_controller import DocumentationController
+from app.controllers.fiscal_controller import FiscalController
 from app.controllers.inventory_movement_controller import InventoryMovementController
 from app.controllers.product_controller import ProductController
 from app.controllers.purchase_controller import PurchaseController
@@ -22,6 +24,9 @@ from app.controllers.warehouse_controller import WarehouseController
 
 # URLs del sistema de inventario (existentes - sin cambios)
 urlpatterns = [
+    # Django Admin
+    path("admin/", admin.site.urls),
+    # Dashboard y autenticación
     path("", DashboardController.index, name="dashboard"),
     path("login/", AuthController.login, name="login"),
     path("register/", AuthController.register, name="register"),
@@ -150,6 +155,14 @@ urlpatterns = [
     path("chatbot/send/", ChatbotController.send_message, name="chatbot_send"),
     path("chatbot/clear-history/", ChatbotController.clear_history, name="chatbot_clear_history"),
     path("chatbot/history/", ChatbotController.get_history, name="chatbot_history"),
+    # Módulo Fiscal - Fase A
+    path("fiscal/", FiscalController.index, name="fiscal"),
+    path("fiscal/perfiles/", FiscalController.perfiles_fiscales, name="fiscal_perfiles"),
+    path("fiscal/perfiles/crear/", FiscalController.perfil_fiscal_crear, name="fiscal_perfil_crear"),
+    path("fiscal/perfiles/<int:perfil_id>/editar/", FiscalController.perfil_fiscal_editar, name="fiscal_perfil_editar"),
+    path("fiscal/cuentas-puc/", FiscalController.cuentas_puc, name="fiscal_cuentas_puc"),
+    path("fiscal/impuestos/", FiscalController.impuestos, name="fiscal_impuestos"),
+    # DIAN
     path("dian/", include("facturacion.urls")),
 ]
 

@@ -21,7 +21,7 @@ class Command(BaseCommand):
         except CuentaContable.DoesNotExist as e:
             self.stdout.write(
                 self.style.ERROR(
-                    f'❌ Error: Cuentas contables no encontradas. '
+                    f'[ERROR] Error: Cuentas contables no encontradas. '
                     f'Ejecuta primero: python manage.py load_puc'
                 )
             )
@@ -114,12 +114,12 @@ class Command(BaseCommand):
             
             impuestos_creados += 1
             self.stdout.write(
-                f'  ✓ Creado: {codigo} - {impuesto.nombre} ({impuesto.porcentaje}%)'
+                f'  [OK] Creado: {codigo} - {impuesto.nombre} ({impuesto.porcentaje}%)'
             )
         
         # Resumen
         self.stdout.write('\n' + '='*60)
-        self.stdout.write(self.style.SUCCESS(f'✅ Impuestos básicos cargados exitosamente'))
-        self.stdout.write(f'  • Impuestos creados: {impuestos_creados}')
-        self.stdout.write(f'  • Impuestos existentes: {impuestos_existentes}')
-        self.stdout.write(f'  • Total en BD: {Impuesto.objects.count()}')
+        self.stdout.write(self.style.SUCCESS(f'[SUCCESS] Impuestos basicos cargados exitosamente'))
+        self.stdout.write(f'  - Impuestos creados: {impuestos_creados}')
+        self.stdout.write(f'  - Impuestos existentes: {impuestos_existentes}')
+        self.stdout.write(f'  - Total en BD: {Impuesto.objects.count()}')

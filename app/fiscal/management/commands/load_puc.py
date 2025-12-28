@@ -70,7 +70,7 @@ class Command(BaseCommand):
                 except CuentaContable.DoesNotExist:
                     self.stdout.write(
                         self.style.WARNING(
-                            f'  ⚠ Padre no encontrado para {codigo}: {cuenta_data["padre_codigo"]}'
+                            f'  [!] Padre no encontrado para {codigo}: {cuenta_data["padre_codigo"]}'
                         )
                     )
                     continue
@@ -86,11 +86,11 @@ class Command(BaseCommand):
             )
             
             cuentas_creadas += 1
-            self.stdout.write(f'  ✓ Creada: {codigo} - {cuenta.nombre}')
+            self.stdout.write(f'  [OK] Creada: {codigo} - {cuenta.nombre}')
         
         # Resumen
         self.stdout.write('\n' + '='*60)
-        self.stdout.write(self.style.SUCCESS(f'✅ PUC básico cargado exitosamente'))
-        self.stdout.write(f'  • Cuentas creadas: {cuentas_creadas}')
-        self.stdout.write(f'  • Cuentas existentes: {cuentas_existentes}')
-        self.stdout.write(f'  • Total en BD: {CuentaContable.objects.count()}')
+        self.stdout.write(self.style.SUCCESS(f'[SUCCESS] PUC basico cargado exitosamente'))
+        self.stdout.write(f'  - Cuentas creadas: {cuentas_creadas}')
+        self.stdout.write(f'  - Cuentas existentes: {cuentas_existentes}')
+        self.stdout.write(f'  - Total en BD: {CuentaContable.objects.count()}')

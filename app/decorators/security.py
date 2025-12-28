@@ -1,3 +1,4 @@
+
 """
 Decoradores de seguridad para control de acceso y protección.
 """
