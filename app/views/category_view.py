@@ -1,13 +1,15 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class CategoryView:
     """Vista de Categorías"""
-    
+
     @staticmethod
     def index(user, categories):
         """Renderiza la página de listado de categorías"""
-        
+
         # Generar las filas de la tabla
         if categories:
             rows = ""
@@ -23,7 +25,7 @@ class CategoryView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -49,7 +51,7 @@ class CategoryView:
                 <p>Comienza agregando tu primera categoría</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -59,17 +61,18 @@ class CategoryView:
             {table_content}
         </div>
         """
-        
-        return HttpResponse(Layout.render('Categorías', user, 'categorias', content))
-    
+
+        return HttpResponse(Layout.render("Categorías", user, "categorias", content))
+
     @staticmethod
     def create(user, request, error=None):
         """Vista del formulario de crear categoría"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -78,7 +81,7 @@ class CategoryView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -106,17 +109,18 @@ class CategoryView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Crear Categoría', user, 'categorias', content))
-    
+
+        return HttpResponse(Layout.render("Crear Categoría", user, "categorias", content))
+
     @staticmethod
     def edit(user, category, request, error=None):
         """Vista del formulario de editar categoría"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -125,7 +129,7 @@ class CategoryView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -153,6 +157,5 @@ class CategoryView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Editar Categoría', user, 'categorias', content))
 
+        return HttpResponse(Layout.render("Editar Categoría", user, "categorias", content))

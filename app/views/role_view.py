@@ -1,13 +1,15 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class RoleView:
     """Vista de Roles"""
-    
+
     @staticmethod
     def index(user, roles):
         """Renderiza la página de listado de roles"""
-        
+
         # Generar las filas de la tabla
         if roles:
             rows = ""
@@ -23,7 +25,7 @@ class RoleView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -49,7 +51,7 @@ class RoleView:
                 <p>Comienza agregando tu primer rol</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -59,17 +61,18 @@ class RoleView:
             {table_content}
         </div>
         """
-        
-        return HttpResponse(Layout.render('Roles', user, 'roles', content))
-    
+
+        return HttpResponse(Layout.render("Roles", user, "roles", content))
+
     @staticmethod
     def create(user, request, error=None):
         """Vista del formulario de crear rol"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -78,7 +81,7 @@ class RoleView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -108,17 +111,18 @@ class RoleView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Crear Rol', user, 'roles', content))
-    
+
+        return HttpResponse(Layout.render("Crear Rol", user, "roles", content))
+
     @staticmethod
     def edit(user, role, request, error=None):
         """Vista del formulario de editar rol"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -127,7 +131,7 @@ class RoleView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -157,5 +161,5 @@ class RoleView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Editar Rol', user, 'roles', content))
+
+        return HttpResponse(Layout.render("Editar Rol", user, "roles", content))

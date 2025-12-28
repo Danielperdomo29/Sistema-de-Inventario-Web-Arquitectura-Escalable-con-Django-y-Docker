@@ -1,13 +1,15 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class ClientView:
     """Vista de Clientes"""
-    
+
     @staticmethod
     def index(user, clients):
         """Renderiza la página de listado de clientes"""
-        
+
         # Generar las filas de la tabla
         if clients:
             rows = ""
@@ -25,7 +27,7 @@ class ClientView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -53,7 +55,7 @@ class ClientView:
                 <p>Comienza agregando tu primer cliente</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -63,17 +65,18 @@ class ClientView:
             {table_content}
         </div>
         """
-        
-        return HttpResponse(Layout.render('Clientes', user, 'clientes', content))
-    
+
+        return HttpResponse(Layout.render("Clientes", user, "clientes", content))
+
     @staticmethod
     def create(user, request, error=None):
         """Vista del formulario de crear cliente"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -82,7 +85,7 @@ class ClientView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -127,17 +130,18 @@ class ClientView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Crear Cliente', user, 'clientes', content))
-    
+
+        return HttpResponse(Layout.render("Crear Cliente", user, "clientes", content))
+
     @staticmethod
     def edit(user, client, request, error=None):
         """Vista del formulario de editar cliente"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -146,7 +150,7 @@ class ClientView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -191,5 +195,5 @@ class ClientView:
             </form>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Editar Cliente', user, 'clientes', content))
+
+        return HttpResponse(Layout.render("Editar Cliente", user, "clientes", content))

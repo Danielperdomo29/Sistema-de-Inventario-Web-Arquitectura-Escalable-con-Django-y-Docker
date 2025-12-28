@@ -1,14 +1,19 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class SaleDetailView:
     @staticmethod
     def index(user, details, request):
         """Vista de lista de detalles de ventas"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         # Tabla de detalles
         rows = ""
         if details:
@@ -36,7 +41,7 @@ class SaleDetailView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -67,7 +72,7 @@ class SaleDetailView:
                 <p>Comienza agregando el primer detalle</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -77,16 +82,19 @@ class SaleDetailView:
             {table_content}
         </div>
         """
-        
-        return Layout.render('Detalles de Ventas', user, 'detalle-ventas', content)
-    
+
+        return Layout.render("Detalles de Ventas", user, "detalle-ventas", content)
+
     @staticmethod
     def create(user, sales, products, request, error=None):
         """Vista de formulario para crear detalle de venta"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         error_html = ""
         if error:
             error_html = f"""
@@ -94,17 +102,17 @@ class SaleDetailView:
                 {error}
             </div>
             """
-        
+
         # Select de ventas
         sale_options = '<option value="">Seleccione una venta</option>'
         for sale in sales:
             sale_options += f'<option value="{sale["id"]}">{sale.get("numero_factura", "Sin factura")} - {sale["cliente_nombre"]} ({sale["fecha"]})</option>'
-        
+
         # Select de productos
         product_options = '<option value="">Seleccione un producto</option>'
         for product in products:
             product_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}">{product["nombre"]} - S/ {product["precio_venta"]:.2f}</option>'
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -159,16 +167,19 @@ class SaleDetailView:
         
         <script src="/static/js/detail-calculator.js"></script>
         """
-        
-        return Layout.render('Nuevo Detalle de Venta', user, 'detalle-ventas', content)
-    
+
+        return Layout.render("Nuevo Detalle de Venta", user, "detalle-ventas", content)
+
     @staticmethod
     def edit(user, detail, products, request, error=None):
         """Vista de formulario para editar detalle de venta"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         error_html = ""
         if error:
             error_html = f"""
@@ -176,13 +187,13 @@ class SaleDetailView:
                 {error}
             </div>
             """
-        
+
         # Select de productos
         product_options = ""
         for product in products:
-            selected = 'selected' if product['id'] == detail['producto_id'] else ''
+            selected = "selected" if product["id"] == detail["producto_id"] else ""
             product_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}" {selected}>{product["nombre"]} - S/ {product["precio_venta"]:.2f}</option>'
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -236,19 +247,19 @@ class SaleDetailView:
         
         <script src="/static/js/detail-calculator.js"></script>
         """
-        
-        return Layout.render('Editar Detalle de Venta', user, 'detalle-ventas', content)
-    
+
+        return Layout.render("Editar Detalle de Venta", user, "detalle-ventas", content)
+
     @staticmethod
     def view(user, detail):
         """Vista de detalle específico de venta"""
-        
+
         estado_badge = {
-            'pendiente': '<span class="badge badge-warning">Pendiente</span>',
-            'completada': '<span class="badge badge-success">Completada</span>',
-            'cancelada': '<span class="badge badge-cancelada">Cancelada</span>'
-        }.get(detail.get('venta_estado', ''), detail.get('venta_estado', ''))
-        
+            "pendiente": '<span class="badge badge-warning">Pendiente</span>',
+            "completada": '<span class="badge badge-success">Completada</span>',
+            "cancelada": '<span class="badge badge-cancelada">Cancelada</span>',
+        }.get(detail.get("venta_estado", ""), detail.get("venta_estado", ""))
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -318,5 +329,5 @@ class SaleDetailView:
             </div>
         </div>
         """
-        
-        return Layout.render('Ver Detalle de Venta', user, 'detalle-ventas', content)
+
+        return Layout.render("Ver Detalle de Venta", user, "detalle-ventas", content)

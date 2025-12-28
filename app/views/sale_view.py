@@ -1,19 +1,22 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class SaleView:
     """Vista de Ventas"""
-    
+
     @staticmethod
     def _get_dian_button(sale):
-        factura = sale.get('factura_dian')
+        factura = sale.get("factura_dian")
         if factura:
             return f'<a href="/media/{factura.archivo_pdf}" target="_blank" class="btn btn-success no-underline" title="{factura.numero_factura}"><i class="fas fa-file-pdf"></i> PDF</a>'
         else:
             return f'<a href="/dian/generar/{sale["id"]}/" class="btn btn-info no-underline"><i class="fas fa-bolt"></i> Generar</a>'
+
     @staticmethod
     def _get_delete_button(sale):
-        factura = sale.get('factura_dian')
+        factura = sale.get("factura_dian")
         if factura:
             return f'<a href="/ventas/{sale["id"]}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm(\'La venta tiene Factura DIAN. Se procederá a ANULARLA en lugar de eliminarla. ¿Continuar?\');">Anular</a>'
         else:
@@ -22,19 +25,19 @@ class SaleView:
     @staticmethod
     def index(user, sales):
         """Renderiza la página de listado de ventas"""
-        
+
         # Mapeo de estados a badges
         estado_badges = {
-            'pendiente': '<span class="badge badge-warning">Pendiente</span>',
-            'completada': '<span class="badge badge-success">Completada</span>',
-            'cancelada': '<span class="badge badge-cancelada">Cancelada</span>'
+            "pendiente": '<span class="badge badge-warning">Pendiente</span>',
+            "completada": '<span class="badge badge-success">Completada</span>',
+            "cancelada": '<span class="badge badge-cancelada">Cancelada</span>',
         }
-        
+
         # Generar las filas de la tabla
         if sales:
             rows = ""
             for sale in sales:
-                badge = estado_badges.get(sale['estado'], sale['estado'])
+                badge = estado_badges.get(sale["estado"], sale["estado"])
                 rows += f"""
                 <tr>
                     <td>{sale['numero_factura']}</td>
@@ -53,7 +56,7 @@ class SaleView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -84,7 +87,7 @@ class SaleView:
                 <p>Comienza registrando tu primera venta</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -94,34 +97,37 @@ class SaleView:
             {table_content}
         </div>
         """
-        
-        return HttpResponse(Layout.render('Ventas', user, 'ventas', content))
-    
+
+        return HttpResponse(Layout.render("Ventas", user, "ventas", content))
+
     @staticmethod
     def create(user, clients, products, request, error=None):
         """Vista del formulario de crear venta"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Generar opciones de clientes
         client_options = '<option value="">Seleccione un cliente</option>'
         for client in clients:
             client_options += f'<option value="{client["id"]}">{client["nombre"]} - {client.get("documento", "S/N")}</option>'
-        
+
         # Generar opciones de productos para el selector
         product_options = '<option value="">Seleccione un producto</option>'
         products_json = []
         for product in products:
             product_options += f'<option value="{product["id"]}">{product["nombre"]} - ${product["precio_venta"]}</option>'
-            products_json.append({
-                'id': product['id'],
-                'nombre': product['nombre'],
-                'precio': float(product['precio_venta']),
-                'stock': product['stock_actual']
-            })
-        
+            products_json.append(
+                {
+                    "id": product["id"],
+                    "nombre": product["nombre"],
+                    "precio": float(product["precio_venta"]),
+                    "stock": product["stock_actual"],
+                }
+            )
+
         # Mensaje de error si existe
         error_html = ""
         if error:
@@ -130,11 +136,12 @@ class SaleView:
                 {error}
             </div>
             """
-        
+
         # Fecha actual
         from datetime import date
-        fecha_actual = date.today().strftime('%Y-%m-%d')
-        
+
+        fecha_actual = date.today().strftime("%Y-%m-%d")
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -226,46 +233,51 @@ class SaleView:
             manager = new ProductManager(products);
         </script>
         """
-        
-        return HttpResponse(Layout.render('Crear Venta', user, 'ventas', content))
-    
+
+        return HttpResponse(Layout.render("Crear Venta", user, "ventas", content))
+
     @staticmethod
     def edit(user, sale, details, clients, products, request, error=None):
         """Vista del formulario de editar venta"""
-        
+
         # Obtener token CSRF
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
-        
+
         # Generar opciones de clientes
         client_options = '<option value="">Seleccione un cliente</option>'
         for client in clients:
-            selected = 'selected' if client['id'] == sale.get('cliente_id') else ''
+            selected = "selected" if client["id"] == sale.get("cliente_id") else ""
             client_options += f'<option value="{client["id"]}" {selected}>{client["nombre"]} - {client.get("documento", "S/N")}</option>'
-        
+
         # Generar opciones de productos
         product_options = '<option value="">Seleccione un producto</option>'
         products_json = []
         for product in products:
             product_options += f'<option value="{product["id"]}">{product["nombre"]} - ${product["precio_venta"]}</option>'
-            products_json.append({
-                'id': product['id'],
-                'nombre': product['nombre'],
-                'precio': float(product['precio_venta']),
-                'stock': product['stock_actual']
-            })
-        
+            products_json.append(
+                {
+                    "id": product["id"],
+                    "nombre": product["nombre"],
+                    "precio": float(product["precio_venta"]),
+                    "stock": product["stock_actual"],
+                }
+            )
+
         # Preparar detalles existentes
         existing_details = []
         for detail in details:
-            existing_details.append({
-                'producto_id': detail['producto_id'],
-                'nombre': detail['producto_nombre'],
-                'precio_unitario': float(detail['precio_unitario']),
-                'cantidad': detail['cantidad'],
-                'subtotal': float(detail['subtotal'])
-            })
-        
+            existing_details.append(
+                {
+                    "producto_id": detail["producto_id"],
+                    "nombre": detail["producto_nombre"],
+                    "precio_unitario": float(detail["precio_unitario"]),
+                    "cantidad": detail["cantidad"],
+                    "subtotal": float(detail["subtotal"]),
+                }
+            )
+
         # Mensaje de error
         error_html = ""
         if error:
@@ -274,7 +286,7 @@ class SaleView:
                 {error}
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -370,20 +382,18 @@ class SaleView:
             manager.render();
         </script>
         """
-        
-        return HttpResponse(Layout.render('Editar Venta', user, 'ventas', content))
-    
+
+        return HttpResponse(Layout.render("Editar Venta", user, "ventas", content))
+
     @staticmethod
     def view(user, sale, details):
         """Vista de detalle de una venta"""
         from django.middleware.csrf import get_token
-        
-        estado_class = {
-            'pendiente': 'warning',
-            'completada': 'success',
-            'cancelada': 'danger'
-        }.get(sale['estado'], 'secondary')
-        
+
+        estado_class = {"pendiente": "warning", "completada": "success", "cancelada": "danger"}.get(
+            sale["estado"], "secondary"
+        )
+
         # Detalles de productos
         details_rows = ""
         if details:
@@ -398,8 +408,10 @@ class SaleView:
                 </tr>
                 """
         else:
-            details_rows = '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'
-        
+            details_rows = (
+                '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'
+            )
+
         content = f"""
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0">Detalle de Venta #{sale['id']}</h1>
@@ -488,7 +500,7 @@ class SaleView:
             </div>
         </div>
         """
-        
-        from app.views.layout import Layout
-        return Layout.render('Detalle de Venta', user, 'ventas', content)
 
+        from app.views.layout import Layout
+
+        return Layout.render("Detalle de Venta", user, "ventas", content)

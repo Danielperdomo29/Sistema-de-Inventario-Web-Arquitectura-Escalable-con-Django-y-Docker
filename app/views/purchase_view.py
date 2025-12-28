@@ -1,25 +1,30 @@
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
+
 from app.views.layout import Layout
+
 
 class PurchaseView:
     @staticmethod
     def index(user, purchases, request):
         """Vista de lista de compras"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         # Tabla de compras
         rows = ""
         if purchases:
             for idx, purchase in enumerate(purchases, 1):
                 estado_badge = {
-                    'pendiente': '<span class="badge badge-warning">Pendiente</span>',
-                    'completada': '<span class="badge badge-success">Completada</span>',
-                    'cancelada': '<span class="badge badge-cancelada">Cancelada</span>'
-                }.get(purchase['estado'], purchase['estado'])
-                
+                    "pendiente": '<span class="badge badge-warning">Pendiente</span>',
+                    "completada": '<span class="badge badge-success">Completada</span>',
+                    "cancelada": '<span class="badge badge-cancelada">Cancelada</span>',
+                }.get(purchase["estado"], purchase["estado"])
+
                 rows += f"""
                 <tr>
                     <td>{idx}</td>
@@ -42,7 +47,7 @@ class PurchaseView:
                     </td>
                 </tr>
                 """
-            
+
             table_content = f"""
             <div class="table-container">
                 <table>
@@ -72,7 +77,7 @@ class PurchaseView:
                 <p>Comienza agregando tu primera compra</p>
             </div>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -82,16 +87,19 @@ class PurchaseView:
             {table_content}
         </div>
         """
-        
-        return Layout.render('Compras', user, 'compras', content)
-    
+
+        return Layout.render("Compras", user, "compras", content)
+
     @staticmethod
     def create(user, suppliers, products, request, error=None):
         """Vista de formulario para crear compra"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         error_html = ""
         if error:
             error_html = f"""
@@ -99,17 +107,17 @@ class PurchaseView:
                 {error}
             </div>
             """
-        
+
         # Select de proveedores
         suppliers_options = '<option value="">Seleccione un proveedor</option>'
         for supplier in suppliers:
             suppliers_options += f'<option value="{supplier["id"]}">{supplier["nombre"]}</option>'
-        
+
         # Select de productos
         products_options = '<option value="">Seleccione un producto</option>'
         for product in products:
             products_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}">{product["nombre"]} - S/ {product["precio_venta"]:.2f}</option>'
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -215,16 +223,19 @@ class PurchaseView:
         
         <script src="/static/js/purchase-manager.js"></script>
         """
-        
-        return Layout.render('Nueva Compra', user, 'compras', content)
-    
+
+        return Layout.render("Nueva Compra", user, "compras", content)
+
     @staticmethod
     def edit(user, purchase, suppliers, products, details, request, error=None):
         """Vista de formulario para editar compra"""
-        
+
         from django.middleware.csrf import get_token
-        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        
+
+        csrf_token = (
+            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
+        )
+
         error_html = ""
         if error:
             error_html = f"""
@@ -232,40 +243,45 @@ class PurchaseView:
                 {error}
             </div>
             """
-        
+
         # Select de proveedores
-        suppliers_options = ''
+        suppliers_options = ""
         for supplier in suppliers:
-            selected = 'selected' if supplier['id'] == purchase['proveedor_id'] else ''
-            suppliers_options += f'<option value="{supplier["id"]}" {selected}>{supplier["nombre"]}</option>'
-        
+            selected = "selected" if supplier["id"] == purchase["proveedor_id"] else ""
+            suppliers_options += (
+                f'<option value="{supplier["id"]}" {selected}>{supplier["nombre"]}</option>'
+            )
+
         # Select de productos
         products_options = '<option value="">Seleccione un producto</option>'
         for product in products:
             products_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}">{product["nombre"]} - S/ {product["precio_venta"]:.2f}</option>'
-        
+
         # Estados
-        estados = ['pendiente', 'completada', 'cancelada']
-        estado_options = ''
+        estados = ["pendiente", "completada", "cancelada"]
+        estado_options = ""
         for estado in estados:
-            selected = 'selected' if estado == purchase['estado'] else ''
+            selected = "selected" if estado == purchase["estado"] else ""
             estado_options += f'<option value="{estado}" {selected}>{estado.capitalize()}</option>'
-        
+
         # Detalles iniciales en JavaScript
-        details_json = '[]'
+        details_json = "[]"
         if details:
             import json
+
             details_data = []
             for detail in details:
-                details_data.append({
-                    'producto_id': detail['producto_id'],
-                    'producto_nombre': detail['producto_nombre'],
-                    'cantidad': detail['cantidad'],
-                    'precio_unitario': float(detail['precio_unitario']),
-                    'subtotal': float(detail['subtotal'])
-                })
+                details_data.append(
+                    {
+                        "producto_id": detail["producto_id"],
+                        "producto_nombre": detail["producto_nombre"],
+                        "cantidad": detail["cantidad"],
+                        "precio_unitario": float(detail["precio_unitario"]),
+                        "subtotal": float(detail["subtotal"]),
+                    }
+                )
             details_json = json.dumps(details_data)
-        
+
         content = f"""
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0">Editar Compra #{purchase['id']}</h1>
@@ -390,19 +406,17 @@ class PurchaseView:
         }});
         </script>
         """
-        
-        return Layout.render('Editar Compra', user, 'compras', content)
-    
+
+        return Layout.render("Editar Compra", user, "compras", content)
+
     @staticmethod
     def view(user, purchase, details):
         """Vista de detalle de una compra"""
-        
-        estado_class = {
-            'pendiente': 'warning',
-            'completada': 'success',
-            'cancelada': 'danger'
-        }.get(purchase['estado'], 'secondary')
-        
+
+        estado_class = {"pendiente": "warning", "completada": "success", "cancelada": "danger"}.get(
+            purchase["estado"], "secondary"
+        )
+
         # Detalles de productos
         details_rows = ""
         if details:
@@ -417,8 +431,10 @@ class PurchaseView:
                 </tr>
                 """
         else:
-            details_rows = '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'
-        
+            details_rows = (
+                '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'
+            )
+
         content = f"""
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0">Detalle de Compra #{purchase['id']}</h1>
@@ -501,5 +517,5 @@ class PurchaseView:
             </div>
         </div>
         """
-        
-        return Layout.render('Detalle de Compra', user, 'compras', content)
+
+        return Layout.render("Detalle de Compra", user, "compras", content)

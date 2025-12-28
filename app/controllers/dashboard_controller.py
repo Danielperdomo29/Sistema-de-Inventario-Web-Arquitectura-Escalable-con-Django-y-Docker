@@ -1,57 +1,56 @@
-from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from app.models.user import User
-from app.models.product import Product
+from django.http import HttpResponse, HttpResponseRedirect
+
 from app.models.category import Category
-from app.models.sale import Sale
-from app.models.purchase import Purchase
 from app.models.client import Client
-from app.models.supplier import Supplier
-from app.models.warehouse import Warehouse
 from app.models.inventory_movement import InventoryMovement
+from app.models.product import Product
+from app.models.purchase import Purchase
+from app.models.sale import Sale
+from app.models.supplier import Supplier
+from app.models.user import User
+from app.models.warehouse import Warehouse
 from app.views.dashboard_view import DashboardView
+
 
 class DashboardController:
     """Controlador del Dashboard"""
-    
+
     @staticmethod
-    @login_required(login_url='/login/')
+    @login_required(login_url="/login/")
     def index(request):
         """Muestra el dashboard"""
         # Obtenemos el usuario directamente del request (autenticación Django)
         user = request.user
-        
+
         # Obtener estadísticas principales
         # Nota: Los modelos serán refactorizados a ORM, asegurando que estos métodos
         # sigan existiendo o se adapten.
         stats = {
-            'total_productos': Product.count(),
-            'total_categorias': Category.count(),
-            'total_clientes': Client.count(),
-            'total_proveedores': Supplier.count(),
-            'total_almacenes': Warehouse.count(),
-            'ventas_mes': Sale.total_ventas_mes(),
-            'compras_mes': Purchase.total_compras_mes(),
-            'total_ventas': Sale.count(),
-            'total_compras': Purchase.count(),
-            'total_movimientos': InventoryMovement.count()
+            "total_productos": Product.count(),
+            "total_categorias": Category.count(),
+            "total_clientes": Client.count(),
+            "total_proveedores": Supplier.count(),
+            "total_almacenes": Warehouse.count(),
+            "ventas_mes": Sale.total_ventas_mes(),
+            "compras_mes": Purchase.total_compras_mes(),
+            "total_ventas": Sale.count(),
+            "total_compras": Purchase.count(),
+            "total_movimientos": InventoryMovement.count(),
         }
-        
+
         # Obtener productos con stock bajo (menos de 10 unidades)
         productos_bajo_stock = Product.get_low_stock(limit=10)
-        
+
         # Obtener últimas ventas
         ultimas_ventas = Sale.get_all(limit=5)
-        
+
         # Obtener últimas compras
         ultimas_compras = Purchase.get_all(limit=5)
-        
+
         # Renderizar dashboard
-        return HttpResponse(DashboardView.index(
-            user, 
-            request.path, 
-            stats, 
-            productos_bajo_stock,
-            ultimas_ventas,
-            ultimas_compras
-        ))
+        return HttpResponse(
+            DashboardView.index(
+                user, request.path, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras
+            )
+        )

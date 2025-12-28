@@ -1,20 +1,22 @@
 from django.http import HttpResponse
+
 from app.views.layout import Layout
+
 
 class ReportView:
     """Vista de Reportes"""
-    
+
     @staticmethod
     def index(user, data):
         """Renderiza la página de reportes y estadísticas"""
-        
-        resumen = data.get('resumen', {})
-        ventas_mes = data.get('ventas_mes', [])
-        productos_top = data.get('productos_top', [])
-        ventas_estado = data.get('ventas_estado', [])
-        clientes_top = data.get('clientes_top', [])
-        stock_bajo = data.get('stock_bajo', [])
-        
+
+        resumen = data.get("resumen", {})
+        ventas_mes = data.get("ventas_mes", [])
+        productos_top = data.get("productos_top", [])
+        ventas_estado = data.get("ventas_estado", [])
+        clientes_top = data.get("clientes_top", [])
+        stock_bajo = data.get("stock_bajo", [])
+
         # Generar tarjetas de resumen
         resumen_html = f"""
         <div class="stats-grid">
@@ -36,7 +38,7 @@ class ReportView:
             </div>
         </div>
         """
-        
+
         # Generar tabla de productos más vendidos
         productos_rows = ""
         if productos_top:
@@ -53,7 +55,7 @@ class ReportView:
             productos_rows = """
             <tr><td colspan="4" class="empty-state">No hay datos disponibles</td></tr>
             """
-        
+
         # Generar tabla de clientes frecuentes
         clientes_rows = ""
         if clientes_top:
@@ -71,17 +73,17 @@ class ReportView:
             clientes_rows = """
             <tr><td colspan="5" class="empty-state">No hay datos disponibles</td></tr>
             """
-        
+
         # Generar tabla de ventas por estado
         estado_rows = ""
         if ventas_estado:
             estado_badges = {
-                'pendiente': '<span class="badge badge-warning">Pendiente</span>',
-                'completada': '<span class="badge badge-success">Completada</span>',
-                'cancelada': '<span class="badge badge-cancelada">Cancelada</span>'
+                "pendiente": '<span class="badge badge-warning">Pendiente</span>',
+                "completada": '<span class="badge badge-success">Completada</span>',
+                "cancelada": '<span class="badge badge-cancelada">Cancelada</span>',
             }
             for estado in ventas_estado:
-                badge = estado_badges.get(estado['estado'], estado['estado'])
+                badge = estado_badges.get(estado["estado"], estado["estado"])
                 estado_rows += f"""
                 <tr>
                     <td>{badge}</td>
@@ -93,12 +95,12 @@ class ReportView:
             estado_rows = """
             <tr><td colspan="3" class="empty-state">No hay datos disponibles</td></tr>
             """
-        
+
         # Generar tabla de stock bajo
         stock_rows = ""
         if stock_bajo:
             for producto in stock_bajo:
-                alerta_class = 'class="text-danger"' if producto['stock'] < 5 else ''
+                alerta_class = 'class="text-danger"' if producto["stock"] < 5 else ""
                 stock_rows += f"""
                 <tr>
                     <td>{producto['nombre']}</td>
@@ -110,7 +112,7 @@ class ReportView:
             stock_rows = """
             <tr><td colspan="3" class="empty-state">Todos los productos tienen stock suficiente</td></tr>
             """
-        
+
         content = f"""
         <div class="card">
             <div class="card-header">
@@ -191,5 +193,5 @@ class ReportView:
             </table>
         </div>
         """
-        
-        return HttpResponse(Layout.render('Reportes', user, 'reportes', content))
+
+        return HttpResponse(Layout.render("Reportes", user, "reportes", content))
