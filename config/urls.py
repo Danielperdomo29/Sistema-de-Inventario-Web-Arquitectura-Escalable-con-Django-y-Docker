@@ -164,23 +164,15 @@ urlpatterns = [
     path("fiscal/impuestos/", FiscalController.impuestos, name="fiscal_impuestos"),
     # DIAN
     path("dian/", include("facturacion.urls")),
+    # API Fiscal & Reportes
+    path("fiscal/", include("app.fiscal.urls")),
 ]
 
-# Django-Allauth URLs (solo si está activado)
-# Prefijo 'accounts/' para evitar conflictos con rutas existentes
-if getattr(settings, "ENABLE_ALLAUTH", False):
-    urlpatterns += [
-        # URLs de allauth con prefijo 'accounts/'
-        # Ejemplos de rutas generadas:
-        # - /accounts/signup/ - Registro
-        # - /accounts/login/ - Login
-        # - /accounts/logout/ - Logout
-        # - /accounts/password/reset/ - Reset de contraseña
-        # - /accounts/password/change/ - Cambiar contraseña
-        # - /accounts/email/ - Gestión de emails
-        # - /accounts/confirm-email/<key>/ - Confirmar email
-        path("accounts/", include("allauth.urls")),
-    ]
+# Django-Allauth & 2FA URLs
+urlpatterns += [
+    path("accounts/", include("allauth_2fa.urls")), # Include 2FA urls before allauth urls
+    path("accounts/", include("allauth.urls")),
+]
 
 # Servir archivos estáticos en desarrollo
 if settings.DEBUG:

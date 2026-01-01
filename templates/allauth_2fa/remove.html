@@ -1,0 +1,25 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+
+{% block title %}Desactivar 2FA - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2><i class="fas fa-shield-alt" style="color: #dc3545;"></i> Desactivar 2FA</h2>
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <strong>Advertencia:</strong> Estás a punto de desactivar la autenticación de dos factores. Tu cuenta será menos segura.
+        </div>
+        
+        <p>¿Estás seguro de que deseas continuar?</p>
+
+        <form method="POST" action="">
+            {% csrf_token %}
+            
+            <button type="submit" class="btn btn-danger btn-block" style="background-color: #dc3545; border-color: #dc3545; color: white; width: 100%; padding: 10px; border-radius: 4px; border: none; font-size: 16px; cursor: pointer;">Sí, Desactivar 2FA</button>
+            <a href="/configuracion/" class="btn btn-secondary btn-block mt-10 no-underline" style="display: block; text-align: center; margin-top: 10px; background-color: #6c757d; color: white; padding: 10px; text-decoration: none; border-radius: 4px;">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>{{ title }}
+                        </h4>
+                        <div>
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-info-circle me-1"></i>Formulario 300 DIAN
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Filtros de Período -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Seleccionar Período</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form method="get" class="row g-3">
+                                        <div class="col-md-3">
+                                            <label for="year" class="form-label">Año</label>
+                                            <select class="form-select" id="year" name="year" required>
+                                                {% for y in range %}
+                                                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>
+                                                    {{ y }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <label for="period_type" class="form-label">Tipo de Período</label>
+                                            <select class="form-select" id="period_type" name="period_type" required>
+                                                {% for tipo in period_types %}
+                                                <option value="{{ tipo.value }}" {% if selected_period_type == tipo.value %}selected{% endif %}>
+                                                    {{ tipo.label }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-3">
+                                            <label for="period_number" class="form-label">Período</label>
+                                            <select class="form-select" id="period_number" name="period_number" required>
+                                                <!-- Opciones se llenan con JavaScript según el tipo -->
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-calculator me-1"></i> Calcular
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if declaracion %}
+                    <!-- Resumen de la Declaración -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-{{ resultado_clase }}" role="alert">
+                                <h5 class="alert-heading">
+                                    <i class="fas fa-chart-bar me-2"></i>
+                                    {{ declaracion.periodo.label }}
+                                </h5>
+                                <p class="mb-0">{{ resultado_mensaje }}</p>
+                                <hr>
+                                <p class="mb-0 small">
+                                    <strong>Período:</strong> {{ declaracion.periodo.start_date|date:"d/m/Y" }} al {{ declaracion.periodo.end_date|date:"d/m/Y" }}
+                                    | <strong>Generado:</strong> {{ declaracion.metadata.generated_at|date:"d/m/Y H:i" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulario 300 - Estructura Principal -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-dark text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-file-alt me-2"></i>
+                                        FORMULARIO 300 - DECLARACIÓN DE IMPUESTO SOBRE LAS VENTAS
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- IVA Generado -->
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-primary">
+                                                <tr>
+                                                    <th colspan="4" class="text-center">
+                                                        <i class="fas fa-arrow-up me-2"></i>IVA GENERADO (VENTAS)
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th width="40%">Concepto</th>
+                                                    <th width="20%" class="text-end">Base Gravable</th>
+                                                    <th width="20%" class="text-end">Tarifa</th>
+                                                    <th width="20%" class="text-end">IVA Generado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for tarifa_key, tarifa in declaracion.iva_generado.tarifas.items %}
+                                                {% if tarifa.tax > 0 %}
+                                                <tr>
+                                                    <td>
+                                                        Ventas Gravadas {{ tarifa_key }}%
+                                                        <span class="badge bg-info float-end">
+                                                            {{ tarifa.ventas|length }} transacciones
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-end">$ {{ tarifa.base|floatformat:2 }}</td>
+                                                    <td class="text-end">{{ tarifa_key }}%</td>
+                                                    <td class="text-end">$ {{ tarifa.tax|floatformat:2 }}</td>
+                                                </tr>
+                                                {% endif %}
+                                                {% endfor %}
+                                                
+                                                <!-- Total IVA Generado -->
+                                                <tr class="table-active">
+                                                    <td><strong>TOTAL IVA GENERADO</strong></td>
+                                                    <td class="text-end">
+                                                        <strong>$ {{ declaracion.iva_generado.total_base|floatformat:2 }}</strong>
+                                                    </td>
+                                                    <td class="text-end">-</td>
+                                                    <td class="text-end">
+                                                        <strong>$ {{ declaracion.iva_generado.total_tax|floatformat:2 }}</strong>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        
+                                        <!-- Detalle de Ventas (colapsable) -->
+                                        <div class="mt-3">
+                                            <button class="btn btn-sm btn-outline-primary" type="button" 
+                                                    data-bs-toggle="collapse" data-bs-target="#detalleVentas">
+                                                <i class="fas fa-list me-1"></i> Ver Detalle de Ventas
+                                                <span class="badge bg-secondary ms-2">{{ declaracion.iva_generado.total_ventas }}</span>
+                                            </button>
+                                            
+                                            <div class="collapse mt-3" id="detalleVentas">
+                                                <div class="card card-body">
+                                                    <h6 class="mb-3">Detalle de Ventas Gravadas</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-hover">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Factura</th>
+                                                                    <th>Cliente</th>
+                                                                    <th>Fecha</th>
+                                                                    <th>Producto</th>
+                                                                    <th class="text-end">Cantidad</th>
+                                                                    <th class="text-end">Precio</th>
+                                                                    <th class="text-end">Base</th>
+                                                                    <th class="text-end">IVA</th>
+                                                                    <th>Tarifa</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for venta in declaracion.iva_generado.ventas_detalle %}
+                                                                <tr>
+                                                                    <td>{{ venta.invoice_number }}</td>
+                                                                    <td>{{ venta.client|truncatechars:20 }}</td>
+                                                                    <td>{{ venta.date|date:"d/m/Y" }}</td>
+                                                                    <td>{{ venta.product|truncatechars:30 }}</td>
+                                                                    <td class="text-end">{{ venta.quantity }}</td>
+                                                                    <td class="text-end">$ {{ venta.unit_price|floatformat:2 }}</td>
+                                                                    <td class="text-end">$ {{ venta.tax_base|floatformat:2 }}</td>
+                                                                    <td class="text-end">$ {{ venta.tax_amount|floatformat:2 }}</td>
+                                                                    <td>{{ venta.tax_rate }}</td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- IVA Descontable -->
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-success">
+                                                <tr>
+                                                    <th colspan="4" class="text-center">
+                                                        <i class="fas fa-arrow-down me-2"></i>IVA DESCONTABLE (COMPRAS)
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th width="40%">Concepto</th>
+                                                    <th width="20%" class="text-end">Base Gravable</th>
+                                                    <th width="20%" class="text-end">Tarifa</th>
+                                                    <th width="20%" class="text-end">IVA Descontable</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for tarifa_key, tarifa in declaracion.iva_descontable.tarifas.items %}
+                                                {% if tarifa.tax > 0 %}
+                                                <tr>
+                                                    <td>
+                                                        Compras Gravadas {{ tarifa_key }}%
+                                                        <span class="badge bg-info float-end">
+                                                            {{ tarifa.compras|length }} transacciones
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-end">$ {{ tarifa.base|floatformat:2 }}</td>
+                                                    <td class="text-end">{{ tarifa_key }}%</td>
+                                                    <td class="text-end">$ {{ tarifa.tax|floatformat:2 }}</td>
+                                                </tr>
+                                                {% endif %}
+                                                {% endfor %}
+                                                
+                                                <!-- Total IVA Descontable -->
+                                                <tr class="table-active">
+                                                    <td><strong>TOTAL IVA DESCONTABLE</strong></td>
+                                                    <td class="text-end">
+                                                        <strong>$ {{ declaracion.iva_descontable.total_base|floatformat:2 }}</strong>
+                                                    </td>
+                                                    <td class="text-end">-</td>
+                                                    <td class="text-end">
+                                                        <strong>$ {{ declaracion.iva_descontable.total_tax|floatformat:2 }}</strong>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        
+                                        <!-- Detalle de Compras (colapsable) -->
+                                        <div class="mt-3">
+                                            <button class="btn btn-sm btn-outline-success" type="button" 
+                                                    data-bs-toggle="collapse" data-bs-target="#detalleCompras">
+                                                <i class="fas fa-list me-1"></i> Ver Detalle de Compras
+                                                <span class="badge bg-secondary ms-2">{{ declaracion.iva_descontable.total_compras }}</span>
+                                            </button>
+                                            
+                                            <div class="collapse mt-3" id="detalleCompras">
+                                                <div class="card card-body">
+                                                    <h6 class="mb-3">Detalle de Compras Gravadas</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-hover">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Factura</th>
+                                                                    <th>Proveedor</th>
+                                                                    <th>Fecha</th>
+                                                                    <th>Producto</th>
+                                                                    <th class="text-end">Cantidad</th>
+                                                                    <th class="text-end">Precio</th>
+                                                                    <th class="text-end">Base</th>
+                                                                    <th class="text-end">IVA</th>
+                                                                    <th>Tarifa</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for compra in declaracion.iva_descontable.compras_detalle %}
+                                                                <tr>
+                                                                    <td>{{ compra.invoice_number }}</td>
+                                                                    <td>{{ compra.supplier|truncatechars:20 }}</td>
+                                                                    <td>{{ compra.date|date:"d/m/Y" }}</td>
+                                                                    <td>{{ compra.product|truncatechars:30 }}</td>
+                                                                    <td class="text-end">{{ compra.quantity }}</td>
+                                                                    <td class="text-end">$ {{ compra.unit_price|floatformat:2 }}</td>
+                                                                    <td class="text-end">$ {{ compra.tax_base|floatformat:2 }}</td>
+                                                                    <td class="text-end">$ {{ compra.tax_amount|floatformat:2 }}</td>
+                                                                    <td>{{ compra.tax_rate }}</td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Resultado Final -->
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead class="table-warning">
+                                                <tr>
+                                                    <th colspan="4" class="text-center">
+                                                        <i class="fas fa-balance-scale me-2"></i>RESULTADO DE LA DECLARACIÓN
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td width="40%"><strong>Total IVA Generado</strong></td>
+                                                    <td width="20%" class="text-end">
+                                                        $ {{ declaracion.resumen.total_iva_generado|floatformat:2 }}
+                                                    </td>
+                                                    <td width="40%" rowspan="3" class="text-center align-middle">
+                                                        {% if declaracion.resumen.iva_neto_a_pagar > 0 %}
+                                                        <div class="alert alert-warning mb-0">
+                                                            <h4 class="alert-heading">IVA A PAGAR</h4>
+                                                            <h2 class="mb-0">
+                                                                $ {{ declaracion.resumen.iva_neto_a_pagar|floatformat:2 }}
+                                                            </h2>
+                                                            <small>Vencimiento: {{ declaracion.periodo.end_date|date:"d/m/Y" }}</small>
+                                                        </div>
+                                                        {% elif declaracion.resumen.iva_neto_a_pagar < 0 %}
+                                                        <div class="alert alert-success mb-0">
+                                                            <h4 class="alert-heading">SALDO A FAVOR</h4>
+                                                            <h2 class="mb-0">
+                                                                $ {{ declaracion.resumen.saldo_favor|floatformat:2 }}
+                                                            </h2>
+                                                            <small>Disponible para siguiente período</small>
+                                                        </div>
+                                                        {% else %}
+                                                        <div class="alert alert-info mb-0">
+                                                            <h4 class="alert-heading">SIN MOVIMIENTO</h4>
+                                                            <p class="mb-0">No hay IVA a pagar ni saldo a favor</p>
+                                                        </div>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Total IVA Descontable</strong></td>
+                                                    <td class="text-end">
+                                                        $ {{ declaracion.resumen.total_iva_descontable|floatformat:2 }}
+                                                    </td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <td><strong>Porcentaje de Cumplimiento</strong></td>
+                                                    <td class="text-end">
+                                                        {{ declaracion.resumen.porcentaje_cumplimiento|floatformat:2 }}%
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <button class="btn btn-outline-primary" onclick="exportarDeclaracion('json')">
+                                                <i class="fas fa-file-export me-1"></i> Exportar JSON
+                                            </button>
+                                            <button class="btn btn-outline-success ms-2" onclick="exportarDeclaracion('csv')">
+                                                <i class="fas fa-file-csv me-1"></i> Exportar CSV
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-info" onclick="window.print()">
+                                                <i class="fas fa-print me-1"></i> Imprimir
+                                            </button>
+                                            <button class="btn btn-warning ms-2" onclick="generarPDF()">
+                                                <i class="fas fa-file-pdf me-1"></i> Generar PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Instrucciones cuando no hay declaración -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <i class="fas fa-calculator fa-4x text-muted"></i>
+                                </div>
+                                <h4 class="text-muted mb-3">Generar Declaración de IVA</h4>
+                                <p class="text-muted mb-4">
+                                    Selecciona el año y período para calcular la declaración de IVA (Formulario 300).
+                                </p>
+                                <div class="alert alert-info text-start">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-info-circle me-2"></i>Información importante:
+                                    </h6>
+                                    <ul class="mb-0">
+                                        <li>La declaración se calcula automáticamente basada en ventas y compras del período</li>
+                                        <li>Los impuestos se calculan según la configuración de cada producto</li>
+                                        <li>El sistema agrupa por tarifa (19%, 5%, 0%, exento)</li>
+                                        <li>Puedes ver el detalle de cada transacción haciendo clic en "Ver Detalle"</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table th {
+        font-weight: 600;
+        background-color: #f8f9fa;
+    }
+    
+    .table-primary th {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+    
+    .table-success th {
+        background-color: #d1e7dd;
+        color: #0a3622;
+    }
+    
+    .table-warning th {
+        background-color: #fff3cd;
+        color: #664d03;
+    }
+    
+    .print-only {
+        display: none;
+    }
+    
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        .print-only {
+            display: block !important;
+        }
+        
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .table-bordered {
+            border: 1px solid #000 !important;
+        }
+        
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid #000 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Generar rango de años (últimos 5 años y próximos 1)
+    document.addEventListener('DOMContentLoaded', function() {
+        const yearSelect = document.getElementById('year');
+        const currentYear = new Date().getFullYear();
+        
+        // Inicializar opciones de periodo
+        updatePeriodOptions();
+        
+        // Initializing period options is crucial.
+        updatePeriodOptions();
+        
+        // Escuchar cambios en el tipo de período
+        document.getElementById('period_type').addEventListener('change', updatePeriodOptions);
+    });
+    
+    function updatePeriodOptions() {
+        const periodType = document.getElementById('period_type').value;
+        const periodNumberSelect = document.getElementById('period_number');
+        
+        // Limpiar opciones
+        periodNumberSelect.innerHTML = '';
+        
+        let options = [];
+        
+        if (periodType === 'bimestral') {
+            options = [
+                {value: 1, label: 'Bimestre 1 (Enero-Febrero)'},
+                {value: 2, label: 'Bimestre 2 (Marzo-Abril)'},
+                {value: 3, label: 'Bimestre 3 (Mayo-Junio)'},
+                {value: 4, label: 'Bimestre 4 (Julio-Agosto)'},
+                {value: 5, label: 'Bimestre 5 (Septiembre-Octubre)'},
+                {value: 6, label: 'Bimestre 6 (Noviembre-Diciembre)'}
+            ];
+        } else {
+            options = [
+                {value: 1, label: 'Cuatrimestre 1 (Enero-Abril)'},
+                {value: 2, label: 'Cuatrimestre 2 (Mayo-Agosto)'},
+                {value: 3, label: 'Cuatrimestre 3 (Septiembre-Diciembre)'}
+            ];
+        }
+        
+        // Agregar opciones
+        options.forEach(option => {
+            const opt = document.createElement('option');
+            opt.value = option.value;
+            opt.textContent = option.label;
+            periodNumberSelect.appendChild(opt);
+        });
+        
+        // Establecer valor predeterminado si hay uno seleccionado
+        {% if selected_period_number %}
+        periodNumberSelect.value = {{ selected_period_number }};
+        {% else %}
+        periodNumberSelect.value = 1;
+        {% endif %}
+    }
+    
+    function exportarDeclaracion(formato) {
+        const year = document.getElementById('year').value;
+        const periodType = document.getElementById('period_type').value;
+        const periodNumber = document.getElementById('period_number').value;
+        
+        const url = `/fiscal/reportes/declaracion-iva/export/?year=${year}&period_type=${periodType}&period_number=${periodNumber}&formato=${formato}`;
+        
+        if (formato === 'json') {
+            // Para JSON, descargar archivo
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const blob = new Blob([JSON.stringify(data.declaracion, null, 2)], {type: 'application/json'});
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `declaracion_iva_${year}_${periodType}_${periodNumber}.json`;
+                        link.click();
+                    } else {
+                        alert('Error al exportar: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error de conexión: ' + error.message);
+                });
+        } else {
+            // Para CSV, redirigir directamente
+            window.location.href = url;
+        }
+    }
+    
+    function generarPDF() {
+        alert('Funcionalidad de PDF en desarrollo. Por ahora, use la función de impresión del navegador.');
+    }
+</script>
+{% endblock %}

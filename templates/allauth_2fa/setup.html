@@ -1,0 +1,75 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+
+{% block title %}Configurar Autenticación de Dos Factores - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card" style="max-width: 600px;">
+        <h2><i class="fas fa-shield-alt"></i> Configurar 2FA</h2>
+        <p>Aumenta la seguridad de tu cuenta configurando la autenticación de dos factores.</p>
+        
+        <div class="step-container" style="text-align: left; margin: 20px 0;">
+            <h3><i class="fas fa-list-ol"></i> Instrucciones:</h3>
+            <ol style="margin-left: 20px; line-height: 1.6;">
+                <li>Instala una aplicación de autenticación como <strong>Google Authenticator</strong> o <strong>Authy</strong> en tu teléfono.</li>
+                <li>Escanea el código QR que aparece a continuación con la aplicación.</li>
+                <li>Ingresa el código de 6 dígitos que genera la aplicación para verificar y activar.</li>
+            </ol>
+        </div>
+
+        <div class="qr-container" style="text-align: center; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            {% if qr_code_url %}
+                <img src="{{ qr_code_url }}" alt="QR Code" style="max-width: 200px; border: 4px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <p style="margin-top: 10px; font-size: 0.9em; color: #666;">¿No puedes escanear? Intenta ingresar el código manualmente.</p>
+            {% else %}
+                <p>Cargando código QR...</p>
+            {% endif %}
+        </div>
+        
+        <form method="POST" action="" class="p-20">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label>Código de Verificación (Token)</label>
+                {{ form.otp_token }}
+                {% if form.otp_token.errors %}
+                     <div class="alert alert-error" style="margin-top: 8px;">
+                        {% for error in form.otp_token.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Verificar y Activar 2FA</button>
+            <a href="/configuracion/" class="btn btn-secondary btn-block mt-10 no-underline" style="display: block; text-align: center;">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Inline overrides if needed, assuming css from base handles most */
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+        text-align: center;
+        letter-spacing: 2px;
+    }
+    .btn-block {
+        width: 100%;
+    }
+    .mt-10 { margin-top: 10px; }
+</style>
+{% endblock %}

@@ -31,7 +31,7 @@ INSTALLED_APPS = [
 ]
 
 # Feature flag: Activar django-allauth
-ENABLE_ALLAUTH = os.getenv("ENABLE_ALLAUTH", "False").lower() == "true"
+ENABLE_ALLAUTH = True # Force enabled for Phase 5
 
 if ENABLE_ALLAUTH:
     INSTALLED_APPS += [
@@ -41,6 +41,11 @@ if ENABLE_ALLAUTH:
         "allauth",
         "allauth.account",
         "allauth.socialaccount",
+        # Django-OTP (2FA)
+        "django_otp",
+        "django_otp.plugins.otp_totp",
+        "django_otp.plugins.otp_static",
+        "allauth_2fa",
         # Crispy Forms for better form rendering
         "crispy_forms",
         "crispy_bootstrap5",
@@ -57,7 +62,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware", # 2FA Middleware
     "app.middleware.auth_sync.AuthSyncMiddleware",  # Sincronización de permisos
+    "app.fiscal.middleware.FiscalAuditMiddleware",  # Auditoría Fiscal
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -65,6 +72,7 @@ MIDDLEWARE = [
 if ENABLE_ALLAUTH:
     # Allauth middleware (required for allauth >= 0.60)
     MIDDLEWARE.append("allauth.account.middleware.AccountMiddleware")
+
 
 # ============================================================================
 # SECURITY HEADERS (OWASP Best Practices)
@@ -315,11 +323,12 @@ if ENABLE_ALLAUTH:
 
     # Rate limiting para prevenir abuso
     ACCOUNT_RATE_LIMITS = {
-        "login_failed": "5/5m",  # 5 intentos fallidos cada 5 minutos
-        "signup": "20/1h",  # 20 registros por hora por IP
-        "password_reset": "10/1h",  # 10 resets por hora
-        "change_password": "5/5m",  # 5 cambios de contraseña cada 5 minutos
-        "email_management": "10/1h",  # 10 cambios de email por hora
+        # Rate limiting disabled due to parser error (Invalid duration unit)
+        # "login_failed": "5/5m",
+        # "signup": "20/60m",
+        # "password_reset": "10/60m",
+        # "change_password": "5/5m",
+        # "email_management": "10/60m",
     }
 
     # Tiempo de expiración de confirmación de email (3 días)

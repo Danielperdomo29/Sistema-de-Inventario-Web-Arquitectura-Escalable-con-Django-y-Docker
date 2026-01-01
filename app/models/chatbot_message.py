@@ -1,94 +1,70 @@
-from datetime import datetime
+from django.db import models
+from django.conf import settings
 
-from config.database import Database
 
+class ChatbotMessage(models.Model):
+    """Modelo para mensajes del chatbot (Django ORM)"""
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chatbot_messages')
+    message = models.TextField()
+    response = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
-class ChatbotMessage:
-    """Modelo para mensajes del chatbot"""
+    class Meta:
+        db_table = "chatbot_messages"
+        ordering = ["created_at"]
 
+    def __str__(self):
+        return f"ChatbotMessage(user={self.user.username}, date={self.created_at})"
+
+    # Métodos estáticos para compatibilidad con el controlador existente
+    # aunque idealmente el controlador debería usar el ORM directamente.
+    
     @staticmethod
-    def create_table():
-        """Crea la tabla de mensajes del chatbot"""
-        query = """
-        CREATE TABLE IF NOT EXISTS chatbot_messages (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            message TEXT NOT NULL,
-            response TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-        Database.execute_query(query)
-
-    @staticmethod
-    def save(user_id, message, response):
+    def save_message(user_id, message, response):
         """Guarda un mensaje y su respuesta"""
-        query = """
-        INSERT INTO chatbot_messages (user_id, message, response, created_at)
-        VALUES (%s, %s, %s, %s)
-        """
-        Database.execute_query(query, (user_id, message, response, datetime.now()), fetch=False)
+        ChatbotMessage.objects.create(
+            user_id=user_id,
+            message=message,
+            response=response
+        )
 
     @staticmethod
     def get_history(user_id, limit=10):
         """Obtiene el historial de conversación del usuario"""
-        query = """
-        SELECT id, user_id, message, response, created_at
-        FROM chatbot_messages
-        WHERE user_id = %s
-        ORDER BY created_at DESC
-        LIMIT %s
-        """
-        results = Database.execute_query(query, (user_id, limit), fetch=True)
-
-        if not results:
-            return []
-
-        messages = []
-        for row in results:
-            messages.append(
-                {
-                    "id": row["id"],
-                    "user_id": row["user_id"],
-                    "message": row["message"],
-                    "response": row["response"],
-                    "created_at": row["created_at"],
-                }
-            )
-
-        # Invertir para mostrar del más antiguo al más reciente
-        return list(reversed(messages))
+        # Obtenemos los últimos 'limit' mensajes
+        messages = ChatbotMessage.objects.filter(user_id=user_id).order_by('-created_at')[:limit]
+        
+        # Convertimos a formato diccionario para compatibilidad
+        history = []
+        for msg in messages:
+            history.append({
+                "id": msg.id,
+                "user_id": msg.user_id,
+                "message": msg.message,
+                "response": msg.response,
+                "created_at": msg.created_at,
+            })
+            
+        # Retornamos en orden cronológico (antiguo -> nuevo) para el chat
+        return list(reversed(history))
 
     @staticmethod
     def delete_history(user_id):
         """Elimina el historial de un usuario"""
-        query = "DELETE FROM chatbot_messages WHERE user_id = %s"
-        Database.execute_query(query, (user_id,), fetch=False)
+        ChatbotMessage.objects.filter(user_id=user_id).delete()
 
     @staticmethod
     def get_all_messages(user_id):
         """Obtiene todos los mensajes de un usuario"""
-        query = """
-        SELECT id, user_id, message, response, created_at
-        FROM chatbot_messages
-        WHERE user_id = %s
-        ORDER BY created_at ASC
-        """
-        results = Database.execute_query(query, (user_id,), fetch=True)
-
-        if not results:
-            return []
-
-        messages = []
-        for row in results:
-            messages.append(
-                {
-                    "id": row["id"],
-                    "user_id": row["user_id"],
-                    "message": row["message"],
-                    "response": row["response"],
-                    "created_at": row["created_at"],
-                }
-            )
-
-        return messages
+        messages = ChatbotMessage.objects.filter(user_id=user_id).order_by('created_at')
+        return [
+            {
+                "id": msg.id,
+                "user_id": msg.user_id,
+                "message": msg.message,
+                "response": msg.response,
+                "created_at": msg.created_at,
+            }
+            for msg in messages
+        ]

@@ -36,7 +36,7 @@ class AIService:
                 "Por favor, configura tu API key en el archivo .env"
             )
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-pro")
+        self.model = genai.GenerativeModel("gemini-2.0-flash")
 
     def _get_models(self):
         """

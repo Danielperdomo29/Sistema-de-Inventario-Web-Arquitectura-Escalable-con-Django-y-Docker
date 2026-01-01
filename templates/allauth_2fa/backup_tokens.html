@@ -1,0 +1,37 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+
+{% block title %}Códigos de Respaldo - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card" style="max-width: 600px;">
+        <h2><i class="fas fa-key"></i> Códigos de Respaldo</h2>
+        <div class="alert alert-warning" style="text-align: left; margin: 15px 0;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Importante:</strong> Guarda estos códigos en un lugar seguro. Si pierdes acceso a tu dispositivo, estos códigos son la única forma de recuperar tu cuenta.
+        </div>
+        
+        <p>Cada código solo puede usarse una vez.</p>
+
+        <div class="backup-tokens-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; background: #eee; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 1.2em;">
+            {% if backup_tokens %}
+                {% for token in backup_tokens %}
+                    <div class="token-item" style="background: white; padding: 5px 10px; text-align: center; border: 1px solid #ccc;">
+                        {{ token.token }}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No hay códigos para mostrar.</p>
+            {% endif %}
+        </div>
+        
+        <form method="POST" action="{% url 'two-factor-backup-tokens' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning" style="margin-bottom: 15px;">Generar Nuevos Códigos</button>
+        </form>
+
+        <a href="/configuracion/" class="btn btn-primary btn-block no-underline" style="display: block; text-align: center;">Continuar al Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -57,7 +57,7 @@ class ChatbotController:
                 response = ai_service.get_help_message()
             else:
                 response = ai_service.process_query(user_message, user_id)
-            ChatbotMessage.save(user_id, user_message, response)
+            ChatbotMessage.save_message(user_id, user_message, response)
             return JsonResponse({"success": True, "message": user_message, "response": response})
         except json.JSONDecodeError:
             return JsonResponse({"success": False, "error": "JSON inválido"}, status=400)

@@ -1,0 +1,70 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+django: version: 6.0, settings: config.settings.test (from ini)
+rootdir: C:\dev\Sistema-de-Inventario-Web-Arquitectura-Escalable-con-Django-y-Docker
+configfile: pyproject.toml
+plugins: anyio-4.12.0, django-4.11.1
+collecting ... collected 1 item
+
+app/fiscal/tests/test_seguridad_contable.py::TestVerificacionIntegridad::test_verificacion_batch_funciona Operations to perform:
+  Synchronize unmigrated apps: account, admin, allauth, app, auth, contenttypes, corsheaders, crispy_bootstrap5, crispy_forms, csp, facturacion, fiscal, messages, sessions, sites, socialaccount, staticfiles
+  Apply all migrations: (none)
+Synchronizing apps without migrations:
+  Creating tables...
+    Creating table django_admin_log
+    Creating table auth_permission
+    Creating table auth_group
+    Creating table django_content_type
+    Creating table django_session
+    Creating table categorias
+    Creating table clientes
+    Creating table proveedores
+    Creating table productos
+    Creating table auth_user
+    Creating table almacenes
+    Creating table movimientos_inventario
+    Creating table compras
+    Creating table detalle_compras
+    Creating table roles
+    Creating table ventas
+    Creating table detalle_ventas
+    Creating table perfil_fiscal
+    Creating table cuenta_contable
+    Creating table impuesto
+    Creating table fiscal_audit_log
+    Creating table contabilidad_asiento
+    Creating table contabilidad_detalle_asiento
+    Creating table contabilidad_periodo
+    Creating table contabilidad_log_auditoria
+    Creating table facturas_dian
+    Creating table django_site
+    Creating table account_emailaddress
+    Creating table account_emailconfirmation
+    Creating table socialaccount_socialapp
+    Creating table socialaccount_socialaccount
+    Creating table socialaccount_socialtoken
+    Running deferred SQL...
+Running migrations:
+  No migrations to apply.
+DEBUG HASH: {"descripcion": "Asiento 1", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "1", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000"}
+DEBUG HASH: {"descripcion": "Asiento 1", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "1", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000"}
+DEBUG HASH: {"descripcion": "Asiento 2", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "2", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000"}
+DEBUG HASH: {"descripcion": "Asiento 2", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "2", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000"}
+DEBUG HASH: {"descripcion": "Asiento 3", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "3", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000"}
+DEBUG HASH: {"descripcion": "Asiento 3", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "3", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000"}
+DEBUG HASH: {"descripcion": "Asiento 3", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "3", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000.00"}
+DEBUG HASH: {"descripcion": "Descripci¾n manipulada", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "2", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000.00"}
+DEBUG HASH: {"descripcion": "Asiento 1", "detalles": [{"credito": "0.00", "cuenta": "1", "debito": "1000.00", "descripcion": "Detalle", "orden": "1"}], "fecha": "2025-01-15", "numero": "1", "tipo": "MANUAL", "total_credito": "0.00", "total_debito": "1000.00"}
+FAILED
+
+================================== FAILURES ===================================
+_________ TestVerificacionIntegridad.test_verificacion_batch_funciona _________
+app\fiscal\tests\test_seguridad_contable.py:380: in test_verificacion_batch_funciona
+    assert len(discrepancias) == 1
+E   AssertionError: assert 3 == 1
+E    +  where 3 = len([{'asiento_id': 3, 'numero': 3, 'hash_esperado': 'a24cb86ae2910977d78a422a2b0b85c47382af3e7a374a66ee74df9e2565365b', 'hash_calculado': 'aaff1d3f059e42e602dbb212e9bab0f5a649855796ee0345703c776575ee4750', 'fecha': datetime.date(2025, 1, 15)}, {'asiento_id': 2, 'numero': 2, 'hash_esperado': 'cd26ddb43a9b436390f7bee8c47a9ba25d20c32d5696efa797d0f207646a0b91', 'hash_calculado': '12ce04f00e544f37f4e6a2b483c7521cf1c3b6ac2c3d37dc264a57b7e77181e4', 'fecha': datetime.date(2025, 1, 15)}, {'asiento_id': 1, 'numero': 1, 'hash_esperado': '8e0eb9c4fc45f49b6fb360a1b10f467f56d0fe154ed0f7a91061ba0d5923bfa8', 'hash_calculado': '2519b03f4f8f5b4f5f29930aa09c5096079b89ed37febd7fe978f3fe39c463fc', 'fecha': datetime.date(2025, 1, 15)}])
+=========================== short test summary info ===========================
+FAILED app/fiscal/tests/test_seguridad_contable.py::TestVerificacionIntegridad::test_verificacion_batch_funciona - AssertionError: assert 3 == 1
+ +  where 3 = len([{'asiento_id': 3, 'numero': 3, 'hash_esperado': 'a24cb86ae2910977d78a422a2b0b85c47382af3e7a374a66ee74df9e2565365b', 'hash_calculado': 'aaff1d3f059e42e602dbb212e9bab0f5a649855796ee0345703c776575ee4750', 'fecha': datetime.date(2025, 1, 15)}, {'asiento_id': 2, 'numero': 2, 'hash_esperado': 'cd26ddb43a9b436390f7bee8c47a9ba25d20c32d5696efa797d0f207646a0b91', 'hash_calculado': '12ce04f00e544f37f4e6a2b483c7521cf1c3b6ac2c3d37dc264a57b7e77181e4', 'fecha': datetime.date(2025, 1, 15)}, {'asiento_id': 1, 'numero': 1, 'hash_esperado': '8e0eb9c4fc45f49b6fb360a1b10f467f56d0fe154ed0f7a91061ba0d5923bfa8', 'hash_calculado': '2519b03f4f8f5b4f5f29930aa09c5096079b89ed37febd7fe978f3fe39c463fc', 'fecha': datetime.date(2025, 1, 15)}])
+============================== 1 failed in 0.84s ==============================

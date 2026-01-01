@@ -11,6 +11,44 @@ class Supplier(models.Model):
     direccion = models.TextField(blank=True, null=True)
     activo = models.BooleanField(default=True)
 
+    # Campos para retención en la fuente
+    is_tax_declarant = models.BooleanField(
+        default=False,
+        verbose_name="Es declarante de renta",
+        help_text="Marque si el proveedor es declarante de renta (afecta tarifas de retención)"
+    )
+    
+    tax_identification_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('NIT', 'NIT'),
+            ('CEDULA', 'Cédula'),
+            ('PASAPORTE', 'Pasaporte'),
+            ('EXTRANJERIA', 'Cédula de extranjería'),
+        ],
+        default='NIT',
+        verbose_name="Tipo de identificación tributaria"
+    )
+    
+    retention_responsibility = models.CharField(
+        max_length=50,
+        choices=[
+            ('RESPONSABLE', 'Responsable de IVA'),
+            ('NO_RESPONSABLE', 'No responsable de IVA'),
+            ('SIMPLIFICADO', 'Régimen simplificado'),
+            ('EXENTO', 'Exento'),
+        ],
+        default='RESPONSABLE',
+        verbose_name="Responsabilidad de retención"
+    )
+    
+    retention_concepts = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Conceptos de retención aplicables",
+        help_text="Lista de conceptos de retención que aplican a este proveedor"
+    )
+
     class Meta:
         db_table = "proveedores"
         verbose_name = "Proveedor"
@@ -65,3 +103,19 @@ class Supplier(models.Model):
     def delete(supplier_id):
         """Eliminar lógicamente un proveedor"""
         return Supplier.objects.filter(id=supplier_id).update(activo=False)
+
+    def get_applicable_retention_rate(self, concept_key):
+        """
+        Obtiene la tarifa de retención aplicable para este proveedor
+        """
+        from app.fiscal.services.retention_service import WithholdingTaxService
+        from decimal import Decimal
+        
+        concept = WithholdingTaxService.RETENTION_CONCEPTS.get(concept_key)
+        if not concept:
+            return Decimal('0.00')
+        
+        if self.is_tax_declarant:
+            return concept['declarant_rate']
+        else:
+            return concept['non_declarant_rate']

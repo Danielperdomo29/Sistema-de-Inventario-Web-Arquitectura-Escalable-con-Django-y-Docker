@@ -10,14 +10,17 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ["app/views/templates"],
-        "APP_DIRS": False,
+        "DIRS": [
+            os.path.join(BASE_DIR, "app", "views", "templates"),
+            os.path.join(BASE_DIR, "templates"),
+        ],
+        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",  # Required for auth
-                "django.contrib.messages.context_processors.messages",  # Required for admin
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     }
@@ -30,6 +33,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",  # Required for auth
     "django.contrib.messages.middleware.MessageMiddleware",  # Required for admin
+    "allauth.account.middleware.AccountMiddleware", # Phase 5
 ]
 
 # Load env vars
@@ -60,7 +64,32 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "app",
     "facturacion",
+    # Phase 5: Auth & Security
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
+    "allauth_2fa",
 ]
+
+# Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# AllAuth Configuration
+SITE_ID = 1
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+LOGIN_REDIRECT_URL = "/" # Dashboard or Redirect View
+ACCOUNT_ADAPTER = "allauth_2fa.adapter.OTPAdapter"
+# 2FA Settings
+ALLAUTH_2FA_ALWAYS_REVEAL_BACKUP_TOKENS = False
 
 AUTH_USER_MODEL = "app.UserAccount"
 SESSION_ENGINE = "django.contrib.sessions.backends.db"

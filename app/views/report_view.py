@@ -124,54 +124,60 @@ class ReportView:
         <div class="report-grid">
             <div class="card">
                 <div class="card-header">Top 5 Productos Más Vendidos</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Ingresos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {productos_rows}
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Ingresos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {productos_rows}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             
             <div class="card">
                 <div class="card-header">Ventas por Estado</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Estado</th>
-                            <th>Cantidad</th>
-                            <th>Monto Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {estado_rows}
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Estado</th>
+                                <th>Cantidad</th>
+                                <th>Monto Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {estado_rows}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         
         <div class="card mt-20">
             <div class="card-header">Top 5 Clientes Frecuentes</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Cliente</th>
-                        <th>Documento</th>
-                        <th>Compras</th>
-                        <th>Monto Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {clientes_rows}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Documento</th>
+                            <th>Compras</th>
+                            <th>Monto Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {clientes_rows}
+                    </tbody>
+                </table>
+            </div>
         </div>
         
         <div class="card mb-30">
@@ -179,18 +185,20 @@ class ReportView:
                 <span><i class="fas fa-exclamation-triangle"></i> Productos con Stock Bajo</span>
                 <span class="text-muted">(Stock menor o igual a 10 unidades)</span>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Categoría</th>
-                        <th>Stock Actual</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {stock_rows}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Stock Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {stock_rows}
+                    </tbody>
+                </table>
+            </div>
         </div>
         """
 

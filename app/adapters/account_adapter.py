@@ -5,10 +5,10 @@ Sincroniza usuarios de allauth con el sistema existente.
 
 from django.utils import timezone
 
-from allauth.account.adapter import DefaultAccountAdapter
+from allauth_2fa.adapter import OTPAdapter
 
 
-class CustomAccountAdapter(DefaultAccountAdapter):
+class CustomAccountAdapter(OTPAdapter):
     """
     Adapter personalizado para sincronizar allauth con sistema existente
     """

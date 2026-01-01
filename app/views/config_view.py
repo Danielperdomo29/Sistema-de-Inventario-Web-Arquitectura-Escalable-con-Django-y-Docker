@@ -51,6 +51,7 @@ class ConfigView:
                 <div class="mt-20">
                     <a href="/configuracion/perfil/editar/" class="btn btn-primary">Editar Perfil</a>
                     <a href="/configuracion/perfil/cambiar-password/" class="btn btn-warning ml-10">Cambiar Contraseña</a>
+                    <a href="/accounts/setup/" class="btn btn-info ml-10"><i class="fas fa-shield-alt"></i> Configurar 2FA</a>
                 </div>
             </div>
         </div>

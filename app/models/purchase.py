@@ -74,7 +74,7 @@ class Purchase(models.Model):
     @staticmethod
     def total_compras_mes():
         """Calcula el total de compras del mes actual"""
-        now = timezone.now()
+        now = timezone.localtime(timezone.now())
         total = Purchase.objects.filter(fecha__year=now.year, fecha__month=now.month).aggregate(
             Sum("total")
         )["total__sum"]

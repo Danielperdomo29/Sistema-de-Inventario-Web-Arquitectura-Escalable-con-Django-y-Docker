@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Configuración Facturación Electrónica DIAN</h5>
+                    {% if config_exists %}
+                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Configurado</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i>Pendiente</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-lock me-2"></i>
+                        <strong>Seguridad:</strong> Su certificado digital (.p12) se almacena de forma segura y su contraseña es encriptada. Solo se utiliza para firmar los documentos XML enviados a la DIAN.
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <h6 class="text-primary mb-3 bb-1 pb-2 border-bottom">Datos de la Empresa y Software</h6>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                {{ form.nit_emisor|as_crispy_field }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ form.dv_emisor|as_crispy_field }}
+                            </div>
+                            <div class="col-md-7">
+                                {{ form.razon_social|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                             <div class="col-md-12">
+                                {{ form.ambiente|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary mb-3 mt-4 bb-1 pb-2 border-bottom">Credenciales de Pruebas (Set de Pruebas)</h6>
+                        <div class="row g-3">
+                             <div class="col-md-12">
+                                {{ form.test_set_id|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <h6 class="text-primary mb-3 mt-4 bb-1 pb-2 border-bottom">Credenciales del Software</h6>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                {{ form.software_id|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.pin_software|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary mb-3 mt-4 bb-1 pb-2 border-bottom">Certificado Digital</h6>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                {{ form.certificado_archivo|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.certificate_password|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Guardar Configuración
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

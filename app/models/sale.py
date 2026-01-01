@@ -80,7 +80,7 @@ class Sale(models.Model):
     @staticmethod
     def total_ventas_mes():
         """Calcula el total de ventas del mes actual"""
-        now = timezone.now()
+        now = timezone.localtime(timezone.now())
         total = Sale.objects.filter(
             fecha__year=now.year,
             fecha__month=now.month,

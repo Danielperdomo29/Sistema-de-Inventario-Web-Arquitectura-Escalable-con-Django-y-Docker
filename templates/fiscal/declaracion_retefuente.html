@@ -1,0 +1,763 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-hand-holding-usd me-2"></i>{{ title }}
+                        </h4>
+                        <div>
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-info-circle me-1"></i>Formulario 350 DIAN
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Filtros de Período -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Seleccionar Período Mensual</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form method="get" class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="year" class="form-label">Año</label>
+                                            <select class="form-select" id="year" name="year" required>
+                                                {% for y in range %}
+                                                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>
+                                                    {{ y }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <label for="month" class="form-label">Mes</label>
+                                            <select class="form-select" id="month" name="month" required>
+                                                {% for m in months %}
+                                                <option value="{{ m.value }}" {% if selected_month == m.value %}selected{% endif %}>
+                                                    {{ m.label }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-calculator me-1"></i> Calcular
+                                            </button>
+                                        </div>
+                                    </form>
+                                    
+                                    {% if uvt_info %}
+                                    <div class="mt-3 small text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        UVT {{ uvt_info.year }}: ${{ uvt_info.value|floatformat:0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if declaracion %}
+                    <!-- Información del Período -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-info" role="alert">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="alert-heading mb-1">
+                                            <i class="fas fa-calendar-alt me-2"></i>
+                                            {{ declaracion.periodo.label }}
+                                        </h5>
+                                        <p class="mb-0">
+                                            Período: {{ declaracion.periodo.start_date|date:"d/m/Y" }} al {{ declaracion.periodo.end_date|date:"d/m/Y" }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <h4 class="mb-0 text-dark">
+                                            Retención Total: ${{ declaracion.totales.total_retencion|floatformat:2 }}
+                                        </h4>
+                                        <small class="text-muted">
+                                            {{ declaracion.totales.total_transacciones }} transacciones | 
+                                            {{ declaracion.totales.total_proveedores }} proveedores
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Umbrales UVT -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-warning">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-chart-line me-2"></i>Umbrales UVT para Retención
+                                    </h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Concepto</th>
+                                                    <th class="text-end">Umbral en UVT</th>
+                                                    <th class="text-end">Valor en Pesos</th>
+                                                    <th>Tarifa Declarantes</th>
+                                                    <th>Tarifa No Declarantes</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for concept_key, threshold in thresholds.items %}
+                                                {% with concept=declaracion.conceptos.concept_key.concept %}
+                                                <tr>
+                                                    <td>{{ concept.name }}</td>
+                                                    <td class="text-end">{{ concept.uvt_threshold }} UVT</td>
+                                                    <td class="text-end">${{ threshold|floatformat:0 }}</td>
+                                                    <td>{{ concept.declarant_rate }}%</td>
+                                                    <td>{{ concept.non_declarant_rate }}%</td>
+                                                </tr>
+                                                {% endwith %}
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulario 350 - Estructura Principal -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-dark text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-file-alt me-2"></i>
+                                        FORMULARIO 350 - RETENCIÓN EN LA FUENTE
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Tabla de Conceptos -->
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-primary">
+                                                <tr>
+                                                    <th colspan="8" class="text-center">
+                                                        CONCEPTOS DE RETENCIÓN
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th width="5%">Código</th>
+                                                    <th width="20%">Concepto</th>
+                                                    <th width="15%" class="text-end">Base Gravable</th>
+                                                    <th width="10%" class="text-end">Tarifa Aplicada</th>
+                                                    <th width="15%" class="text-end">Valor Retenido</th>
+                                                    <th width="10%" class="text-end">Transacciones</th>
+                                                    <th width="15%" class="text-end">Declarantes</th>
+                                                    <th width="10%" class="text-end">No Declarantes</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for concept_key, data in declaracion.conceptos.items %}
+                                                {% if data.retention_amount > 0 %}
+                                                <tr>
+                                                    <td><strong>{{ data.concept.code }}</strong></td>
+                                                    <td>
+                                                        {{ data.concept.name }}
+                                                        <button class="btn btn-sm btn-outline-primary ms-2" 
+                                                                type="button"
+                                                                onclick="toggleDetail('{{ concept_key }}')">
+                                                            <i class="fas fa-list"></i>
+                                                        </button>
+                                                    </td>
+                                                    <td class="text-end">${{ data.base_amount|floatformat:2 }}</td>
+                                                    <td class="text-end">
+                                                        {% if data.declarant_count > data.non_declarant_count %}
+                                                        {{ data.concept.declarant_rate }}%
+                                                        {% else %}
+                                                        {{ data.concept.non_declarant_rate }}%
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-end">${{ data.retention_amount|floatformat:2 }}</td>
+                                                    <td class="text-end">{{ data.transactions|length }}</td>
+                                                    <td class="text-end">{{ data.declarant_count }}</td>
+                                                    <td class="text-end">{{ data.non_declarant_count }}</td>
+                                                </tr>
+                                                
+                                                <!-- Detalle colapsable por concepto -->
+                                                <tr id="detail-{{ concept_key }}" class="detail-row" style="display: none;">
+                                                    <td colspan="8" class="p-0">
+                                                        <div class="card card-body m-2">
+                                                            <h6 class="mb-3">Detalle de {{ data.concept.name }}</h6>
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm table-hover">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Factura</th>
+                                                                            <th>Proveedor</th>
+                                                                            <th>Fecha</th>
+                                                                            <th>Producto</th>
+                                                                            <th class="text-end">Base</th>
+                                                                            <th class="text-end">Retención</th>
+                                                                            <th>Tipo</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {% for trans in data.transactions %}
+                                                                        <tr>
+                                                                            <td>{{ trans.invoice_number|default:"N/A" }}</td>
+                                                                            <td>{{ trans.supplier|truncatechars:20 }}</td>
+                                                                            <td>{{ trans.date|date:"d/m/Y" }}</td>
+                                                                            <td>{{ trans.product|truncatechars:30 }}</td>
+                                                                            <td class="text-end">${{ trans.base|floatformat:2 }}</td>
+                                                                            <td class="text-end">${{ trans.retention|floatformat:2 }}</td>
+                                                                            <td>
+                                                                                <span class="badge {% if trans.supplier_type == 'declarant' %}bg-info{% else %}bg-warning{% endif %}">
+                                                                                    {{ trans.supplier_type }}
+                                                                                </span>
+                                                                            </td>
+                                                                        </tr>
+                                                                        {% endfor %}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endif %}
+                                                {% endfor %}
+                                                
+                                                <!-- Totales -->
+                                                <tr class="table-active">
+                                                    <td colspan="2" class="text-end"><strong>TOTAL GENERAL</strong></td>
+                                                    <td class="text-end">
+                                                        <strong>${{ declaracion.totales.total_base|floatformat:2 }}</strong>
+                                                    </td>
+                                                    <td class="text-end">-</td>
+                                                    <td class="text-end">
+                                                        <strong>${{ declaracion.totales.total_retencion|floatformat:2 }}</strong>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <strong>{{ declaracion.totales.total_transacciones }}</strong>
+                                                    </td>
+                                                    <td class="text-end">-</td>
+                                                    <td class="text-end">-</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <!-- Resumen Estadístico -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-3">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-muted">Base Total</h6>
+                                                    <h3 class="card-text">${{ declaracion.totales.total_base|floatformat:2 }}</h3>
+                                                    <small class="text-muted">Acumulado gravable</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card text-center bg-light-warning">
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-muted">Retención Total</h6>
+                                                    <h3 class="card-text text-warning">${{ declaracion.totales.total_retencion|floatformat:2 }}</h3>
+                                                    <small class="text-muted">A pagar a DIAN</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-muted">Transacciones</h6>
+                                                    <h3 class="card-text">{{ declaracion.totales.total_transacciones }}</h3>
+                                                    <small class="text-muted">Compras con retención</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-muted">Proveedores</h6>
+                                                    <h3 class="card-text">{{ declaracion.totales.total_proveedores }}</h3>
+                                                    <small class="text-muted">Afectados por retención</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Distribución por Concepto -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">Distribución por Concepto</h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div style="height: 250px;">
+                                                        <canvas id="conceptDistributionChart"></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">Declarantes vs No Declarantes</h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div style="height: 250px;">
+                                                        <canvas id="declarantDistributionChart"></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <button class="btn btn-outline-primary" onclick="exportarDeclaracion('json')">
+                                                <i class="fas fa-file-export me-1"></i> Exportar JSON
+                                            </button>
+                                            <button class="btn btn-outline-success ms-2" onclick="exportarDeclaracion('csv')">
+                                                <i class="fas fa-file-csv me-1"></i> Exportar CSV
+                                            </button>
+                                            <button class="btn btn-outline-info ms-2" onclick="verResumenAnual()">
+                                                <i class="fas fa-chart-bar me-1"></i> Ver Resumen Anual
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-info" onclick="window.print()">
+                                                <i class="fas fa-print me-1"></i> Imprimir
+                                            </button>
+                                            <button class="btn btn-warning ms-2" onclick="generarCertificados()">
+                                                <i class="fas fa-file-certificate me-1"></i> Certificados
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Instrucciones cuando no hay declaración -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <i class="fas fa-hand-holding-usd fa-4x text-muted"></i>
+                                </div>
+                                <h4 class="text-muted mb-3">Generar Declaración de Retención</h4>
+                                <p class="text-muted mb-4">
+                                    Selecciona el año y mes para calcular la retención en la fuente (Formulario 350).
+                                </p>
+                                <div class="alert alert-info text-start">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-info-circle me-2"></i>Información importante:
+                                    </h6>
+                                    <ul class="mb-0">
+                                        <li>La retención se calcula solo para compras que superen los umbrales UVT</li>
+                                        <li>Las tarifas difieren para proveedores declarantes y no declarantes</li>
+                                        <li>Los conceptos se determinan automáticamente basados en el tipo de producto</li>
+                                        <li>Puedes ver el detalle de cada concepto haciendo clic en el botón <i class="fas fa-list"></i></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Resumen Anual -->
+<div class="modal fade" id="resumenAnualModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resumen Anual de Retenciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="resumenAnualContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando resumen anual...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table th {
+        font-weight: 600;
+        background-color: #f8f9fa;
+    }
+    
+    .table-primary th {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+    
+    .detail-row {
+        background-color: #f8f9fa;
+    }
+    
+    .bg-light-warning {
+        background-color: #fff3cd !important;
+    }
+    
+    .print-only {
+        display: none;
+    }
+    
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        .print-only {
+            display: block !important;
+        }
+        
+        .modal {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Generar rango de años (últimos 3 años y próximo 1)
+    document.addEventListener('DOMContentLoaded', function() {
+        const yearSelect = document.getElementById('year');
+        const currentYear = new Date().getFullYear();
+        
+        // Limpiar opciones existentes
+        yearSelect.innerHTML = '';
+        
+        // Agregar opciones de años
+        for (let year = currentYear - 1; year <= currentYear + 1; year++) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            if (year === currentYear) {
+                option.selected = true;
+            }
+            yearSelect.appendChild(option);
+        }
+        
+        // Inicializar gráficos si hay declaración
+        {% if declaracion %}
+        initCharts();
+        {% endif %}
+    });
+    
+    function toggleDetail(conceptKey) {
+        const detailRow = document.getElementById(`detail-${conceptKey}`);
+        if (detailRow.style.display === 'none') {
+            detailRow.style.display = 'table-row';
+        } else {
+            detailRow.style.display = 'none';
+        }
+    }
+    
+    function initCharts() {
+        // Datos para gráficos
+        const conceptData = [];
+        const conceptLabels = [];
+        const conceptColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+        
+        const declarantData = [0, 0]; // [declarantes, no_declarantes]
+        
+        {% for concept_key, data in declaracion.conceptos.items %}
+        {% if data.retention_amount > 0 %}
+        conceptLabels.push('{{ data.concept.name }}');
+        conceptData.push({{ data.retention_amount|floatformat:2 }});
+        
+        declarantData[0] += {{ data.declarant_count }};
+        declarantData[1] += {{ data.non_declarant_count }};
+        {% endif %}
+        {% endfor %}
+        
+        // Gráfico de distribución por concepto
+        const conceptCtx = document.getElementById('conceptDistributionChart').getContext('2d');
+        new Chart(conceptCtx, {
+            type: 'doughnut',
+            data: {
+                labels: conceptLabels,
+                datasets: [{
+                    data: conceptData,
+                    backgroundColor: conceptColors.slice(0, conceptData.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${context.label}: $${value.toLocaleString()} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Gráfico de declarantes vs no declarantes
+        const declarantCtx = document.getElementById('declarantDistributionChart').getContext('2d');
+        new Chart(declarantCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Declarantes', 'No Declarantes'],
+                datasets: [{
+                    data: declarantData,
+                    backgroundColor: ['#36A2EB', '#FF6384'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${context.label}: ${value} proveedores (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function exportarDeclaracion(formato) {
+        const year = document.getElementById('year').value;
+        const month = document.getElementById('month').value;
+        
+        const url = `/fiscal/reportes/declaracion-retefuente/export/?year=${year}&month=${month}&formato=${formato}`;
+        
+        if (formato === 'json') {
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const blob = new Blob([JSON.stringify(data.formulario_350, null, 2)], {type: 'application/json'});
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `formulario_350_${year}_${month}.json`;
+                        link.click();
+                    } else {
+                        alert('Error al exportar: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error de conexión: ' + error.message);
+                });
+        } else {
+            window.location.href = url;
+        }
+    }
+    
+    function verResumenAnual() {
+        const year = document.getElementById('year').value;
+        const modal = new bootstrap.Modal(document.getElementById('resumenAnualModal'));
+        
+        // Cargar datos
+        fetch(`/fiscal/reportes/declaracion-retefuente/resumen-anual/?year=${year}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderResumenAnual(data);
+                    modal.show();
+                } else {
+                    alert('Error cargando resumen: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error de conexión: ' + error.message);
+            });
+    }
+    
+    function renderResumenAnual(data) {
+        const content = document.getElementById('resumenAnualContent');
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        
+        // Preparar datos para tabla
+        let tableHtml = `
+            <div class="mb-4">
+                <h6 class="mb-3">Retenciones por Mes - ${data.year}</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th class="text-end">Base Gravable</th>
+                                <th class="text-end">Retención</th>
+                                <th class="text-end">Transacciones</th>
+                                <th class="text-end">Promedio por Transacción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        let totalRetencion = 0;
+        let totalBase = 0;
+        let totalTransacciones = 0;
+        
+        for (let month = 1; month <= 12; month++) {
+            const monthData = data.summary.months[month];
+            const retencion = parseFloat(monthData.retencion) || 0;
+            const base = parseFloat(monthData.base) || 0;
+            const transacciones = monthData.transacciones || 0;
+            const promedio = transacciones > 0 ? (retencion / transacciones) : 0;
+            
+            tableHtml += `
+                <tr>
+                    <td>${months[month-1]}</td>
+                    <td class="text-end">$${base.toLocaleString('es-CO', {minimumFractionDigits: 2})}</td>
+                    <td class="text-end">$${retencion.toLocaleString('es-CO', {minimumFractionDigits: 2})}</td>
+                    <td class="text-end">${transacciones.toLocaleString()}</td>
+                    <td class="text-end">$${promedio.toLocaleString('es-CO', {minimumFractionDigits: 2})}</td>
+                </tr>
+            `;
+            
+            totalRetencion += retencion;
+            totalBase += base;
+            totalTransacciones += transacciones;
+        }
+        
+        const promedioAnual = totalTransacciones > 0 ? (totalRetencion / totalTransacciones) : 0;
+        
+        tableHtml += `
+                        <tr class="table-active">
+                            <td><strong>TOTAL ANUAL</strong></td>
+                            <td class="text-end"><strong>$${totalBase.toLocaleString('es-CO', {minimumFractionDigits: 2})}</strong></td>
+                            <td class="text-end"><strong>$${totalRetencion.toLocaleString('es-CO', {minimumFractionDigits: 2})}</strong></td>
+                            <td class="text-end"><strong>${totalTransacciones.toLocaleString()}</strong></td>
+                            <td class="text-end"><strong>$${promedioAnual.toLocaleString('es-CO', {minimumFractionDigits: 2})}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        // Gráfico de tendencia
+        tableHtml += `
+            <div class="mt-4">
+                <h6 class="mb-3">Tendencia Anual</h6>
+                <div style="height: 300px;">
+                    <canvas id="tendenciaAnualChart"></canvas>
+                </div>
+            </div>
+        `;
+        
+        content.innerHTML = tableHtml;
+        
+        // Renderizar gráfico de tendencia
+        setTimeout(() => {
+            const tendenciaCtx = document.getElementById('tendenciaAnualChart').getContext('2d');
+            const monthLabels = months;
+            const retencionData = [];
+            
+            for (let month = 1; month <= 12; month++) {
+                const monthData = data.summary.months[month];
+                retencionData.push(parseFloat(monthData.retencion) || 0);
+            }
+            
+            new Chart(tendenciaCtx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: 'Retención Mensual',
+                        data: retencionData,
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString('es-CO');
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `$${context.parsed.y.toLocaleString('es-CO', {minimumFractionDigits: 2})}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }, 100);
+    }
+    
+    function generarCertificados() {
+        alert('Funcionalidad de certificados en desarrollo. Próximamente disponible.');
+    }
+</script>
+{% endblock %}

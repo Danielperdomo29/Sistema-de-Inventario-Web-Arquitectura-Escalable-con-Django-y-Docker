@@ -1,0 +1,55 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+
+{% block title %}Verificación 2FA - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2><i class="fas fa-user-lock"></i> Verificación 2FA</h2>
+        <p>Ingresa el código de tu aplicación de autenticación.</p>
+        
+        <form method="POST" action="" class="p-20">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <div class="input-icon-wrapper">
+                    <i class="fas fa-key input-icon"></i>
+                    {% for field in form %}
+                        <input type="{{ field.field.widget.input_type }}" 
+                               name="{{ field.name }}" 
+                               class="form-control" 
+                               placeholder="Código de 6 dígitos" 
+                               required 
+                               autofocus
+                               autocomplete="off"
+                               style="padding-left: 35px; text-align: center; letter-spacing: 3px; font-size: 1.2em;">
+                        {% if field.errors %}
+                            <div class="alert alert-error" style="margin-top: 8px;">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Verificar</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>¿No tienes acceso a tu teléfono? <a href="{% url 'two-factor-backup-tokens' %}">Usar código de respaldo</a></p>
+            <p><a href="/logout/">Cancelar / Cerrar Sesión</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

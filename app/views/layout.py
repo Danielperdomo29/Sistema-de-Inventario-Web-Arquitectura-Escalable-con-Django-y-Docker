@@ -27,6 +27,7 @@ class Layout:
                 <h1>Sistema de Inventario</h1>
                 <div class="navbar-menu">
                     <span>Hola, {user.username}</span>
+                    <a href="/configuracion/" style="margin-right: 15px;"><i class="fas fa-user-cog"></i> Mi Perfil</a>
                     <a href="/logout/">Cerrar Sesión</a>
                 </div>
             </div>
@@ -39,29 +40,35 @@ class Layout:
         
         # Categorización de items del menú
         inventario_items = [
-            {"url": "/", "label": '<i class="fas fa-home"></i> Dashboard', "key": "dashboard"},
-            {"url": "/productos/", "label": '<i class="fas fa-box"></i> Productos', "key": "productos"},
-            {"url": "/categorias/", "label": '<i class="fas fa-tags"></i> Categorías', "key": "categorias"},
-            {"url": "/almacenes/", "label": '<i class="fas fa-warehouse"></i> Almacenes', "key": "almacenes"},
-            {"url": "/movimientos-inventario/", "label": '<i class="fas fa-exchange-alt"></i> Movimientos Inventario', "key": "movimientos-inventario"},
-            {"url": "/proveedores/", "label": '<i class="fas fa-truck"></i> Proveedores', "key": "proveedores"},
-            {"url": "/reportes/", "label": '<i class="fas fa-chart-bar"></i> Reportes', "key": "reportes"},
+            {"url": "/", "label": "Dashboard", "icon": "fas fa-home", "key": "dashboard"},
+            {"url": "/productos/", "label": "Productos", "icon": "fas fa-box", "key": "productos"},
+            {"url": "/categorias/", "label": "Categorías", "icon": "fas fa-tags", "key": "categorias"},
+            {"url": "/almacenes/", "label": "Almacenes", "icon": "fas fa-warehouse", "key": "almacenes"},
+            {"url": "/movimientos-inventario/", "label": "Movimientos Inventario", "icon": "fas fa-exchange-alt", "key": "movimientos-inventario"},
+            {"url": "/proveedores/", "label": "Proveedores", "icon": "fas fa-truck", "key": "proveedores"},
+            {"url": "/reportes/", "label": "Reportes", "icon": "fas fa-chart-bar", "key": "reportes"},
         ]
         
         facturacion_items = [
-            {"url": "/clientes/", "label": '<i class="fas fa-users"></i> Clientes', "key": "clientes"},
-            {"url": "/ventas/", "label": '<i class="fas fa-shopping-cart"></i> Ventas', "key": "ventas"},
-            {"url": "/detalle-ventas/", "label": '<i class="fas fa-receipt"></i> Detalle Ventas', "key": "detalle-ventas"},
-            {"url": "/compras/", "label": '<i class="fas fa-shopping-bag"></i> Compras', "key": "compras"},
-            {"url": "/detalle-compras/", "label": '<i class="fas fa-file-invoice"></i> Detalle Compras', "key": "detalle-compras"},
-            {"url": "/fiscal/", "label": '<i class="fas fa-file-invoice-dollar"></i> Módulo Fiscal', "key": "fiscal"},
+            {"url": "/clientes/", "label": "Clientes", "icon": "fas fa-users", "key": "clientes"},
+            {"url": "/ventas/", "label": "Ventas", "icon": "fas fa-shopping-cart", "key": "ventas"},
+            {"url": "/detalle-ventas/", "label": "Detalle Ventas", "icon": "fas fa-receipt", "key": "detalle-ventas"},
+            {"url": "/compras/", "label": "Compras", "icon": "fas fa-shopping-bag", "key": "compras"},
+            {"url": "/detalle-compras/", "label": "Detalle Compras", "icon": "fas fa-file-invoice", "key": "detalle-compras"},
+        ]
+        
+        fiscal_items = [
+            {"url": "/fiscal/reportes/declaracion-iva/", "label": "Declaración IVA (300)", "icon": "fas fa-file-invoice-dollar", "key": "declaracion_iva"},
+            {"url": "/fiscal/reportes/declaracion-retefuente/", "label": "Retención Fte (350)", "icon": "fas fa-hand-holding-usd", "key": "declaracion_retefuente"},
+            {"url": "/fiscal/reportes/libro-diario/", "label": "Libro Diario", "icon": "fas fa-book", "key": "libro_diario"},
+            {"url": "/fiscal/reportes/balance-prueba/", "label": "Balance de Prueba", "icon": "fas fa-balance-scale", "key": "balance_prueba"},
         ]
         
         sistema_items = [
-            {"url": "/roles/", "label": '<i class="fas fa-user-tag"></i> Roles', "key": "roles"},
-            {"url": "/chatbot/", "label": '<i class="fas fa-robot"></i> Chatbot IA', "key": "chatbot"},
-            {"url": "/configuracion/", "label": '<i class="fas fa-cog"></i> Configuración', "key": "configuracion"},
-            {"url": "/documentacion/", "label": '<i class="fas fa-book"></i> Documentación', "key": "documentacion"},
+            {"url": "/roles/", "label": "Roles", "icon": "fas fa-user-tag", "key": "roles"},
+            {"url": "/chatbot/", "label": "Chatbot IA", "icon": "fas fa-robot", "key": "chatbot"},
+            {"url": "/configuracion/", "label": "Configuración", "icon": "fas fa-cog", "key": "configuracion"},
+            {"url": "/documentacion/", "label": "Documentación", "icon": "fas fa-book", "key": "documentacion"},
         ]
         
         def generate_menu_html(items):
@@ -69,17 +76,18 @@ class Layout:
             menu_html = ""
             for item in items:
                 active_class = 'class="active"' if item["key"] == active_page else ""
-                label_text = item["label"].split('</i>')[-1].strip() if '</i>' in item["label"] else item["label"]
-                menu_html += f'<li><a href="{item["url"]}" {active_class} data-tooltip="{label_text}">{item["label"]}</a></li>\n'
+                menu_html += f'<li><a href="{item["url"]}" {active_class} data-tooltip="{item["label"]}"><i class="{item["icon"]}"></i> <span>{item["label"]}</span></a></li>\n'
             return menu_html
         
         inventario_html = generate_menu_html(inventario_items)
         facturacion_html = generate_menu_html(facturacion_items)
+        fiscal_html = generate_menu_html(fiscal_items)
         sistema_html = generate_menu_html(sistema_items)
         
         return f"""
         <div class="sidebar-overlay" id="sidebar-overlay"></div>
         <div class="sidebar" id="sidebar">
+
             <!-- Sección Inventario -->
             <div class="sidebar-section" data-section="inventario">
                 <div class="sidebar-section-header">
@@ -109,6 +117,22 @@ class Layout:
                 </div>
                 <ul class="sidebar-menu" data-section="facturacion">
                     {facturacion_html}
+                </ul>
+            </div>
+
+            <!-- Sección Fiscal -->
+            <div class="sidebar-section" data-section="fiscal">
+                <div class="sidebar-section-header">
+                    <div class="section-title">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Obligaciones Fiscales</span>
+                    </div>
+                    <button class="section-toggle" data-section="fiscal" aria-label="Toggle Fiscal">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <ul class="sidebar-menu" data-section="fiscal">
+                    {fiscal_html}
                 </ul>
             </div>
 
@@ -162,7 +186,7 @@ class Layout:
             <script src="/static/js/sidebar-sections.js"></script>
             <script>
                 // Pasar estado del usuario al JavaScript
-                // activo=1 → true (puede modificar), activo=0 → false (no puede modificar)
+                // activo=1 -> true (puede modificar), activo=0 -> false (no puede modificar)
                 window.userActive = {('true' if user.is_active else 'false')};
             </script>
             <script src="/static/js/protection.js"></script>
