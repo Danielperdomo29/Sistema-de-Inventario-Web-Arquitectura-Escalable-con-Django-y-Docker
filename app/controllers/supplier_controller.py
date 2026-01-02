@@ -36,20 +36,26 @@ class SupplierController:
         if request.method == "POST":
             try:
                 nombre = request.POST.get("nombre", "").strip()
-                ruc = request.POST.get("ruc", "").strip()
+                nit = request.POST.get("nit", "").strip()
+                digito_verificacion = request.POST.get("digito_verificacion", "").strip()
+                rut = request.POST.get("rut", "").strip()
                 telefono = request.POST.get("telefono", "").strip()
                 email = request.POST.get("email", "").strip()
                 direccion = request.POST.get("direccion", "").strip()
+                ciudad = request.POST.get("ciudad", "").strip()
 
                 if not nombre:
-                    raise ValueError("El nombre es requerido")
+                    raise ValueError("El nombre/razón social es requerido")
 
                 data = {
                     "nombre": nombre,
-                    "ruc": ruc,
+                    "nit": nit,
+                    "digito_verificacion": digito_verificacion,
+                    "rut": rut,
                     "telefono": telefono,
                     "email": email,
                     "direccion": direccion,
+                    "ciudad": ciudad,
                 }
 
                 Supplier.create(data)
@@ -79,20 +85,26 @@ class SupplierController:
         if request.method == "POST":
             try:
                 nombre = request.POST.get("nombre", "").strip()
-                ruc = request.POST.get("ruc", "").strip()
+                nit = request.POST.get("nit", "").strip()
+                digito_verificacion = request.POST.get("digito_verificacion", "").strip()
+                rut = request.POST.get("rut", "").strip()
                 telefono = request.POST.get("telefono", "").strip()
                 email = request.POST.get("email", "").strip()
                 direccion = request.POST.get("direccion", "").strip()
+                ciudad = request.POST.get("ciudad", "").strip()
 
                 if not nombre:
-                    raise ValueError("El nombre es requerido")
+                    raise ValueError("El nombre/razón social es requerido")
 
                 data = {
                     "nombre": nombre,
-                    "ruc": ruc,
+                    "nit": nit,
+                    "digito_verificacion": digito_verificacion,
+                    "rut": rut,
                     "telefono": telefono,
                     "email": email,
                     "direccion": direccion,
+                    "ciudad": ciudad,
                 }
 
                 Supplier.update(supplier_id, data)
@@ -121,3 +133,4 @@ class SupplierController:
                 pass
 
         return HttpResponseRedirect("/proveedores/")
+
