@@ -31,6 +31,24 @@ class FacturaElectronica(models.Model):
         verbose_name=_('Venta asociada')
     )
     
+    # Número de Factura
+    numero_factura = models.CharField(
+        max_length=50,
+        unique=True,
+        null=True,  # Temporarily nullable for migration
+        blank=True,
+        verbose_name=_('Número de Factura'),
+        help_text="Número completo de factura (Prefijo + Consecutivo)"
+    )
+    
+    prefijo = models.CharField(
+        max_length=10,
+        null=True,  # Temporarily nullable for migration
+        blank=True,
+        verbose_name=_('Prefijo'),
+        help_text="Prefijo del rango de numeración"
+    )
+    
     # Identificadores Fiscales
     cufe = models.CharField(
         max_length=96, 
@@ -47,11 +65,25 @@ class FacturaElectronica(models.Model):
     )
     
     # Archivos
-    xml_firmado = models.FileField(
+    archivo_xml = models.FileField(
         upload_to='fiscal/xml/firmados/%Y/%m/',
         null=True,
         blank=True,
         verbose_name=_('XML Firmado')
+    )
+    
+    archivo_pdf = models.FileField(
+        upload_to='fiscal/pdf/%Y/%m/',
+        null=True,
+        blank=True,
+        verbose_name=_('PDF Representación Gráfica')
+    )
+    
+    xml_firmado = models.FileField(
+        upload_to='fiscal/xml/firmados/%Y/%m/',
+        null=True,
+        blank=True,
+        verbose_name=_('XML Firmado (Legacy)')
     )
     
     xml_respuesta_dian = models.FileField(
@@ -62,17 +94,43 @@ class FacturaElectronica(models.Model):
     )
     
     # Estado y Control
+    estado = models.CharField(
+        max_length=20,
+        choices=[
+            ('pendiente', 'Pendiente'),
+            ('generada', 'Generada'),
+            ('firmada', 'Firmada'),
+            ('enviada', 'Enviada a DIAN'),
+            ('aceptada', 'Aceptada'),
+            ('rechazada', 'Rechazada'),
+        ],
+        default='pendiente',
+        db_index=True,
+        verbose_name=_('Estado')
+    )
+    
     estado_dian = models.CharField(
         max_length=20,
         choices=ESTADOS_DIAN,
         default='PENDIENTE',
-        db_index=True
+        db_index=True,
+        verbose_name=_('Estado DIAN (Detallado)')
     )
     
     ambiente = models.IntegerField(
         choices=AMBIENTES,
         default=2, # Default a Pruebas
         verbose_name=_('Ambiente de Habilitación')
+    )
+    
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('Fecha de Creación')
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_('Fecha de Actualización')
     )
     
     fecha_emision = models.DateTimeField(

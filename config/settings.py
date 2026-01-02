@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app",
+    "app.fiscal", # Módulo Fiscal
     "facturacion",
     # Phase 5: Auth & Security
     "django.contrib.sites",

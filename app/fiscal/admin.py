@@ -9,6 +9,10 @@ from app.fiscal.models import (
     Impuesto,
     PerfilFiscal,
     FiscalAuditLog,
+    RangoNumeracion,
+    FiscalConfig,
+    FacturaElectronica,
+    EventoDian,
 )
 
 
@@ -141,6 +145,162 @@ class FiscalAuditLogAdmin(admin.ModelAdmin):
         """Optimizar consultas con select_related."""
         qs = super().get_queryset(request)
         return qs.select_related('user')
+
+
+@admin.register(RangoNumeracion)
+class RangoNumeracionAdmin(admin.ModelAdmin):
+    """Admin para rangos de numeración DIAN."""
+    
+    list_display = ('prefijo', 'numero_resolucion', 'consecutivo_actual', 'estado', 'numeros_disponibles', 'porcentaje_uso_display', 'is_default')
+    list_filter = ('estado', 'is_default', 'fiscal_config')
+    search_fields = ('prefijo', 'numero_resolucion')
+    ordering = ('-is_default', '-fecha_inicio_vigencia')
+    date_hierarchy = 'fecha_inicio_vigencia'
+    
+    fieldsets = (
+        ('Configuración Fiscal', {
+            'fields': ('fiscal_config', 'is_default')
+        }),
+        ('Resolución DIAN', {
+            'fields': ('numero_resolucion', 'fecha_resolucion', 'fecha_inicio_vigencia', 'fecha_fin_vigencia')
+        }),
+        ('Rango de Numeración', {
+            'fields': ('prefijo', 'rango_desde', 'rango_hasta', 'consecutivo_actual')
+        }),
+        ('Seguridad', {
+            'fields': ('clave_tecnica',)
+        }),
+        ('Estado y Alertas', {
+            'fields': ('estado', 'porcentaje_alerta', 'alerta_enviada')
+        }),
+        ('Notas', {
+            'fields': ('notas',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ('estado',)
+    
+    def numeros_disponibles(self, obj):
+        """Muestra números disponibles."""
+        disponibles = obj.numeros_disponibles
+        if disponibles < 100:
+            return f"⚠️ {disponibles}"
+        return disponibles
+    numeros_disponibles.short_description = 'Disponibles'
+    
+    def porcentaje_uso_display(self, obj):
+        """Muestra porcentaje de uso con indicador."""
+        porcentaje = obj.porcentaje_uso
+        if porcentaje >= 90:
+            return f"🔴 {porcentaje:.1f}%"
+        elif porcentaje >= 70:
+            return f"🟡 {porcentaje:.1f}%"
+        else:
+            return f"🟢 {porcentaje:.1f}%"
+    porcentaje_uso_display.short_description = 'Uso'
+
+
+@admin.register(FiscalConfig)
+class FiscalConfigAdmin(admin.ModelAdmin):
+    """Admin para configuración fiscal DIAN."""
+    
+    list_display = ('nit_emisor', 'razon_social', 'get_ambiente_display', 'is_active', 'updated_at')
+    list_filter = ('ambiente', 'is_active')
+    search_fields = ('nit_emisor', 'razon_social', 'software_id')
+    
+    fieldsets = (
+        ('Emisor', {
+            'fields': ('nit_emisor', 'dv_emisor', 'razon_social')
+        }),
+        ('Proveedor Tecnológico', {
+            'fields': ('software_id', 'pin_software')
+        }),
+        ('Ambiente', {
+            'fields': ('ambiente', 'test_set_id')
+        }),
+        ('Resolución de Facturación', {
+            'fields': ('numero_resolucion', 'fecha_resolucion', 'prefijo', 'rango_desde', 'rango_hasta', 'clave_tecnica')
+        }),
+        ('Certificado Digital', {
+            'fields': ('certificado_archivo', '_certificado_password')
+        }),
+        ('Estado', {
+            'fields': ('is_active',)
+        }),
+    )
+    
+    def has_delete_permission(self, request, obj=None):
+        """Prevenir eliminación accidental de configuración activa."""
+        if obj and obj.is_active:
+            return False
+        return super().has_delete_permission(request, obj)
+
+
+@admin.register(FacturaElectronica)
+class FacturaElectronicaAdmin(admin.ModelAdmin):
+    """Admin para facturas electrónicas."""
+    
+    list_display = ('numero_factura', 'venta', 'cufe_display', 'estado', 'ambiente', 'fecha_creacion')
+    list_filter = ('estado', 'ambiente', 'fecha_creacion')
+    search_fields = ('numero_factura', 'cufe', 'venta__id')
+    ordering = ('-fecha_creacion',)
+    date_hierarchy = 'fecha_creacion'
+    
+    fieldsets = (
+        ('Venta', {
+            'fields': ('venta',)
+        }),
+        ('Factura', {
+            'fields': ('numero_factura', 'prefijo', 'cufe')
+        }),
+        ('Archivos', {
+            'fields': ('archivo_xml', 'archivo_pdf')
+        }),
+        ('Estado', {
+            'fields': ('estado', 'ambiente')
+        }),
+    )
+    
+    readonly_fields = ('numero_factura', 'cufe', 'fecha_creacion')
+    
+    def cufe_display(self, obj):
+        """Muestra CUFE abreviado."""
+        if obj.cufe:
+            return f"{obj.cufe[:16]}..."
+        return "-"
+    cufe_display.short_description = 'CUFE'
+    
+    def has_add_permission(self, request):
+        """No permitir crear facturas manualmente."""
+        return False
+
+
+@admin.register(EventoDian)
+class EventoDianAdmin(admin.ModelAdmin):
+    """Admin para eventos DIAN."""
+    
+    list_display = ('factura', 'codigo_evento', 'es_error', 'fecha_evento')
+    list_filter = ('es_error', 'codigo_evento', 'fecha_evento')
+    search_fields = ('factura__numero_factura', 'codigo_evento', 'descripcion')
+    ordering = ('-fecha_evento',)
+    
+    readonly_fields = ('fecha_evento',)
+    
+    fieldsets = (
+        ('Factura', {
+            'fields': ('factura',)
+        }),
+        ('Evento', {
+            'fields': ('codigo_evento', 'descripcion', 'es_error')
+        }),
+        ('Datos', {
+            'fields': ('xml_evento', 'detalles')
+        }),
+        ('Fecha', {
+            'fields': ('fecha_evento',)
+        }),
+    )
 
 
 # Personalizar el sitio de admin

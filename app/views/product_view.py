@@ -7,8 +7,10 @@ class ProductView:
     """Vista de Productos"""
 
     @staticmethod
-    def index(user, request_path, products):
+    def index(user, request, products):
         """Vista de lista de productos"""
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
 
         # Generar filas de la tabla
         if products:
@@ -23,7 +25,10 @@ class ProductView:
                     <td>{product['stock_actual']}</td>
                     <td>
                         <a href="/productos/{product['id']}/editar/" class="btn btn-warning no-underline">Editar</a>
-                        <a href="/productos/{product['id']}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm('¿Está seguro de eliminar este producto?');">Eliminar</a>
+                        <form action="/productos/{product['id']}/eliminar/" method="POST" style="display:inline;">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                            <button type="submit" class="btn btn-danger no-underline" onclick="return confirmDelete(event, this);">Eliminar</button>
+                        </form>
                     </td>
                 </tr>
                 """

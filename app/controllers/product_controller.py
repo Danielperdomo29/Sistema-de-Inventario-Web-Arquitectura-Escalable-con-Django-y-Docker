@@ -12,6 +12,7 @@ class ProductController:
     """Controlador de Productos"""
 
     @staticmethod
+    @ensure_csrf_cookie
     def index(request):
         """Lista de productos"""
         # Verificar autenticación
@@ -28,7 +29,7 @@ class ProductController:
         # Obtener productos
         products = Product.get_all()
 
-        return HttpResponse(ProductView.index(user, request.path, products))
+        return HttpResponse(ProductView.index(user, request, products))
 
     @staticmethod
     @ensure_csrf_cookie
@@ -165,6 +166,7 @@ class ProductController:
 
     @staticmethod
     @AuthMiddleware.require_active_user
+    @ensure_csrf_cookie
     def delete(request, product_id):
         """Eliminar un producto"""
         # Verificar autenticación
@@ -178,8 +180,9 @@ class ProductController:
             request.session.flush()
             return HttpResponseRedirect("/login/")
 
-        # Eliminar el producto (soft delete)
-        Product.delete(product_id)
+        # Eliminar solo si es POST
+        if request.method == "POST":
+            Product.delete(product_id)
 
         # Redireccionar a la lista
         return HttpResponseRedirect("/productos/")

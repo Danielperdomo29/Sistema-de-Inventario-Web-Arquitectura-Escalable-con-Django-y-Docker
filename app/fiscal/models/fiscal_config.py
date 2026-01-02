@@ -26,6 +26,14 @@ class FiscalConfig(models.Model):
     ambiente = models.IntegerField(choices=ENVIRONMENT_CHOICES, default=2)
     test_set_id = models.CharField(_("Test Set ID"), max_length=255, blank=True, null=True, help_text="Solo para habilitación")
     
+    # Resolución de Facturación
+    numero_resolucion = models.CharField(_("Num. Resolución"), max_length=50, default="18760000001")
+    fecha_resolucion = models.DateField(_("Fecha Resolución"), null=True, blank=True)
+    prefijo = models.CharField(_("Prefijo"), max_length=10, default="SETP")
+    rango_desde = models.BigIntegerField(_("Rango Desde"), default=99000000)
+    rango_hasta = models.BigIntegerField(_("Rango Hasta"), default=99500000)
+    clave_tecnica = models.CharField(_("Clave Técnica"), max_length=255, default="fc8eac422eba16e22ffd8c6f94b3f40a6e38162c")
+    
     # Certificado Digital
     certificado_archivo = models.FileField(upload_to='fiscal/certs/', help_text="Archivo .p12 o .pfx")
     _certificado_password = models.CharField(_("Contraseña Certificado (Encriptada)"), max_length=512)

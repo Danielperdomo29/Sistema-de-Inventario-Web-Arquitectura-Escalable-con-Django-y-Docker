@@ -181,7 +181,7 @@ class Layout:
                     {content}
                 </div>
             </div>
-            <script src="/static/js/main.js"></script>
+            <script src="/static/js/main.js?v=2"></script>
             <script src="/static/js/sidebar.js"></script>
             <script src="/static/js/sidebar-sections.js"></script>
             <script>

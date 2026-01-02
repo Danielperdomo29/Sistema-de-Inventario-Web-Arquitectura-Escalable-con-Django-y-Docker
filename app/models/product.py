@@ -67,7 +67,9 @@ class Product(models.Model):
                     "stock_minimo": p.stock_minimo,
                     "stock_actual": p.stock_actual,
                     "proveedor_id": p.proveedor_id,
+                    "proveedor_id": p.proveedor_id,
                     "activo": p.activo,
+                    "tax_percentage": float(p.tax_percentage),
                 }
             )
         return data

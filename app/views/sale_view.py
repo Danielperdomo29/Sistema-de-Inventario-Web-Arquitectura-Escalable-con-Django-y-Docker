@@ -9,21 +9,39 @@ class SaleView:
     @staticmethod
     def _get_dian_button(sale):
         factura = sale.get("factura_dian")
-        if factura:
-            return f'<a href="/media/{factura.archivo_pdf}" target="_blank" class="btn btn-success no-underline" title="{factura.numero_factura}"><i class="fas fa-file-pdf"></i> PDF</a>'
+        if factura and factura.archivo_pdf and factura.archivo_pdf.name:
+            # Usar la URL del FileField
+            pdf_url = factura.archivo_pdf.url
+            return f'<a href="{pdf_url}" target="_blank" class="btn btn-success no-underline" title="{factura.numero_factura}"><i class="fas fa-file-pdf"></i> PDF</a>'
         else:
             return f'<a href="/dian/generar/{sale["id"]}/" class="btn btn-info no-underline"><i class="fas fa-bolt"></i> Generar</a>'
 
     @staticmethod
-    def _get_delete_button(sale):
-        factura = sale.get("factura_dian")
-        if factura:
-            return f'<a href="/ventas/{sale["id"]}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm(\'La venta tiene Factura DIAN. Se procederá a ANULARLA en lugar de eliminarla. ¿Continuar?\');">Anular</a>'
-        else:
-            return f'<a href="/ventas/{sale["id"]}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm(\'¿Está seguro de eliminar esta venta?\');">Eliminar</a>'
+    def _get_delete_button(sale, csrf_token):
+        csrf_input = f'<input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">'
+        
+        if hasattr(sale, "factura_dian") or sale.get("numero_factura", "").startswith("FE"):
+            # Simple check for dictionary or object
+             is_factura = sale.get("factura_dian") if isinstance(sale, dict) else getattr(sale, "factura_dian", None)
+             if is_factura:
+                return f'''
+                <form action="/ventas/{sale['id']}/eliminar/" method="POST" style="display:inline;">
+                    {csrf_input}
+                    <button type="submit" class="btn btn-danger no-underline" 
+                        data-confirm-message="La venta tiene Factura DIAN. Se procederá a ANULARLA en lugar de eliminarla. ¿Continuar?"
+                        onclick="return confirmDelete(event, this);">Anular</button>
+                </form>
+                '''
+        
+        return f'''
+        <form action="/ventas/{sale['id']}/eliminar/" method="POST" style="display:inline;">
+            {csrf_input}
+            <button type="submit" class="btn btn-danger no-underline" onclick="return confirmDelete(event, this);">Eliminar</button>
+        </form>
+        '''
 
     @staticmethod
-    def index(user, sales):
+    def index(user, sales, request):
         """Renderiza la página de listado de ventas"""
 
         # Mapeo de estados a badges
@@ -34,6 +52,9 @@ class SaleView:
         }
 
         # Generar las filas de la tabla
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
+
         if sales:
             rows = ""
             for sale in sales:
@@ -44,7 +65,10 @@ class SaleView:
                     <td>{sale['fecha']}</td>
                     <td>{sale['cliente_nombre']}</td>
                     <td>{sale['cliente_documento'] or 'N/A'}</td>
-                    <td>${sale['total']:.2f}</td>
+                    <td>
+                        <div class="font-bold">${sale['total']:.2f}</div>
+                        <div style="font-size: 0.8rem; color: #6c757d;">IVA: ${sale['iva']:.2f}</div>
+                    </td>
                     <td>{badge}</td>
                     <td>{sale['tipo_pago'].capitalize()}</td>
                     <td>
@@ -52,7 +76,7 @@ class SaleView:
                     </td>
                     <td>
                         <a href="/ventas/{sale['id']}/editar/" class="btn btn-warning no-underline">Editar</a>
-                        {SaleView._get_delete_button(sale)}
+                        {SaleView._get_delete_button(sale, csrf_token)}
                     </td>
                 </tr>
                 """
@@ -69,7 +93,7 @@ class SaleView:
                             <th>Total</th>
                             <th>Estado</th>
                             <th>Tipo Pago</th>
-                            <th>DIAN</th>
+                        <th>Factura</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -114,19 +138,23 @@ class SaleView:
         for client in clients:
             client_options += f'<option value="{client["id"]}">{client["nombre"]} - {client.get("documento", "S/N")}</option>'
 
+        import json
+        
         # Generar opciones de productos para el selector
         product_options = '<option value="">Seleccione un producto</option>'
-        products_json = []
+        products_list = []
         for product in products:
             product_options += f'<option value="{product["id"]}">{product["nombre"]} - ${product["precio_venta"]}</option>'
-            products_json.append(
+            products_list.append(
                 {
                     "id": product["id"],
                     "nombre": product["nombre"],
                     "precio": float(product["precio_venta"]),
                     "stock": product["stock_actual"],
+                    "iva_tasa": float(product.get("tax_percentage", 19.00)) if "tax_percentage" in product else 19.00
                 }
             )
+        products_json = json.dumps(products_list)
 
         # Mensaje de error si existe
         error_html = ""
@@ -204,17 +232,24 @@ class SaleView:
                     <thead>
                         <tr>
                             <th>Producto</th>
-                            <th>Precio</th>
+                            <th>Precio Unit</th>
                             <th>Cantidad</th>
                             <th>Subtotal</th>
+                            <th>IVA%</th>
+                            <th>IVA Valor</th>
+                            <th>Total</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody id="productsBody"></tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" class="text-right">TOTAL:</td>
-                            <td colspan="2" class="text-success" id="totalAmount">$0.00</td>
+                            <td colspan="3" class="text-right font-bold">Totales:</td>
+                            <td id="footer-subtotal">$0.00</td>
+                            <td></td>
+                            <td id="footer-iva">$0.00</td>
+                            <td id="footer-total" class="font-bold text-success">$0.00</td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -226,10 +261,10 @@ class SaleView:
             </form>
         </div>
         
-        <script src="/static/js/product-manager.js"></script>
+        <script src="/static/js/product-manager.js?v=2"></script>
         <script>
             // Inicializar el gestor de productos con los datos del servidor
-            const products = {str(products_json).replace("'", '"')};
+            const products = {products_json};
             manager = new ProductManager(products);
         </script>
         """
@@ -251,19 +286,23 @@ class SaleView:
             selected = "selected" if client["id"] == sale.get("cliente_id") else ""
             client_options += f'<option value="{client["id"]}" {selected}>{client["nombre"]} - {client.get("documento", "S/N")}</option>'
 
+        import json
+        
         # Generar opciones de productos
         product_options = '<option value="">Seleccione un producto</option>'
-        products_json = []
+        products_list = []
         for product in products:
             product_options += f'<option value="{product["id"]}">{product["nombre"]} - ${product["precio_venta"]}</option>'
-            products_json.append(
+            products_list.append(
                 {
                     "id": product["id"],
                     "nombre": product["nombre"],
                     "precio": float(product["precio_venta"]),
                     "stock": product["stock_actual"],
+                     "iva_tasa": float(product.get("tax_percentage", 19.00)) if "tax_percentage" in product else 19.00
                 }
             )
+        products_json = json.dumps(products_list)
 
         # Preparar detalles existentes
         existing_details = []
@@ -275,6 +314,10 @@ class SaleView:
                     "precio_unitario": float(detail["precio_unitario"]),
                     "cantidad": detail["cantidad"],
                     "subtotal": float(detail["subtotal"]),
+                    # Campos para JS
+                    "subtotal_sin_iva": float(detail.get("subtotal_sin_iva", 0) or 0),
+                    "iva_valor": float(detail.get("iva_valor", 0) or 0),
+                    "iva_tasa": float(detail.get("iva_tasa", 19) or 19),
                 }
             )
 
@@ -351,17 +394,24 @@ class SaleView:
                     <thead>
                         <tr>
                             <th>Producto</th>
-                            <th>Precio</th>
+                            <th>Precio Unit</th>
                             <th>Cantidad</th>
                             <th>Subtotal</th>
+                            <th>IVA%</th>
+                            <th>IVA Valor</th>
+                            <th>Total</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody id="productsBody"></tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" class="text-right">TOTAL:</td>
-                            <td colspan="2" class="text-success" id="totalAmount">$0.00</td>
+                            <td colspan="3" class="text-right font-bold">Totales:</td>
+                            <td id="footer-subtotal">$0.00</td>
+                            <td></td>
+                            <td id="footer-iva">$0.00</td>
+                            <td id="footer-total" class="font-bold text-success">$0.00</td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -373,11 +423,11 @@ class SaleView:
             </form>
         </div>
         
-        <script src="/static/js/product-manager.js"></script>
+        <script src="/static/js/product-manager.js?v=2"></script>
         <script>
             // Inicializar el gestor de productos con los datos del servidor
-            const products = {str(products_json).replace("'", '"')};
-            const existingDetails = {str(existing_details).replace("'", '"')};
+            const products = {products_json};
+            const existingDetails = {json.dumps(existing_details)};
             manager = new ProductManager(products, existingDetails);
             manager.render();
         </script>

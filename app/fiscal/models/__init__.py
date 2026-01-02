@@ -17,6 +17,7 @@ from app.fiscal.models.log_auditoria_contable import LogAuditoriaContable
 from app.fiscal.models.factura_electronica import FacturaElectronica
 from app.fiscal.models.evento_dian import EventoDian
 from app.fiscal.models.fiscal_config import FiscalConfig
+from app.fiscal.models.rango_numeracion import RangoNumeracion
 
 __all__ = [
     # Fase A
@@ -33,4 +34,5 @@ __all__ = [
     'FacturaElectronica',
     'EventoDian',
     'FiscalConfig',
+    'RangoNumeracion',
 ]

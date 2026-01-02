@@ -19,7 +19,9 @@ class FiscalConfigForm(forms.ModelForm):
         fields = [
             'nit_emisor', 'dv_emisor', 'razon_social', 
             'software_id', 'pin_software', 'test_set_id', 
-            'ambiente'
+            'ambiente',
+            'numero_resolucion', 'fecha_resolucion', 'prefijo', 
+            'rango_desde', 'rango_hasta', 'clave_tecnica'
         ]
         widgets = {
             'nit_emisor': forms.TextInput(attrs={'class': 'form-control'}),
@@ -29,4 +31,10 @@ class FiscalConfigForm(forms.ModelForm):
             'pin_software': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': '••••'}),
             'test_set_id': forms.TextInput(attrs={'class': 'form-control'}),
             'ambiente': forms.Select(attrs={'class': 'form-select'}),
+            'numero_resolucion': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_resolucion': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'prefijo': forms.TextInput(attrs={'class': 'form-control', 'style': 'width: 80px;'}),
+            'rango_desde': forms.NumberInput(attrs={'class': 'form-control'}),
+            'rango_hasta': forms.NumberInput(attrs={'class': 'form-control'}),
+            'clave_tecnica': forms.TextInput(attrs={'class': 'form-control'}),
         }

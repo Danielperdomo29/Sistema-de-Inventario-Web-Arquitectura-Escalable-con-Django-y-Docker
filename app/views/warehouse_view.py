@@ -7,8 +7,10 @@ class WarehouseView:
     """Vista de Almacenes"""
 
     @staticmethod
-    def index(user, warehouses):
+    def index(user, warehouses, request=None):
         """Renderiza la página de listado de almacenes"""
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request) if request else ""
 
         # Generar las filas de la tabla
         if warehouses:
@@ -22,7 +24,10 @@ class WarehouseView:
                     <td>{warehouse.get('capacidad', 0):,}</td>
                     <td>
                         <a href="/almacenes/{warehouse['id']}/editar/" class="btn btn-warning no-underline">Editar</a>
-                        <a href="/almacenes/{warehouse['id']}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm('¿Está seguro de eliminar este almacén?');">Eliminar</a>
+                        <form action="/almacenes/{warehouse['id']}/eliminar/" method="POST" style="display:inline;">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                            <button type="submit" class="btn btn-danger no-underline" onclick="return confirmDelete(event, this);">Eliminar</button>
+                        </form>
                     </td>
                 </tr>
                 """

@@ -31,7 +31,7 @@ def generar_factura_electronica_automatica(sender, instance, created, **kwargs):
         generador_cufe = GeneradorCUFE()
         cufe = generador_cufe.calcular_cufe(
             nit_emisor='900123456', # Debe venir de PerfilFiscal
-            fecha_emision=instance.fecha.date().isoformat(),
+            fecha_emision=instance.fecha.strftime('%Y-%m-%d') if hasattr(instance.fecha, 'strftime') else instance.fecha[:10],
             numero_factura=instance.numero_factura,
             valor_total=str(instance.total),
             iva=str(getattr(instance, 'total_iva', 0)), # Ajustar si Sale tiene IVA desagregado

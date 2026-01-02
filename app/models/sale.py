@@ -14,7 +14,20 @@ class Sale(models.Model):
     cliente = models.ForeignKey(Client, on_delete=models.PROTECT, db_column="cliente_id")
     usuario = models.ForeignKey(UserAccount, on_delete=models.PROTECT, db_column="usuario_id")
     fecha = models.DateTimeField()
+    
+    # Campos de totales e impuestos
+    subtotal = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        null=True, blank=True,
+        help_text="Subtotal sin IVA"
+    )
+    iva_total = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        null=True, blank=True,  
+        help_text="Total de IVA"
+    )
     total = models.DecimalField(max_digits=12, decimal_places=2)
+    
     estado = models.CharField(max_length=20, default="completada")
     tipo_pago = models.CharField(max_length=20, default="efectivo")
     notas = models.TextField(blank=True, null=True)
@@ -23,11 +36,44 @@ class Sale(models.Model):
         db_table = "ventas"
         verbose_name = "Venta"
         verbose_name_plural = "Ventas"
+    
+    def calculate_totals(self):
+        """Calcula subtotal, IVA y total desde los detalles."""
+        from decimal import Decimal
+        
+        details = self.detalles.all()
+        if not details.exists():
+            self.subtotal = Decimal('0')
+            self.iva_total = Decimal('0')
+            self.total = Decimal('0')
+            return
+        
+        subtotal_sin_iva = Decimal('0')
+        iva_total = Decimal('0')
+        
+        for detail in details:
+            if detail.subtotal_sin_iva and detail.iva_valor:
+                subtotal_sin_iva += detail.subtotal_sin_iva
+                iva_total += detail.iva_valor
+            else:
+                # Legacy: calcular desde subtotal y tasa
+                tasa = detail.iva_tasa or Decimal('19.00')
+                detail.subtotal_sin_iva = detail.precio_unitario * detail.cantidad
+                detail.iva_valor = detail.subtotal_sin_iva * (tasa / Decimal('100'))
+                detail.subtotal = detail.subtotal_sin_iva + detail.iva_valor
+                detail.save()
+                
+                subtotal_sin_iva += detail.subtotal_sin_iva
+                iva_total += detail.iva_valor
+        
+        self.subtotal = subtotal_sin_iva
+        self.iva_total = iva_total
+        self.total = subtotal_sin_iva + iva_total
 
     @staticmethod
     def get_all(limit=None):
         """Obtiene todas las ventas con información del cliente"""
-        sales = Sale.objects.select_related("cliente", "usuario").order_by("-fecha", "-id")
+        sales = Sale.objects.select_related("cliente", "usuario", "factura_electronica").order_by("-fecha", "-id")
         if limit:
             sales = sales[:limit]
 
@@ -37,14 +83,16 @@ class Sale(models.Model):
                 {
                     "id": s.id,
                     "numero_factura": s.numero_factura,
-                    "fecha": s.fecha,
-                    "total": s.total,
-                    "estado": s.estado,
+                "fecha": s.fecha,
+                "subtotal": s.subtotal or 0,
+                "iva": s.iva_total or 0,
+                "total": s.total,
+                "estado": s.estado,
                     "tipo_pago": s.tipo_pago,
                     "cliente_nombre": s.cliente.nombre,
                     "cliente_documento": s.cliente.documento,
                     "vendedor": s.usuario.username,
-                    "factura_dian": getattr(s, "factura_dian", None),
+                    "factura_dian": getattr(s, "factura_electronica", None),
                 }
             )
         return data
@@ -53,7 +101,7 @@ class Sale(models.Model):
     def get_by_id(sale_id):
         """Obtiene una venta por su ID"""
         try:
-            s = Sale.objects.select_related("cliente", "usuario").get(id=sale_id)
+            s = Sale.objects.select_related("cliente", "usuario", "factura_electronica").get(id=sale_id)
             return {
                 "id": s.id,
                 "numero_factura": s.numero_factura,
@@ -67,7 +115,7 @@ class Sale(models.Model):
                 "cliente_documento": s.cliente.documento,
                 "cliente_telefono": s.cliente.telefono,
                 "vendedor": s.usuario.username,
-                "factura_dian": getattr(s, "factura_dian", None),
+                "factura_dian": getattr(s, "factura_electronica", None),
             }
         except Sale.DoesNotExist:
             return None
@@ -102,6 +150,9 @@ class Sale(models.Model):
                     "cantidad": d.cantidad,
                     "precio_unitario": d.precio_unitario,
                     "subtotal": d.subtotal,
+                    "subtotal_sin_iva": d.subtotal_sin_iva,
+                    "iva_valor": d.iva_valor,
+                    "iva_tasa": d.iva_tasa,
                     "producto_nombre": d.producto.nombre,
                     "producto_codigo": d.producto.codigo,
                 }
@@ -186,8 +237,31 @@ class SaleDetail(models.Model):
     )
     producto = models.ForeignKey(Product, on_delete=models.PROTECT, db_column="producto_id")
     cantidad = models.IntegerField()
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+    precio_unitario = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        help_text="Precio unitario SIN IVA"
+    )
+    
+    # Campos de impuestos
+    iva_tasa = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        default=19.00,
+        help_text="Tasa de IVA (%)"
+    )
+    subtotal_sin_iva = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        null=True, blank=True,
+        help_text="Subtotal sin IVA (cantidad * precio_unitario)"
+    )
+    iva_valor = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        null=True, blank=True,
+        help_text="Valor del IVA"
+    )
+    subtotal = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        help_text="Subtotal CON IVA (subtotal_sin_iva + iva_valor)"
+    )
 
     class Meta:
         db_table = "detalle_ventas"

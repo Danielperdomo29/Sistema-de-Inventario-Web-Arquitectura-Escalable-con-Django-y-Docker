@@ -150,16 +150,12 @@ class Config:
         user = UserAccount(
             username=data["username"],
             email=data.get("email", ""),
-            first_name=data["nombre_completo"], # Mapping nombre_completo to first_name
+            first_name=data["nombre_completo"],
             rol_id=data["rol_id"],
             is_active=bool(data.get("activo", 1))
         )
-        # If password provided is raw or hash? 
-        # The controller in `ConfigController.create_user` executes `hashlib.md5`.
-        # This is bad practice for Django auth. 
-        # We should likely strip that in Controller or just save it here.
-        # Since I am only editing model here, I will save it as is.
-        user.password = data["password"] 
+        # Usar set_password para hasheo seguro compatible con Django Auth
+        user.set_password(data["password"])
         user.save()
         return user.id
 
@@ -204,10 +200,11 @@ class Config:
 
     @staticmethod
     def change_password(user_id, new_password):
-        """Cambia la contraseña del usuario actual"""
-        # new_password comes hashed from controller?
-        # Controller logic: new_hash = hashlib.md5(new_password.encode()).hexdigest()
-        # We save it directly because Django config assumes legacy or customized auth?
-        # Ideally we use user.set_password(raw_password)
-        UserAccount.objects.filter(id=user_id).update(password=new_password)
-        return True
+        """Cambia la contraseña del usuario actual de forma segura"""
+        try:
+            user = UserAccount.objects.get(id=user_id)
+            user.set_password(new_password)
+            user.save()
+            return True
+        except UserAccount.DoesNotExist:
+            return False

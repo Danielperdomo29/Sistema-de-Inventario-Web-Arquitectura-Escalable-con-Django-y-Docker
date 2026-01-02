@@ -9,6 +9,7 @@ from app.views.warehouse_view import WarehouseView
 
 class WarehouseController:
     @staticmethod
+    @ensure_csrf_cookie
     def index(request):
         """Muestra el listado de almacenes"""
         # Verificar autenticación
@@ -24,7 +25,7 @@ class WarehouseController:
         warehouses = Warehouse.get_all()
 
         # Renderizar la vista
-        return HttpResponse(WarehouseView.index(user, warehouses))
+        return HttpResponse(WarehouseView.index(user, warehouses, request))
 
     @staticmethod
     @ensure_csrf_cookie
@@ -130,6 +131,7 @@ class WarehouseController:
                 )
 
     @staticmethod
+    @ensure_csrf_cookie
     def delete(request, warehouse_id):
         """Eliminar un almacén"""
         # Verificar autenticación
@@ -143,8 +145,9 @@ class WarehouseController:
             request.session.flush()
             return HttpResponseRedirect("/login/")
 
-        # Eliminar el almacén (soft delete)
-        Warehouse.delete(warehouse_id)
+        # Eliminar solo si es POST
+        if request.method == "POST":
+            Warehouse.delete(warehouse_id)
 
         # Redireccionar a la lista
         return HttpResponseRedirect("/almacenes/")

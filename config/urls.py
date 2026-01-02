@@ -20,6 +20,7 @@ from app.controllers.role_controller import RoleController
 from app.controllers.sale_controller import SaleController
 from app.controllers.sale_detail_controller import SaleDetailController
 from app.controllers.supplier_controller import SupplierController
+from app.controllers.dian_invoice_controller import DianInvoiceController
 from app.controllers.warehouse_controller import WarehouseController
 
 # URLs del sistema de inventario (existentes - sin cambios)
@@ -67,25 +68,35 @@ urlpatterns = [
         WarehouseController.delete,
         name="warehouses_delete",
     ),
+    # Ventas
     path("ventas/", SaleController.index, name="sales"),
     path("ventas/crear/", SaleController.create, name="sales_create"),
     path("ventas/<int:sale_id>/editar/", SaleController.edit, name="sales_edit"),
     path("ventas/<int:sale_id>/eliminar/", SaleController.delete, name="sales_delete"),
-    path("ventas/<int:sale_id>/ver/", SaleController.view, name="sales_view"),
-    path("detalle-ventas/", SaleDetailController.index, name="sale_details"),
-    path("detalle-ventas/crear/", SaleDetailController.create, name="sale_details_create"),
+    path("ventas/<int:sale_id>/ver/", SaleController.view, name="sales_detail"),  # NEW: Added for /ventas/{id}/ver/
+    # Solicitud del usuario: URL de detalle de ventas (alias)
+    path("detalle-ventas/<int:sale_id>/ver/", SaleController.view, name="sales_view"),
+    
+    # DIAN - Facturación Electrónica
+    path("dian/generar/<int:sale_id>/", DianInvoiceController.generate_invoice, name="dian_generate_invoice"),
+    path("dian/pdf/<int:sale_id>/", DianInvoiceController.download_pdf, name="dian_download_pdf"),
+    path("dian/xml/<int:sale_id>/", DianInvoiceController.download_xml, name="dian_download_xml"),
+
+    # Detalle de Ventas (Items individuales)
+    path("items-venta/", SaleDetailController.index, name="sale_details"),
+    path("items-venta/crear/", SaleDetailController.create, name="sale_details_create"),
     path(
-        "detalle-ventas/<int:detail_id>/editar/",
+        "items-venta/<int:detail_id>/editar/",
         SaleDetailController.edit,
         name="sale_details_edit",
     ),
     path(
-        "detalle-ventas/<int:detail_id>/eliminar/",
+        "items-venta/<int:detail_id>/eliminar/",
         SaleDetailController.delete,
         name="sale_details_delete",
     ),
     path(
-        "detalle-ventas/<int:detail_id>/ver/", SaleDetailController.view, name="sale_details_view"
+        "items-venta/<int:detail_id>/ver/", SaleDetailController.view, name="sale_details_view"
     ),
     path("compras/", PurchaseController.index, name="purchases"),
     path("compras/crear/", PurchaseController.create, name="purchases_create"),

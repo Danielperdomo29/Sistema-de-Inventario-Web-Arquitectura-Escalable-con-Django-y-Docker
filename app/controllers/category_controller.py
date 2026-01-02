@@ -10,6 +10,7 @@ from app.views.category_view import CategoryView
 
 class CategoryController:
     @staticmethod
+    @ensure_csrf_cookie
     def index(request):
         """Muestra el listado de categorías"""
         # Verificar si el usuario está autenticado
@@ -26,7 +27,7 @@ class CategoryController:
         categories = Category.get_all()
 
         # Renderizar la vista
-        return CategoryView.index(user, categories)
+        return CategoryView.index(user, categories, request)
 
     @staticmethod
     @ensure_csrf_cookie
@@ -131,6 +132,9 @@ class CategoryController:
 
     @staticmethod
     @AuthMiddleware.require_active_user
+    @staticmethod
+    @AuthMiddleware.require_active_user
+    @ensure_csrf_cookie
     def delete(request, category_id):
         """Eliminar una categoría"""
         # Verificar autenticación
@@ -144,8 +148,14 @@ class CategoryController:
             request.session.flush()
             return HttpResponseRedirect("/login/")
 
-        # Eliminar la categoría (soft delete)
-        Category.delete(category_id)
-
+        if request.method == "POST":
+            try:
+                # Eliminar la categoría (soft delete)
+                Category.delete(category_id)
+            except Exception as e:
+                print(f"Error deleting category {category_id}: {e}")
+                # Podríamos pasar un error a la vista usando sessions o params,
+                # pero por ahora el redirect es estándar.
+        
         # Redireccionar a la lista
         return HttpResponseRedirect("/categorias/")

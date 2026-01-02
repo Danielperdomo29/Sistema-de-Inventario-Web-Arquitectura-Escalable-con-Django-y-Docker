@@ -4,6 +4,21 @@ class ProductManager {
     constructor(products, existingProducts = []) {
         this.products = products;
         this.selectedProducts = existingProducts;
+        this.defaultIvaTasa = 19.00; // Default IVA 19%
+    }
+
+    calculateIVA(precioUnitario, cantidad, ivaTasa = null) {
+        const tasa = ivaTasa !== null ? ivaTasa : this.defaultIvaTasa;
+        const subtotalSinIva = precioUnitario * cantidad;
+        const ivaValor = subtotalSinIva * (tasa / 100);
+        const subtotalConIva = subtotalSinIva + ivaValor;
+        
+        return {
+            subtotal_sin_iva: subtotalSinIva,
+            iva_valor: ivaValor,
+            subtotal: subtotalConIva,
+            iva_tasa: tasa
+        };
     }
 
     addProduct(productId, quantity) {
@@ -18,14 +33,17 @@ class ProductManager {
         const existing = this.selectedProducts.find(p => p.producto_id === productId);
         if (existing) {
             existing.cantidad += quantity;
-            existing.subtotal = existing.cantidad * existing.precio_unitario;
+            // Recalcular IVA
+            const calculo = this.calculateIVA(existing.precio_unitario, existing.cantidad, existing.iva_tasa);
+            Object.assign(existing, calculo);
         } else {
+            const calculo = this.calculateIVA(product.precio, quantity);
             this.selectedProducts.push({
                 producto_id: productId,
                 nombre: product.nombre,
                 precio_unitario: product.precio,
                 cantidad: quantity,
-                subtotal: product.precio * quantity
+                ...calculo
             });
         }
 
@@ -55,13 +73,33 @@ class ProductManager {
                 <td>${p.nombre}</td>
                 <td>$${p.precio_unitario.toFixed(2)}</td>
                 <td>${p.cantidad}</td>
-                <td>$${p.subtotal.toFixed(2)}</td>
+                <td>$${(p.subtotal_sin_iva || 0).toFixed(2)}</td>
+                <td>${(p.iva_tasa || this.defaultIvaTasa).toFixed(0)}%</td>
+                <td>$${(p.iva_valor || 0).toFixed(2)}</td>
+                <td><b>$${p.subtotal.toFixed(2)}</b></td>
                 <td><button type="button" class="btn btn-danger" onclick="manager.removeProduct(${i})">X</button></td>
             </tr>
         `).join('');
 
-        const total = this.selectedProducts.reduce((sum, p) => sum + p.subtotal, 0);
-        document.getElementById('totalAmount').textContent = `$${total.toFixed(2)}`;
+        // Calcular totales globales
+        const totales = this.selectedProducts.reduce((acc, p) => {
+            acc.subtotal += (p.subtotal_sin_iva || 0);
+            acc.iva += (p.iva_valor || 0);
+            acc.total += p.subtotal;
+            return acc;
+        }, { subtotal: 0, iva: 0, total: 0 });
+
+        // Actualizar display de totales
+        // Actualizar display de totales
+        if (document.getElementById('footer-subtotal')) {
+            document.getElementById('footer-subtotal').textContent = `$${totales.subtotal.toFixed(2)}`;
+        }
+        if (document.getElementById('footer-iva')) {
+            document.getElementById('footer-iva').textContent = `$${totales.iva.toFixed(2)}`;
+        }
+        if (document.getElementById('footer-total')) {
+            document.getElementById('footer-total').textContent = `$${totales.total.toFixed(2)}`;
+        }
     }
 
     getProducts() {

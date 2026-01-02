@@ -60,13 +60,12 @@ class ConfigController:
         # Si es POST, procesar el formulario
         if request.method == "POST":
             try:
-                # Hashear la contraseña
+                # Hashear la contraseña (delegamos al modelo)
                 password = request.POST.get("password")
-                password_hash = hashlib.md5(password.encode()).hexdigest()
-
+                
                 data = {
                     "username": request.POST.get("username"),
-                    "password": password_hash,
+                    "password": password,
                     "nombre_completo": request.POST.get("nombre_completo"),
                     "email": request.POST.get("email"),
                     "rol_id": request.POST.get("rol_id"),
@@ -289,11 +288,8 @@ class ConfigController:
                         )
                     )
 
-                # Hashear nueva contraseña
-                new_hash = hashlib.md5(new_password.encode()).hexdigest()
-
-                # Actualizar contraseña
-                Config.change_password(user_id, new_hash)
+                # Actualizar contraseña (delegamos hasheo al modelo)
+                Config.change_password(user_id, new_password)
 
                 # Redireccionar
                 return HttpResponseRedirect("/configuracion/")

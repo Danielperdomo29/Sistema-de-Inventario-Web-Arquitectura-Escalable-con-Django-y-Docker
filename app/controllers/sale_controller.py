@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from decimal import Decimal
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -7,13 +8,14 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from app.models.client import Client
 from app.models.product import Product
-from app.models.sale import Sale
+from app.models.sale import Sale, SaleDetail
 from app.models.user import User
 from app.views.sale_view import SaleView
 
 
 class SaleController:
     @staticmethod
+    @ensure_csrf_cookie
     def index(request):
         """Muestra el listado de ventas"""
         # Verificar si el usuario está autenticado
@@ -30,7 +32,7 @@ class SaleController:
         sales = Sale.get_all()
 
         # Renderizar la vista
-        return HttpResponse(SaleView.index(user, sales))
+        return HttpResponse(SaleView.index(user, sales, request))
 
     @staticmethod
     @ensure_csrf_cookie
@@ -102,8 +104,59 @@ class SaleController:
                         )
                     )
 
-                # Crear la venta
-                Sale.create(data, details)
+                # Crear la venta (PENDIENTE para evitar trigger de factura)
+                venta = Sale.objects.create(
+                    numero_factura=data["numero_factura"],
+                    cliente_id=data["cliente_id"],
+                    usuario_id=user_id,
+                    fecha=data["fecha"],
+                    total=Decimal('0'), # Se calcula después
+                    estado="pendiente", # Temporal
+                    tipo_pago=data.get("tipo_pago", "efectivo"),
+                    notas=data.get("notas", ""),
+                )
+
+                # Crear detalles con cálculo de IVA
+                created_details = [] # Lista temporal para cálculo seguro
+                for detail in details:
+                    precio_unit = Decimal(str(detail.get("precio_unitario", 0)))
+                    cantidad = int(detail.get("cantidad", 1))
+                    iva_tasa = Decimal(str(detail.get("iva_tasa", "19.00")))
+                    
+                    # Calcular IVA
+                    subtotal_sin_iva = precio_unit * cantidad
+                    iva_valor = subtotal_sin_iva * (iva_tasa / Decimal("100"))
+                    subtotal_con_iva = subtotal_sin_iva + iva_valor
+                    
+                    new_detail = SaleDetail.objects.create(
+                        venta=venta,
+                        producto_id=detail["producto_id"],
+                        cantidad=cantidad,
+                        precio_unitario=precio_unit,
+                        iva_tasa=iva_tasa,
+                        subtotal_sin_iva=subtotal_sin_iva,
+                        iva_valor=iva_valor,
+                        subtotal=subtotal_con_iva,
+                    )
+                    created_details.append(new_detail)
+                
+                # Calcular totales explícitamente para asegurar persistencia antes del signal
+                total_subtotal = Decimal('0')
+                total_iva = Decimal('0')
+                total_venta = Decimal('0')
+                
+                for d in created_details: # Usar lista local de detalles creados
+                    total_subtotal += d.subtotal_sin_iva
+                    total_iva += d.iva_valor
+                    total_venta += d.subtotal
+
+                venta.subtotal = total_subtotal
+                venta.iva_total = total_iva
+                venta.total = total_venta
+                
+                # Actualizar estado final
+                venta.estado = data.get("estado", "completada")
+                venta.save()
 
                 # Redireccionar a la lista
                 return HttpResponseRedirect("/ventas/")
@@ -133,9 +186,23 @@ class SaleController:
             return HttpResponseRedirect("/login/")
 
         # Obtener la venta
-        sale = Sale.get_by_id(sale_id)
-        if not sale:
-            return HttpResponseRedirect("/ventas/")
+        # Obtener la venta
+        from django.shortcuts import get_object_or_404
+        s = get_object_or_404(Sale.objects.select_related("cliente", "usuario"), id=sale_id)
+        
+        sale = {
+            "id": s.id,
+            "numero_factura": s.numero_factura,
+            "cliente_id": s.cliente_id,
+            "fecha": s.fecha,
+            "total": s.total,
+            "iva_total": getattr(s, 'iva_total', 0),
+            "estado": s.estado,
+            "tipo_pago": s.tipo_pago,
+            "notas": s.notas,
+            "cliente_nombre": s.cliente.nombre,
+            "cliente_documento": s.cliente.documento,
+        }
 
         # Obtener detalles de la venta
         details = Sale.get_details(sale_id)
@@ -198,7 +265,46 @@ class SaleController:
                     )
 
                 # Actualizar la venta
-                Sale.update(sale_id, data, new_details)
+                Sale.objects.filter(id=sale_id).update(
+                    numero_factura=data["numero_factura"],
+                    cliente_id=data["cliente_id"],
+                    fecha=data["fecha"],
+                    total=total,
+                    estado=data.get("estado", "completada"),
+                    tipo_pago=data.get("tipo_pago", "efectivo"),
+                    notas=data.get("notas", ""),
+                )
+
+                # Eliminar detalles anteriores
+                SaleDetail.objects.filter(venta_id=sale_id).delete()
+
+                # Insertar nuevos detalles con cálculo de IVA
+                from decimal import Decimal
+                for detail in new_details:
+                    precio_unit = Decimal(str(detail.get("precio_unitario", 0)))
+                    cantidad = int(detail.get("cantidad", 1))
+                    iva_tasa = Decimal(str(detail.get("iva_tasa", "19.00")))
+                    
+                    # Calcular IVA
+                    subtotal_sin_iva = precio_unit * cantidad
+                    iva_valor = subtotal_sin_iva * (iva_tasa / Decimal("100"))
+                    subtotal_con_iva = subtotal_sin_iva + iva_valor
+                    
+                    SaleDetail.objects.create(
+                        venta_id=sale_id,
+                        producto_id=detail["producto_id"],
+                        cantidad=cantidad,
+                        precio_unitario=precio_unit,
+                        iva_tasa=iva_tasa,
+                        subtotal_sin_iva=subtotal_sin_iva,
+                        iva_valor=iva_valor,
+                        subtotal=subtotal_con_iva,
+                    )
+                
+                # Recalcular totales
+                sale_obj = Sale.objects.get(id=sale_id)
+                sale_obj.calculate_totals()
+                sale_obj.save()
 
                 # Redireccionar a la lista
                 return HttpResponseRedirect("/ventas/")
@@ -219,6 +325,7 @@ class SaleController:
                 )
 
     @staticmethod
+    @ensure_csrf_cookie
     def delete(request, sale_id):
         """Eliminar una venta"""
         # Verificar autenticación
@@ -232,24 +339,22 @@ class SaleController:
             request.session.flush()
             return HttpResponseRedirect("/login/")
 
-        # Verificar si tiene factura DIAN asociada
-        sale = Sale.objects.get(id=sale_id)
-        if hasattr(sale, "factura_dian"):
-            # Anulación lógica
-            # En producción esto debería disparar una Nota Crédito
-            sale.estado = "anulada"
-            sale.save()
-            # Opcional: Agregar mensaje flash indicando que se anuló en lugar de eliminar
-        else:
-            # Eliminar la venta física (si no tiene restricciones ForeingKey extras)
-            try:
-                Sale.delete(sale_id)
-            except Exception:
-                # Si falla por integridad con otros modelos, podríamos marcar como cancelada
-                sale.estado = "cancelada"
+        if request.method == "POST":
+            # Verificar si tiene factura DIAN asociada
+            sale = Sale.objects.get(id=sale_id)
+            if hasattr(sale, "factura_dian"):
+                # Anulación lógica
+                sale.estado = "anulada"
                 sale.save()
+            else:
+                # Eliminar la venta física
+                try:
+                    Sale.delete(sale_id)
+                except Exception:
+                    sale.estado = "cancelada"
+                    sale.save()
 
-        # Redireccionar a la lista
+        # Redireccionar a la lista siempre
         return HttpResponseRedirect("/ventas/")
 
     @staticmethod

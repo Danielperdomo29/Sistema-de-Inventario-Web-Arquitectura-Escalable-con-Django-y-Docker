@@ -7,8 +7,10 @@ class CategoryView:
     """Vista de Categorías"""
 
     @staticmethod
-    def index(user, categories):
+    def index(user, categories, request=None):
         """Renderiza la página de listado de categorías"""
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request) if request else ""
 
         # Generar las filas de la tabla
         if categories:
@@ -21,7 +23,10 @@ class CategoryView:
                     <td>{category['descripcion'] or 'Sin descripción'}</td>
                     <td>
                         <a href="/categorias/{category['id']}/editar/" class="btn btn-warning no-underline">Editar</a>
-                        <a href="/categorias/{category['id']}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm('¿Está seguro de eliminar esta categoría?');">Eliminar</a>
+                        <form action="/categorias/{category['id']}/eliminar/" method="POST" style="display:inline;">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                            <button type="submit" class="btn btn-danger no-underline" onclick="return confirmDelete(event, this);">Eliminar</button>
+                        </form>
                     </td>
                 </tr>
                 """
@@ -63,6 +68,7 @@ class CategoryView:
         """
 
         return HttpResponse(Layout.render("Categorías", user, "categorias", content))
+
 
     @staticmethod
     def create(user, request, error=None):
