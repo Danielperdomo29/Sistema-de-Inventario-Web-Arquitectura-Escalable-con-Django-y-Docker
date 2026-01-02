@@ -136,12 +136,20 @@ class SupplierView:
 
         csrf_token = get_token(request)
 
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                <i class="fas fa-exclamation-circle"></i> {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         content = f"""
@@ -150,15 +158,14 @@ class SupplierView:
                 <span><i class="fas fa-truck"></i> Crear Nuevo Proveedor</span>
                 <a href="/proveedores/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/proveedores/crear/" class="p-20">
+            <form method="POST" action="/proveedores/crear/" class="p-20" id="supplierForm">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 
                 <h4 class="form-section-title"><i class="fas fa-building"></i> Información General</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre/Razón Social *</label>
-                        <input type="text" name="nombre" required class="form-input" 
+                        <input type="text" name="nombre" id="nombre" class="form-input" 
                                placeholder="Ej: Distribuidora Nacional S.A.S">
                     </div>
                     
@@ -174,11 +181,11 @@ class SupplierView:
                     <div class="form-group">
                         <label class="form-label">NIT</label>
                         <div style="display: flex; gap: 10px;">
-                            <input type="text" name="nit" maxlength="15" class="form-input" style="flex: 3;"
-                                   placeholder="Ej: 900123456" pattern="[0-9]*">
+                            <input type="text" name="nit" id="nit" maxlength="15" class="form-input" style="flex: 3;"
+                                   placeholder="Ej: 900123456">
                             <span style="align-self: center; font-weight: bold;">-</span>
-                            <input type="text" name="digito_verificacion" maxlength="1" class="form-input" style="flex: 1; max-width: 60px; text-align: center;"
-                                   placeholder="DV" title="Dígito de Verificación" pattern="[0-9]">
+                            <input type="text" name="digito_verificacion" id="dv" maxlength="1" class="form-input" style="flex: 1; max-width: 60px; text-align: center;"
+                                   placeholder="DV" title="Dígito de Verificación">
                         </div>
                         <small class="form-help-text">Número de Identificación Tributaria con dígito de verificación</small>
                     </div>
@@ -200,7 +207,7 @@ class SupplierView:
                     
                     <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" maxlength="100" class="form-input"
+                        <input type="email" name="email" id="email" maxlength="100" class="form-input"
                                placeholder="correo@empresa.com">
                     </div>
                 </div>
@@ -217,6 +224,64 @@ class SupplierView:
                 </div>
             </form>
         </div>
+        
+        {error_script}
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {{
+            const form = document.getElementById('supplierForm');
+            
+            form.addEventListener('submit', function(e) {{
+                const nombre = document.getElementById('nombre').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const nit = document.getElementById('nit').value.trim();
+                const dv = document.getElementById('dv').value.trim();
+                
+                let errors = [];
+                
+                // Validación nombre requerido
+                if (!nombre) {{
+                    errors.push('El Nombre/Razón Social es requerido');
+                }}
+                
+                // Validación email formato
+                if (email && !isValidEmail(email)) {{
+                    errors.push('El formato del email no es válido');
+                }}
+                
+                // Validación NIT solo números
+                if (nit && !/^[0-9]+$/.test(nit)) {{
+                    errors.push('El NIT debe contener solo números');
+                }}
+                
+                // Validación DV solo un dígito
+                if (dv && !/^[0-9]$/.test(dv)) {{
+                    errors.push('El dígito de verificación debe ser un solo número');
+                }}
+                
+                // Si hay NIT pero no DV, advertir
+                if (nit && !dv) {{
+                    errors.push('Si ingresa NIT, también debe ingresar el dígito de verificación');
+                }}
+                
+                if (errors.length > 0) {{
+                    e.preventDefault();
+                    Swal.fire({{
+                        icon: 'warning',
+                        title: 'Campos Inválidos',
+                        html: '<ul style="text-align:left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Corregir'
+                    }});
+                    return false;
+                }}
+            }});
+            
+            function isValidEmail(email) {{
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }}
+        }});
+        </script>
         
         <style>
             .form-section-title {{
@@ -242,12 +307,20 @@ class SupplierView:
 
         csrf_token = get_token(request)
 
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                <i class="fas fa-exclamation-circle"></i> {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         content = f"""
@@ -256,15 +329,14 @@ class SupplierView:
                 <span><i class="fas fa-edit"></i> Editar Proveedor</span>
                 <a href="/proveedores/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/proveedores/{supplier['id']}/editar/" class="p-20">
+            <form method="POST" action="/proveedores/{supplier['id']}/editar/" class="p-20" id="supplierForm">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 
                 <h4 class="form-section-title"><i class="fas fa-building"></i> Información General</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre/Razón Social *</label>
-                        <input type="text" name="nombre" value="{supplier['nombre']}" required class="form-input">
+                        <input type="text" name="nombre" id="nombre" value="{supplier['nombre']}" class="form-input">
                     </div>
                     
                     <div class="form-group">
@@ -278,9 +350,9 @@ class SupplierView:
                     <div class="form-group">
                         <label class="form-label">NIT</label>
                         <div style="display: flex; gap: 10px;">
-                            <input type="text" name="nit" value="{supplier.get('nit', '') or ''}" maxlength="15" class="form-input" style="flex: 3;" pattern="[0-9]*">
+                            <input type="text" name="nit" id="nit" value="{supplier.get('nit', '') or ''}" maxlength="15" class="form-input" style="flex: 3;">
                             <span style="align-self: center; font-weight: bold;">-</span>
-                            <input type="text" name="digito_verificacion" value="{supplier.get('digito_verificacion', '') or ''}" maxlength="1" class="form-input" style="flex: 1; max-width: 60px; text-align: center;" pattern="[0-9]">
+                            <input type="text" name="digito_verificacion" id="dv" value="{supplier.get('digito_verificacion', '') or ''}" maxlength="1" class="form-input" style="flex: 1; max-width: 60px; text-align: center;">
                         </div>
                         <small class="form-help-text">Número de Identificación Tributaria con dígito de verificación</small>
                     </div>
@@ -300,7 +372,7 @@ class SupplierView:
                     
                     <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" value="{supplier.get('email', '') or ''}" maxlength="100" class="form-input">
+                        <input type="email" name="email" id="email" value="{supplier.get('email', '') or ''}" maxlength="100" class="form-input">
                     </div>
                 </div>
                 
@@ -315,6 +387,64 @@ class SupplierView:
                 </div>
             </form>
         </div>
+        
+        {error_script}
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {{
+            const form = document.getElementById('supplierForm');
+            
+            form.addEventListener('submit', function(e) {{
+                const nombre = document.getElementById('nombre').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const nit = document.getElementById('nit').value.trim();
+                const dv = document.getElementById('dv').value.trim();
+                
+                let errors = [];
+                
+                // Validación nombre requerido
+                if (!nombre) {{
+                    errors.push('El Nombre/Razón Social es requerido');
+                }}
+                
+                // Validación email formato
+                if (email && !isValidEmail(email)) {{
+                    errors.push('El formato del email no es válido');
+                }}
+                
+                // Validación NIT solo números
+                if (nit && !/^[0-9]+$/.test(nit)) {{
+                    errors.push('El NIT debe contener solo números');
+                }}
+                
+                // Validación DV solo un dígito
+                if (dv && !/^[0-9]$/.test(dv)) {{
+                    errors.push('El dígito de verificación debe ser un solo número');
+                }}
+                
+                // Si hay NIT pero no DV, advertir
+                if (nit && !dv) {{
+                    errors.push('Si ingresa NIT, también debe ingresar el dígito de verificación');
+                }}
+                
+                if (errors.length > 0) {{
+                    e.preventDefault();
+                    Swal.fire({{
+                        icon: 'warning',
+                        title: 'Campos Inválidos',
+                        html: '<ul style="text-align:left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Corregir'
+                    }});
+                    return false;
+                }}
+            }});
+            
+            function isValidEmail(email) {{
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }}
+        }});
+        </script>
         
         <style>
             .form-section-title {{
