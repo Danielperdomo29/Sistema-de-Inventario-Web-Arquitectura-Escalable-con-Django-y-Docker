@@ -271,7 +271,7 @@ class SaleView:
             </form>
         </div>
         
-        <script src="/static/js/product-manager.js?v=2"></script>
+        <script src="/static/js/product-manager.js?v=3"></script>
         <script>
             // Inicializar el gestor de productos con los datos del servidor
             const products = {products_json};
@@ -444,7 +444,7 @@ class SaleView:
             </form>
         </div>
         
-        <script src="/static/js/product-manager.js?v=2"></script>
+        <script src="/static/js/product-manager.js?v=3"></script>
         <script>
             // Inicializar el gestor de productos con los datos del servidor
             const products = {products_json};
