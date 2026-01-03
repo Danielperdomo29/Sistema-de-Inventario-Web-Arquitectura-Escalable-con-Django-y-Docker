@@ -116,7 +116,7 @@ class SaleView:
         <div class="card">
             <div class="card-header">
                 <span>Gestión de Ventas</span>
-                <a href="/ventas/crear/" class="btn btn-primary">+ Nueva Venta</a>
+                <a href="/ventas/crear/" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Venta</a>
             </div>
             {table_content}
         </div>
@@ -156,13 +156,20 @@ class SaleView:
             )
         products_json = json.dumps(products_list)
 
-        # Mensaje de error si existe
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         # Fecha actual
@@ -173,11 +180,10 @@ class SaleView:
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Crear Nueva Venta</span>
+                <span><i class="fas fa-shopping-cart"></i> Crear Nueva Venta</span>
                 <a href="/ventas/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/ventas/crear/" id="saleForm" class="p-20">
+            <form method="POST" action="/ventas/crear/" id="saleForm" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 <input type="hidden" name="details" id="details">
                 
@@ -267,6 +273,7 @@ class SaleView:
             const products = {products_json};
             manager = new ProductManager(products);
         </script>
+        {error_script}
         """
 
         return HttpResponse(Layout.render("Crear Venta", user, "ventas", content))

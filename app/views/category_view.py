@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 
 from app.views.layout import Layout
 
@@ -9,7 +10,6 @@ class CategoryView:
     @staticmethod
     def index(user, categories, request=None):
         """Renderiza la página de listado de categorías"""
-        from django.middleware.csrf import get_token
         csrf_token = get_token(request) if request else ""
 
         # Generar las filas de la tabla
@@ -22,11 +22,13 @@ class CategoryView:
                     <td>{category['nombre']}</td>
                     <td>{category['descripcion'] or 'Sin descripción'}</td>
                     <td>
-                        <a href="/categorias/{category['id']}/editar/" class="btn btn-warning no-underline">Editar</a>
-                        <form action="/categorias/{category['id']}/eliminar/" method="POST" style="display:inline;">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                            <button type="submit" class="btn btn-danger no-underline" onclick="return confirmDelete(event, this);">Eliminar</button>
-                        </form>
+                        <a href="/categorias/{category['id']}/editar/" class="btn btn-warning btn-sm no-underline">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm no-underline" 
+                                onclick="confirmDeleteAction('/categorias/{category['id']}/eliminar/', '{csrf_token}', '{category['nombre']}');">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
                     </td>
                 </tr>
                 """
@@ -61,7 +63,7 @@ class CategoryView:
         <div class="card">
             <div class="card-header">
                 <span>Gestión de Categorías</span>
-                <a href="/categorias/crear/" class="btn btn-primary">+ Nueva Categoría</a>
+                <a href="/categorias/crear/" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Categoría</a>
             </div>
             {table_content}
         </div>
@@ -74,46 +76,54 @@ class CategoryView:
     def create(user, request, error=None):
         """Vista del formulario de crear categoría"""
 
-        # Obtener token CSRF
-        from django.middleware.csrf import get_token
-
         csrf_token = get_token(request)
 
-        # Mensaje de error si existe
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Crear Nueva Categoría</span>
+                <span><i class="fas fa-folder-plus"></i> Crear Nueva Categoría</span>
                 <a href="/categorias/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/categorias/crear/" class="p-20">
+            <form method="POST" action="/categorias/crear/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 
                 <div class="mb-20">
                     <label class="form-label">Nombre *</label>
-                    <input type="text" name="nombre" required class="form-input">
+                    <input type="text" name="nombre" class="form-input"
+                           data-rules="required|minLength:2"
+                           data-label="Nombre"
+                           placeholder="Nombre de la categoría">
                 </div>
                 
                 <div class="mb-20">
                     <label class="form-label">Descripción</label>
-                    <textarea name="descripcion" rows="4" class="form-textarea"></textarea>
+                    <textarea name="descripcion" rows="4" class="form-textarea"
+                              placeholder="Descripción opcional"></textarea>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar Categoría</button>
-                    <a href="/categorias/" class="btn btn-secondary no-underline">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Categoría</button>
+                    <a href="/categorias/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
                 </div>
             </form>
         </div>
+        {error_script}
         """
 
         return HttpResponse(Layout.render("Crear Categoría", user, "categorias", content))
@@ -122,46 +132,52 @@ class CategoryView:
     def edit(user, category, request, error=None):
         """Vista del formulario de editar categoría"""
 
-        # Obtener token CSRF
-        from django.middleware.csrf import get_token
-
         csrf_token = get_token(request)
 
-        # Mensaje de error si existe
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Editar Categoría</span>
+                <span><i class="fas fa-folder-open"></i> Editar Categoría</span>
                 <a href="/categorias/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/categorias/{category['id']}/editar/" class="p-20">
+            <form method="POST" action="/categorias/{category['id']}/editar/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 
                 <div class="mb-20">
                     <label class="form-label">Nombre *</label>
-                    <input type="text" name="nombre" value="{category['nombre']}" required class="form-input">
+                    <input type="text" name="nombre" value="{category['nombre']}" class="form-input"
+                           data-rules="required|minLength:2"
+                           data-label="Nombre">
                 </div>
                 
                 <div class="mb-20">
                     <label class="form-label">Descripción</label>
-                    <textarea name="descripcion" rows="4" class="form-textarea">{category.get('descripcion', '')}</textarea>
+                    <textarea name="descripcion" rows="4" class="form-textarea">{category.get('descripcion', '') or ''}</textarea>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Actualizar Categoría</button>
-                    <a href="/categorias/" class="btn btn-secondary no-underline">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Categoría</button>
+                    <a href="/categorias/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
                 </div>
             </form>
         </div>
+        {error_script}
         """
 
         return HttpResponse(Layout.render("Editar Categoría", user, "categorias", content))
