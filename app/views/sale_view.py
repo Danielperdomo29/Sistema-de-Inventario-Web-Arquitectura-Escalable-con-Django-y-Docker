@@ -328,23 +328,29 @@ class SaleView:
                 }
             )
 
-        # Mensaje de error
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Editar Venta - {sale['numero_factura']}</span>
+                <span><i class="fas fa-edit"></i> Editar Venta - {sale['numero_factura']}</span>
                 <a href="/ventas/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/ventas/{sale['id']}/editar/" id="saleForm" class="p-20">
+            <form method="POST" action="/ventas/{sale['id']}/editar/" id="saleForm" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 <input type="hidden" name="details" id="details">
                 <input type="hidden" name="numero_factura" value="{sale['numero_factura']}">
@@ -438,6 +444,7 @@ class SaleView:
             manager = new ProductManager(products, existingDetails);
             manager.render();
         </script>
+        {error_script}
         """
 
         return HttpResponse(Layout.render("Editar Venta", user, "ventas", content))

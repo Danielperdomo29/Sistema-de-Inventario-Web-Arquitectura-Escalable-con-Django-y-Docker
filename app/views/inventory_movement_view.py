@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 
 from app.views.layout import Layout
 
@@ -8,11 +9,7 @@ class InventoryMovementView:
     def index(user, movements, request):
         """Vista de lista de movimientos de inventario"""
 
-        from django.middleware.csrf import get_token
-
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
+        csrf_token = get_token(request)
 
         # Tabla de movimientos
         rows = ""
@@ -31,19 +28,20 @@ class InventoryMovementView:
                     <td>{movement['almacen_nombre']}</td>
                     <td>{tipo_badge}</td>
                     <td>{movement['cantidad']}</td>
-                    <td>{movement.get('referencia', 'N/A')}</td>
+                    <td>{movement.get('referencia', 'N/A') or 'N/A'}</td>
                     <td>{movement['fecha']}</td>
                     <td>{movement['usuario_nombre']}</td>
                     <td>
-                        <a href="/movimientos-inventario/{movement['id']}/ver/" class="btn btn-info">Ver</a>
-                        <a href="/movimientos-inventario/{movement['id']}/editar/" class="btn btn-warning">Editar</a>
-                        <form method="POST" action="/movimientos-inventario/{movement['id']}/eliminar/" class="d-inline">
-                            {csrf_token}
-                            <button type="submit" class="btn btn-danger" 
-                                    onclick="return confirm('¿Estás seguro de eliminar este movimiento?')">
-                                Eliminar
-                            </button>
-                        </form>
+                        <a href="/movimientos-inventario/{movement['id']}/ver/" class="btn btn-info btn-sm">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                        <a href="/movimientos-inventario/{movement['id']}/editar/" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm" 
+                                onclick="confirmDeleteAction('/movimientos-inventario/{movement['id']}/eliminar/', '{csrf_token}', 'Movimiento #{movement['id']}');">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
                     </td>
                 </tr>
                 """
@@ -83,7 +81,7 @@ class InventoryMovementView:
         <div class="card">
             <div class="card-header">
                 <span>Gestión de Movimientos de Inventario</span>
-                <a href="/movimientos-inventario/crear/" class="btn btn-primary">+ Nuevo Movimiento</a>
+                <a href="/movimientos-inventario/crear/" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Movimiento</a>
             </div>
             {table_content}
         </div>
@@ -95,18 +93,22 @@ class InventoryMovementView:
     def create(user, products, warehouses, request, error=None):
         """Vista de formulario para crear movimiento de inventario"""
 
-        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
-
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         # Select de productos
@@ -122,30 +124,35 @@ class InventoryMovementView:
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Registrar Nuevo Movimiento de Inventario</span>
+                <span><i class="fas fa-exchange-alt"></i> Registrar Nuevo Movimiento de Inventario</span>
                 <a href="/movimientos-inventario/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/movimientos-inventario/crear/" class="p-20">
-                {csrf_token}
+            <form method="POST" action="/movimientos-inventario/crear/" class="p-20" data-validate>
+                <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Producto *</label>
-                        <select name="producto_id" required class="form-select">
+                        <select name="producto_id" class="form-select"
+                                data-rules="required"
+                                data-label="Producto">
                             {product_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Almacén *</label>
-                        <select name="almacen_id" required class="form-select">
+                        <select name="almacen_id" class="form-select"
+                                data-rules="required"
+                                data-label="Almacén">
                             {warehouse_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Tipo de Movimiento *</label>
-                        <select name="tipo_movimiento" required class="form-select">
+                        <select name="tipo_movimiento" class="form-select"
+                                data-rules="required"
+                                data-label="Tipo de Movimiento">
                             <option value="">Seleccione un tipo</option>
                             <option value="entrada">Entrada</option>
                             <option value="salida">Salida</option>
@@ -153,14 +160,17 @@ class InventoryMovementView:
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Cantidad *</label>
-                        <input type="number" name="cantidad" value="1" min="1" required class="form-input">
+                        <input type="number" name="cantidad" value="1" min="1" class="form-input"
+                               data-rules="required|numeric|min:1"
+                               data-label="Cantidad">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Referencia</label>
-                        <input type="text" name="referencia" maxlength="100" placeholder="Opcional" class="form-input">
+                        <input type="text" name="referencia" maxlength="100" placeholder="Opcional" class="form-input"
+                               data-label="Referencia">
                     </div>
                 </div>
                 
@@ -170,11 +180,12 @@ class InventoryMovementView:
                 </div>
                 
                 <div class="form-actions-end mt-30">
-                    <a href="/movimientos-inventario/" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Registrar Movimiento</button>
+                    <a href="/movimientos-inventario/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Registrar Movimiento</button>
                 </div>
             </form>
         </div>
+        {error_script}
         """
 
         return Layout.render("Nuevo Movimiento", user, "movimientos-inventario", content)
@@ -183,18 +194,22 @@ class InventoryMovementView:
     def edit(user, movement, products, warehouses, request, error=None):
         """Vista de formulario para editar movimiento de inventario"""
 
-        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
-
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         # Select de productos
@@ -227,56 +242,65 @@ class InventoryMovementView:
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Editar Movimiento de Inventario</span>
+                <span><i class="fas fa-exchange-alt"></i> Editar Movimiento de Inventario</span>
                 <a href="/movimientos-inventario/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/movimientos-inventario/{movement['id']}/editar/" class="p-20">
-                {csrf_token}
+            <form method="POST" action="/movimientos-inventario/{movement['id']}/editar/" class="p-20" data-validate>
+                <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Producto *</label>
-                        <select name="producto_id" required class="form-select">
+                        <select name="producto_id" class="form-select"
+                                data-rules="required"
+                                data-label="Producto">
                             {product_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Almacén *</label>
-                        <select name="almacen_id" required class="form-select">
+                        <select name="almacen_id" class="form-select"
+                                data-rules="required"
+                                data-label="Almacén">
                             {warehouse_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Tipo de Movimiento *</label>
-                        <select name="tipo_movimiento" required class="form-select">
+                        <select name="tipo_movimiento" class="form-select"
+                                data-rules="required"
+                                data-label="Tipo de Movimiento">
                             {tipo_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Cantidad *</label>
-                        <input type="number" name="cantidad" value="{movement['cantidad']}" min="1" required class="form-input">
+                        <input type="number" name="cantidad" value="{movement['cantidad']}" min="1" class="form-input"
+                               data-rules="required|numeric|min:1"
+                               data-label="Cantidad">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Referencia</label>
-                        <input type="text" name="referencia" value="{movement.get('referencia', '')}" maxlength="100" class="form-input">
+                        <input type="text" name="referencia" value="{movement.get('referencia', '') or ''}" maxlength="100" class="form-input"
+                               data-label="Referencia">
                     </div>
                 </div>
                 
                 <div class="mt-20">
                     <label class="form-label">Motivo</label>
-                    <textarea name="motivo" rows="3" class="form-textarea">{movement.get('motivo', '')}</textarea>
+                    <textarea name="motivo" rows="3" class="form-textarea">{movement.get('motivo', '') or ''}</textarea>
                 </div>
                 
                 <div class="form-actions-end mt-30">
-                    <a href="/movimientos-inventario/" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Actualizar Movimiento</button>
+                    <a href="/movimientos-inventario/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Movimiento</button>
                 </div>
             </form>
         </div>
+        {error_script}
         """
 
         return Layout.render("Editar Movimiento", user, "movimientos-inventario", content)
@@ -322,7 +346,7 @@ class InventoryMovementView:
                     
                     <div class="info-box">
                         <p class="info-box-label">Referencia</p>
-                        <p class="info-box-value">{movement.get('referencia', 'N/A')}</p>
+                        <p class="info-box-value">{movement.get('referencia', 'N/A') or 'N/A'}</p>
                     </div>
                     
                     <div class="info-box">
@@ -344,7 +368,7 @@ class InventoryMovementView:
                 ''' if movement.get('motivo') else ''}
                 
                 <div class="mt-30 d-flex gap-10">
-                    <a href="/movimientos-inventario/{movement['id']}/editar/" class="btn btn-warning">Editar Movimiento</a>
+                    <a href="/movimientos-inventario/{movement['id']}/editar/" class="btn btn-warning"><i class="fas fa-edit"></i> Editar Movimiento</a>
                     <a href="/movimientos-inventario/" class="btn btn-secondary">Volver al Listado</a>
                 </div>
             </div>
