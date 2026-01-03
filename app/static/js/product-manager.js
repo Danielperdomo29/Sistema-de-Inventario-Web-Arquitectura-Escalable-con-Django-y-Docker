@@ -23,7 +23,12 @@ class ProductManager {
 
     addProduct(productId, quantity) {
         if (!productId || quantity <= 0) {
-            alert('Seleccione un producto y cantidad válida');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos Inválidos',
+                text: 'Seleccione un producto y cantidad válida',
+                confirmButtonColor: '#3085d6'
+            });
             return;
         }
 
@@ -130,7 +135,12 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             if (manager.selectedProducts.length === 0) {
                 e.preventDefault();
-                alert('Debe agregar al menos un producto');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin Productos',
+                    text: 'Debe agregar al menos un producto',
+                    confirmButtonColor: '#3085d6'
+                });
                 return;
             }
             document.getElementById('details').value = JSON.stringify(manager.selectedProducts);

@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 
 from app.views.layout import Layout
 
@@ -8,11 +9,7 @@ class SaleDetailView:
     def index(user, details, request):
         """Vista de lista de detalles de ventas"""
 
-        from django.middleware.csrf import get_token
-
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
+        csrf_token = get_token(request)
 
         # Tabla de detalles
         rows = ""
@@ -26,18 +23,19 @@ class SaleDetailView:
                     <td>{detail['fecha_venta']}</td>
                     <td>{detail['producto_nombre']}</td>
                     <td>{detail['cantidad']}</td>
-                    <td>S/ {detail['precio_unitario']:.2f}</td>
-                    <td>S/ {detail['subtotal']:.2f}</td>
+                    <td>$ {detail['precio_unitario']:.2f}</td>
+                    <td>$ {detail['subtotal']:.2f}</td>
                     <td>
-                        <a href="/items-venta/{detail['id']}/ver/" class="btn btn-info">Ver</a>
-                        <a href="/items-venta/{detail['id']}/editar/" class="btn btn-warning">Editar</a>
-                        <form method="POST" action="/items-venta/{detail['id']}/eliminar/" class="d-inline">
-                            {csrf_token}
-                            <button type="submit" class="btn btn-danger" 
-                                    onclick="return confirm('¿Estás seguro de eliminar este detalle?')">
-                                Eliminar
-                            </button>
-                        </form>
+                        <a href="/items-venta/{detail['id']}/ver/" class="btn btn-info btn-sm">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                        <a href="/items-venta/{detail['id']}/editar/" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm" 
+                                onclick="confirmDeleteAction('/items-venta/{detail['id']}/eliminar/', '{csrf_token}', 'Detalle #{detail['id']}');">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
                     </td>
                 </tr>
                 """
@@ -77,30 +75,34 @@ class SaleDetailView:
         <div class="card">
             <div class="card-header">
                 <span>Gestión de Detalles de Ventas</span>
-                <a href="/items-venta/crear/" class="btn btn-primary">+ Nuevo Detalle</a>
+                <a href="/items-venta/crear/" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Detalle</a>
             </div>
             {table_content}
         </div>
         """
 
-        return Layout.render("Detalles de Ventas", user, "detalle-ventas", content)
+        return Layout.render("Detalles de Ventas", user, "items-venta", content)
 
     @staticmethod
     def create(user, sales, products, request, error=None):
         """Vista de formulario para crear detalle de venta"""
 
-        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
-
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         # Select de ventas
@@ -111,144 +113,155 @@ class SaleDetailView:
         # Select de productos
         product_options = '<option value="">Seleccione un producto</option>'
         for product in products:
-            product_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}">{product["nombre"]} - S/ {product["precio_venta"]:.2f}</option>'
+            product_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}">{product["nombre"]} - $ {product["precio_venta"]:.2f}</option>'
 
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Crear Nuevo Detalle de Venta</span>
+                <span><i class="fas fa-file-invoice"></i> Crear Nuevo Detalle de Venta</span>
                 <a href="/items-venta/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/items-venta/crear/" class="p-20" id="detailForm">
-                {csrf_token}
+            <form method="POST" action="/items-venta/crear/" class="p-20" id="detailForm" data-validate>
+                <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Venta *</label>
-                        <select name="venta_id" required
-                                class="form-select">
+                        <select name="venta_id" class="form-select"
+                                data-rules="required"
+                                data-label="Venta">
                             {sale_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Producto *</label>
-                        <select name="producto_id" id="producto" required
-                                class="form-select">
+                        <select name="producto_id" id="producto" class="form-select"
+                                data-rules="required"
+                                data-label="Producto">
                             {product_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Cantidad *</label>
-                        <input type="number" name="cantidad" id="cantidad" value="1" min="1" required
-                               class="form-input">
+                        <input type="number" name="cantidad" id="cantidad" value="1" min="1" class="form-input"
+                               data-rules="required|numeric|min:1"
+                               data-label="Cantidad">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Precio Unitario *</label>
-                        <input type="number" name="precio_unitario" id="precio_unitario" step="0.01" min="0" required
-                               class="form-input">
+                        <input type="number" name="precio_unitario" id="precio_unitario" step="0.01" min="0" class="form-input"
+                               data-rules="required|min:0"
+                               data-label="Precio Unitario">
                     </div>
                 </div>
                 
                 <div class="total-summary">
                     <p>
-                        Subtotal: S/ <span id="subtotal">0.00</span>
+                        Subtotal: $ <span id="subtotal">0.00</span>
                     </p>
                 </div>
                 
                 <div class="form-actions-end mt-30">
-                    <a href="/items-venta/" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Guardar Detalle</button>
+                    <a href="/items-venta/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Detalle</button>
                 </div>
             </form>
         </div>
         
         <script src="/static/js/detail-calculator.js"></script>
+        {error_script}
         """
 
-        return Layout.render("Nuevo Detalle de Venta", user, "detalle-ventas", content)
+        return Layout.render("Nuevo Detalle de Venta", user, "items-venta", content)
 
     @staticmethod
     def edit(user, detail, products, request, error=None):
         """Vista de formulario para editar detalle de venta"""
 
-        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
-
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         # Select de productos
         product_options = ""
         for product in products:
             selected = "selected" if product["id"] == detail["producto_id"] else ""
-            product_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}" {selected}>{product["nombre"]} - S/ {product["precio_venta"]:.2f}</option>'
+            product_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}" {selected}>{product["nombre"]} - $ {product["precio_venta"]:.2f}</option>'
 
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Editar Detalle de Venta</span>
+                <span><i class="fas fa-edit"></i> Editar Detalle de Venta</span>
                 <a href="/items-venta/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/items-venta/{detail['id']}/editar/" class="p-20" id="detailForm">
-                {csrf_token}
+            <form method="POST" action="/items-venta/{detail['id']}/editar/" class="p-20" id="detailForm" data-validate>
+                <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Venta</label>
                         <input type="text" value="{detail.get('numero_factura', 'Sin factura')}" disabled
                                class="form-input-disabled">
                         <small class="form-hint">La venta no se puede cambiar</small>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Producto *</label>
-                        <select name="producto_id" id="producto" required
-                                class="form-select">
+                        <select name="producto_id" id="producto" class="form-select"
+                                data-rules="required"
+                                data-label="Producto">
                             {product_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Cantidad *</label>
-                        <input type="number" name="cantidad" id="cantidad" value="{detail['cantidad']}" min="1" required
-                               class="form-input">
+                        <input type="number" name="cantidad" id="cantidad" value="{detail['cantidad']}" min="1" class="form-input"
+                               data-rules="required|numeric|min:1"
+                               data-label="Cantidad">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Precio Unitario *</label>
-                        <input type="number" name="precio_unitario" id="precio_unitario" value="{detail['precio_unitario']}" step="0.01" min="0" required
-                               class="form-input">
+                        <input type="number" name="precio_unitario" id="precio_unitario" value="{detail['precio_unitario']}" step="0.01" min="0" class="form-input"
+                               data-rules="required|min:0"
+                               data-label="Precio Unitario">
                     </div>
                 </div>
                 
                 <div class="total-summary">
                     <p>
-                        Subtotal: S/ <span id="subtotal">{detail['subtotal']:.2f}</span>
+                        Subtotal: $ <span id="subtotal">{detail['subtotal']:.2f}</span>
                     </p>
                 </div>
                 
                 <div class="form-actions-end mt-30">
-                    <a href="/items-venta/" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Actualizar Detalle</button>
+                    <a href="/items-venta/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Detalle</button>
                 </div>
             </form>
         </div>
         
         <script src="/static/js/detail-calculator.js"></script>
+        {error_script}
         """
 
-        return Layout.render("Editar Detalle de Venta", user, "detalle-ventas", content)
+        return Layout.render("Editar Detalle de Venta", user, "items-venta", content)
 
     @staticmethod
     def view(user, detail):
@@ -294,7 +307,7 @@ class SaleDetailView:
                         </div>
                         <div>
                             <p class="info-box-label">Total Venta</p>
-                            <p class="info-box-value text-success-lg">S/ {detail['venta_total']:.2f}</p>
+                            <p class="info-box-value text-success-lg">$ {detail['venta_total']:.2f}</p>
                         </div>
                     </div>
                 </div>
@@ -313,21 +326,21 @@ class SaleDetailView:
                     
                     <div class="info-box-white">
                         <p class="info-box-label">Precio Unitario</p>
-                        <p class="info-box-value">S/ {detail['precio_unitario']:.2f}</p>
+                        <p class="info-box-value">$ {detail['precio_unitario']:.2f}</p>
                     </div>
                     
                     <div class="info-box-white">
                         <p class="info-box-label">Subtotal</p>
-                        <p class="info-box-value text-success-lg">S/ {detail['subtotal']:.2f}</p>
+                        <p class="info-box-value text-success-lg">$ {detail['subtotal']:.2f}</p>
                     </div>
                 </div>
                 
                 <div class="mt-30 d-flex gap-10">
-                    <a href="/items-venta/{detail['id']}/editar/" class="btn btn-warning">Editar Detalle</a>
+                    <a href="/items-venta/{detail['id']}/editar/" class="btn btn-warning"><i class="fas fa-edit"></i> Editar Detalle</a>
                     <a href="/items-venta/" class="btn btn-secondary">Volver al Listado</a>
                 </div>
             </div>
         </div>
         """
 
-        return Layout.render("Ver Detalle de Venta", user, "detalle-ventas", content)
+        return Layout.render("Ver Detalle de Venta", user, "items-venta", content)
