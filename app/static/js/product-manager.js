@@ -135,16 +135,27 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             if (manager.selectedProducts.length === 0) {
                 e.preventDefault();
+                e.stopImmediatePropagation(); // Prevenir que form-validator también intercepte
+                
+                // Resetear botón de submit si quedó en estado de procesando
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    const originalIcon = submitBtn.querySelector('i')?.className || 'fas fa-save';
+                    const originalText = submitBtn.dataset.originalText || 'Guardar Venta';
+                    submitBtn.innerHTML = `<i class="${originalIcon}"></i> ${originalText}`;
+                }
+                
                 Swal.fire({
                     icon: 'warning',
                     title: 'Sin Productos',
                     text: 'Debe agregar al menos un producto',
                     confirmButtonColor: '#3085d6'
                 });
-                return;
+                return false;
             }
             document.getElementById('details').value = JSON.stringify(manager.selectedProducts);
-        });
+        }, true); // Usar fase de captura para ejecutar primero
 
         // Si hay productos existentes, renderizarlos
         if (manager && manager.selectedProducts.length > 0) {

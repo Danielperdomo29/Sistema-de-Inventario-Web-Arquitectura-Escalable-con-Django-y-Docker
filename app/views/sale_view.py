@@ -265,13 +265,13 @@ class SaleView:
                 </table>
                 
                 <div class="form-actions mt-30">
-                    <button type="submit" class="btn btn-primary">Guardar Venta</button>
+                    <button type="submit" class="btn btn-primary" data-original-text="Guardar Venta"><i class="fas fa-save"></i> Guardar Venta</button>
                     <a href="/ventas/" class="btn btn-secondary no-underline">Cancelar</a>
                 </div>
             </form>
         </div>
         
-        <script src="/static/js/product-manager.js?v=3"></script>
+        <script src="/static/js/product-manager.js?v=4"></script>
         <script>
             // Inicializar el gestor de productos con los datos del servidor
             const products = {products_json};
@@ -438,13 +438,13 @@ class SaleView:
                 </table>
                 
                 <div class="form-actions mt-30">
-                    <button type="submit" class="btn btn-primary">Actualizar Venta</button>
+                    <button type="submit" class="btn btn-primary" data-original-text="Actualizar Venta"><i class="fas fa-save"></i> Actualizar Venta</button>
                     <a href="/ventas/" class="btn btn-secondary no-underline">Cancelar</a>
                 </div>
             </form>
         </div>
         
-        <script src="/static/js/product-manager.js?v=3"></script>
+        <script src="/static/js/product-manager.js?v=4"></script>
         <script>
             // Inicializar el gestor de productos con los datos del servidor
             const products = {products_json};
