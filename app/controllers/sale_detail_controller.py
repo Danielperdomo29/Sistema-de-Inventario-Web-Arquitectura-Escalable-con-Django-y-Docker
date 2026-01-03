@@ -98,7 +98,7 @@ class SaleDetailController:
 
                     Sale.objects.filter(id=venta_id).update(total=new_total)
 
-                return HttpResponseRedirect("/detalle-ventas/")
+                return HttpResponseRedirect("/items-venta/")
 
             except Exception as e:
                 sales = Sale.get_all()
@@ -128,7 +128,7 @@ class SaleDetailController:
         try:
             d_obj = SaleDetail.objects.select_related("venta", "producto").get(id=detail_id)
         except SaleDetail.DoesNotExist:
-            return HttpResponseRedirect("/detalle-ventas/")
+            return HttpResponseRedirect("/items-venta/")
 
         # Diccionario para vista
         detail_dict = {
@@ -174,7 +174,7 @@ class SaleDetailController:
 
                     Sale.objects.filter(id=d_obj.venta_id).update(total=new_total)
 
-                return HttpResponseRedirect("/detalle-ventas/")
+                return HttpResponseRedirect("/items-venta/")
 
             except Exception as e:
                 products = Product.get_all()
@@ -225,7 +225,7 @@ class SaleDetailController:
             except Exception as e:
                 print(f"Error al eliminar detalle: {str(e)}")
 
-        return HttpResponseRedirect("/detalle-ventas/")
+        return HttpResponseRedirect("/items-venta/")
 
     @staticmethod
     def view(request, detail_id):
@@ -262,4 +262,4 @@ class SaleDetailController:
             return HttpResponse(SaleDetailView.view(user, detail))
 
         except SaleDetail.DoesNotExist:
-            return HttpResponseRedirect("/detalle-ventas/")
+            return HttpResponseRedirect("/items-venta/")

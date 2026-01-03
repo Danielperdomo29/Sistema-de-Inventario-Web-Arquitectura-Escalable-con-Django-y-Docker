@@ -29,9 +29,9 @@ class SaleDetailView:
                     <td>S/ {detail['precio_unitario']:.2f}</td>
                     <td>S/ {detail['subtotal']:.2f}</td>
                     <td>
-                        <a href="/detalle-ventas/{detail['id']}/ver/" class="btn btn-info">Ver</a>
-                        <a href="/detalle-ventas/{detail['id']}/editar/" class="btn btn-warning">Editar</a>
-                        <form method="POST" action="/detalle-ventas/{detail['id']}/eliminar/" class="d-inline">
+                        <a href="/items-venta/{detail['id']}/ver/" class="btn btn-info">Ver</a>
+                        <a href="/items-venta/{detail['id']}/editar/" class="btn btn-warning">Editar</a>
+                        <form method="POST" action="/items-venta/{detail['id']}/eliminar/" class="d-inline">
                             {csrf_token}
                             <button type="submit" class="btn btn-danger" 
                                     onclick="return confirm('¿Estás seguro de eliminar este detalle?')">
@@ -77,7 +77,7 @@ class SaleDetailView:
         <div class="card">
             <div class="card-header">
                 <span>Gestión de Detalles de Ventas</span>
-                <a href="/detalle-ventas/crear/" class="btn btn-primary">+ Nuevo Detalle</a>
+                <a href="/items-venta/crear/" class="btn btn-primary">+ Nuevo Detalle</a>
             </div>
             {table_content}
         </div>
@@ -117,10 +117,10 @@ class SaleDetailView:
         <div class="card">
             <div class="card-header">
                 <span>Crear Nuevo Detalle de Venta</span>
-                <a href="/detalle-ventas/" class="btn btn-secondary">← Volver</a>
+                <a href="/items-venta/" class="btn btn-secondary">← Volver</a>
             </div>
             {error_html}
-            <form method="POST" action="/detalle-ventas/crear/" class="p-20" id="detailForm">
+            <form method="POST" action="/items-venta/crear/" class="p-20" id="detailForm">
                 {csrf_token}
                 <div class="form-grid">
                     <div>
@@ -159,7 +159,7 @@ class SaleDetailView:
                 </div>
                 
                 <div class="form-actions-end mt-30">
-                    <a href="/detalle-ventas/" class="btn btn-secondary">Cancelar</a>
+                    <a href="/items-venta/" class="btn btn-secondary">Cancelar</a>
                     <button type="submit" class="btn btn-primary">Guardar Detalle</button>
                 </div>
             </form>
@@ -198,10 +198,10 @@ class SaleDetailView:
         <div class="card">
             <div class="card-header">
                 <span>Editar Detalle de Venta</span>
-                <a href="/detalle-ventas/" class="btn btn-secondary">← Volver</a>
+                <a href="/items-venta/" class="btn btn-secondary">← Volver</a>
             </div>
             {error_html}
-            <form method="POST" action="/detalle-ventas/{detail['id']}/editar/" class="p-20" id="detailForm">
+            <form method="POST" action="/items-venta/{detail['id']}/editar/" class="p-20" id="detailForm">
                 {csrf_token}
                 <div class="form-grid">
                     <div>
@@ -239,7 +239,7 @@ class SaleDetailView:
                 </div>
                 
                 <div class="form-actions-end mt-30">
-                    <a href="/detalle-ventas/" class="btn btn-secondary">Cancelar</a>
+                    <a href="/items-venta/" class="btn btn-secondary">Cancelar</a>
                     <button type="submit" class="btn btn-primary">Actualizar Detalle</button>
                 </div>
             </form>
@@ -264,7 +264,7 @@ class SaleDetailView:
         <div class="card">
             <div class="card-header">
                 <span>Detalle de Venta #{detail['id']}</span>
-                <a href="/detalle-ventas/" class="btn btn-secondary">← Volver</a>
+                <a href="/items-venta/" class="btn btn-secondary">← Volver</a>
             </div>
             
             <div class="p-20">
@@ -323,8 +323,8 @@ class SaleDetailView:
                 </div>
                 
                 <div class="mt-30 d-flex gap-10">
-                    <a href="/detalle-ventas/{detail['id']}/editar/" class="btn btn-warning">Editar Detalle</a>
-                    <a href="/detalle-ventas/" class="btn btn-secondary">Volver al Listado</a>
+                    <a href="/items-venta/{detail['id']}/editar/" class="btn btn-warning">Editar Detalle</a>
+                    <a href="/items-venta/" class="btn btn-secondary">Volver al Listado</a>
                 </div>
             </div>
         </div>

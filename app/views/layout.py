@@ -52,7 +52,7 @@ class Layout:
         facturacion_items = [
             {"url": "/clientes/", "label": "Clientes", "icon": "fas fa-users", "key": "clientes"},
             {"url": "/ventas/", "label": "Ventas", "icon": "fas fa-shopping-cart", "key": "ventas"},
-            {"url": "/detalle-ventas/", "label": "Detalle Ventas", "icon": "fas fa-receipt", "key": "detalle-ventas"},
+            {"url": "/items-venta/", "label": "Items de Venta", "icon": "fas fa-receipt", "key": "items-venta"},
             {"url": "/compras/", "label": "Compras", "icon": "fas fa-shopping-bag", "key": "compras"},
             {"url": "/detalle-compras/", "label": "Detalle Compras", "icon": "fas fa-file-invoice", "key": "detalle-compras"},
         ]
