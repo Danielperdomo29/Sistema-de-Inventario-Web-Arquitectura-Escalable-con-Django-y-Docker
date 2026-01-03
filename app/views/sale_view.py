@@ -188,16 +188,20 @@ class SaleView:
                 <input type="hidden" name="details" id="details">
                 
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Cliente *</label>
-                        <select name="cliente_id" required class="form-select">
+                        <select name="cliente_id" class="form-select"
+                                data-rules="required"
+                                data-label="Cliente">
                             {client_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Fecha *</label>
-                        <input type="date" name="fecha" value="{fecha_actual}" required class="form-input">
+                        <input type="date" name="fecha" value="{fecha_actual}" class="form-input"
+                               data-rules="required"
+                               data-label="Fecha">
                     </div>
                     
                     <div>
@@ -356,16 +360,20 @@ class SaleView:
                 <input type="hidden" name="numero_factura" value="{sale['numero_factura']}">
                 
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Cliente *</label>
-                        <select name="cliente_id" required class="form-select">
+                        <select name="cliente_id" class="form-select"
+                                data-rules="required"
+                                data-label="Cliente">
                             {client_options}
                         </select>
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Fecha *</label>
-                        <input type="date" name="fecha" value="{sale['fecha']}" required class="form-input">
+                        <input type="date" name="fecha" value="{sale['fecha']}" class="form-input"
+                               data-rules="required"
+                               data-label="Fecha">
                     </div>
                     
                     <div>
