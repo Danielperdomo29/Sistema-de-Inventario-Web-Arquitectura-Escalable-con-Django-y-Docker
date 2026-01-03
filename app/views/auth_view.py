@@ -4,7 +4,21 @@ class AuthView:
     @staticmethod
     def login(error=None, csrf_token=""):
         """Vista de login"""
-        error_html = f'<div class="alert alert-error">{error}</div>' if error else ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
+        if error:
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Autenticación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
+            """
 
         return f"""
 <!DOCTYPE html>
@@ -16,6 +30,7 @@ class AuthView:
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/auth.css">
     <link rel="stylesheet" href="/static/css/theme-green.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 <!-- Spinner -->
@@ -25,21 +40,24 @@ class AuthView:
     <div class="auth-card">
         <h2><i class="fas fa-lock"></i> Iniciar Sesión</h2>
         <p>Bienvenido al Sistema de Inventario</p>
-        {error_html}
-        <form method="POST" id="login-form">
+        <form method="POST" id="login-form" data-validate>
             <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
             <div class="form-group">
                 <label>Usuario o Email</label>
-                <input type="text" name="username" id="username-input" class="form-control" placeholder="Ingresa tu usuario o correo" required autofocus>
+                <input type="text" name="username" id="username-input" class="form-control" 
+                       placeholder="Ingresa tu usuario o correo" 
+                       data-rules="required|minLength:3" 
+                       data-label="Usuario o Email" autofocus>
             </div>
             <div class="form-group">
                 <label>Contraseña</label>
-                <input type="password" name="password" id="password-input" class="form-control" placeholder="Ingresa tu contraseña" required>
+                <input type="password" name="password" id="password-input" class="form-control" 
+                       placeholder="Ingresa tu contraseña"
+                       data-rules="required|minLength:4"
+                       data-label="Contraseña">
             </div>
-            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</button>
         </form>
-        
-
         
         <div class="auth-footer">
             <p>¿No tienes cuenta? <a href="/register/">Regístrate aquí</a></p>
@@ -51,6 +69,8 @@ class AuthView:
 </div>
 
 <script src="/static/js/auth.js"></script>
+<script src="/static/js/form-validator.js?v=1"></script>
+{error_script}
 </body>
 </html>
 """

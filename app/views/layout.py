@@ -182,12 +182,14 @@ class Layout:
                 </div>
             </div>
             <script src="/static/js/main.js?v=2"></script>
+            <script src="/static/js/form-validator.js?v=1"></script>
             <script src="/static/js/sidebar.js"></script>
             <script src="/static/js/sidebar-sections.js"></script>
             <script>
-                // Pasar estado del usuario al JavaScript
+                // Pasar estado del usuario y token CSRF al JavaScript
                 // activo=1 -> true (puede modificar), activo=0 -> false (no puede modificar)
                 window.userActive = {('true' if user.is_active else 'false')};
+                window.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
             </script>
             <script src="/static/js/protection.js"></script>
             {chatbot_script}

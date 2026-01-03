@@ -24,7 +24,7 @@
             </div>
         {% endif %}
         
-        <form method="POST" action="{% url 'account_login' %}" id="login-form">
+        <form method="POST" action="{% url 'account_login' %}" id="login-form" data-validate>
             {% csrf_token %}
             
             <div class="form-group">
@@ -35,7 +35,8 @@
                        class="form-control" 
                        placeholder="Ingresa tu usuario o correo"
                        value="{{ form.login.value|default:'' }}"
-                       required 
+                       data-rules="required|minLength:3"
+                       data-label="Usuario o Email"
                        autofocus>
                 {% if form.login.errors %}
                     <div class="alert alert-error" style="margin-top: 8px;">
@@ -53,7 +54,8 @@
                        id="password-input"
                        class="form-control" 
                        placeholder="Ingresa tu contraseña"
-                       required>
+                       data-rules="required|minLength:4"
+                       data-label="Contraseña">
                 {% if form.password.errors %}
                     <div class="alert alert-error" style="margin-top: 8px;">
                         {% for error in form.password.errors %}
@@ -67,7 +69,7 @@
                 <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
             {% endif %}
             
-            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</button>
         </form>
         
         <div class="auth-footer">
@@ -81,3 +83,4 @@
     </div>
 </div>
 {% endblock %}
+

@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 
 from app.views.layout import Layout
 
@@ -9,6 +10,7 @@ class ClientView:
     @staticmethod
     def index(user, clients):
         """Renderiza la página de listado de clientes"""
+        from django.middleware.csrf import get_token
 
         # Generar las filas de la tabla
         if clients:
@@ -18,12 +20,17 @@ class ClientView:
                 <tr>
                     <td>{idx}</td>
                     <td>{client['nombre']}</td>
-                    <td>{client.get('documento', 'N/A')}</td>
-                    <td>{client.get('telefono', 'N/A')}</td>
-                    <td>{client.get('email', 'N/A')}</td>
+                    <td>{client.get('documento', 'N/A') or 'N/A'}</td>
+                    <td>{client.get('telefono', 'N/A') or 'N/A'}</td>
+                    <td>{client.get('email', 'N/A') or 'N/A'}</td>
                     <td>
-                        <a href="/clientes/{client['id']}/editar/" class="btn btn-warning no-underline">Editar</a>
-                        <a href="/clientes/{client['id']}/eliminar/" class="btn btn-danger no-underline" onclick="return confirm('¿Está seguro de eliminar este cliente?');">Eliminar</a>
+                        <a href="/clientes/{client['id']}/editar/" class="btn btn-warning btn-sm no-underline">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="/clientes/{client['id']}/eliminar/" class="btn btn-danger btn-sm no-underline" 
+                           onclick="event.preventDefault(); confirmDeleteAction('/clientes/{client['id']}/eliminar/', window.csrfToken, '{client['nombre']}');">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </a>
                     </td>
                 </tr>
                 """
@@ -60,7 +67,7 @@ class ClientView:
         <div class="card">
             <div class="card-header">
                 <span>Gestión de Clientes</span>
-                <a href="/clientes/crear/" class="btn btn-primary">+ Nuevo Cliente</a>
+                <a href="/clientes/crear/" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Cliente</a>
             </div>
             {table_content}
         </div>
@@ -72,63 +79,79 @@ class ClientView:
     def create(user, request, error=None):
         """Vista del formulario de crear cliente"""
 
-        # Obtener token CSRF
-        from django.middleware.csrf import get_token
-
         csrf_token = get_token(request)
 
-        # Mensaje de error si existe
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Crear Nuevo Cliente</span>
+                <span><i class="fas fa-user-plus"></i> Crear Nuevo Cliente</span>
                 <a href="/clientes/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/clientes/crear/" class="p-20">
+            <form method="POST" action="/clientes/crear/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Nombre Completo *</label>
-                        <input type="text" name="nombre" required class="form-input">
+                        <input type="text" name="nombre" class="form-input"
+                               data-rules="required|minLength:3"
+                               data-label="Nombre Completo"
+                               placeholder="Nombre del cliente">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Documento (NIT/C.C)</label>
-                        <input type="text" name="documento" class="form-input">
+                        <input type="text" name="documento" class="form-input"
+                               data-label="Documento"
+                               placeholder="Ej: 123456789">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Teléfono</label>
-                        <input type="text" name="telefono" class="form-input">
+                        <input type="text" name="telefono" class="form-input"
+                               data-rules="phone"
+                               data-label="Teléfono"
+                               placeholder="Ej: 3001234567">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-input">
+                        <input type="email" name="email" class="form-input"
+                               data-rules="email"
+                               data-label="Email"
+                               placeholder="correo@ejemplo.com">
                     </div>
                 </div>
                 
                 <div class="mt-20">
                     <label class="form-label">Dirección</label>
-                    <textarea name="direccion" rows="3" class="form-textarea"></textarea>
+                    <textarea name="direccion" rows="3" class="form-textarea"
+                              placeholder="Dirección completa"></textarea>
                 </div>
                 
                 <div class="form-actions mt-30">
-                    <button type="submit" class="btn btn-primary">Guardar Cliente</button>
-                    <a href="/clientes/" class="btn btn-secondary no-underline">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cliente</button>
+                    <a href="/clientes/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
                 </div>
             </form>
         </div>
+        {error_script}
         """
 
         return HttpResponse(Layout.render("Crear Cliente", user, "clientes", content))
@@ -137,63 +160,75 @@ class ClientView:
     def edit(user, client, request, error=None):
         """Vista del formulario de editar cliente"""
 
-        # Obtener token CSRF
-        from django.middleware.csrf import get_token
-
         csrf_token = get_token(request)
 
-        # Mensaje de error si existe
-        error_html = ""
+        # SweetAlert2 for server-side errors
+        error_script = ""
         if error:
-            error_html = f"""
-            <div class="alert-error">
-                {error}
-            </div>
+            error_script = f"""
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: '{error}',
+                    confirmButtonColor: '#3085d6'
+                }});
+            }});
+            </script>
             """
 
         content = f"""
         <div class="card">
             <div class="card-header">
-                <span>Editar Cliente</span>
+                <span><i class="fas fa-user-edit"></i> Editar Cliente</span>
                 <a href="/clientes/" class="btn btn-secondary">← Volver</a>
             </div>
-            {error_html}
-            <form method="POST" action="/clientes/{client['id']}/editar/" class="p-20">
+            <form method="POST" action="/clientes/{client['id']}/editar/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 
                 <div class="form-grid">
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Nombre Completo *</label>
-                        <input type="text" name="nombre" value="{client['nombre']}" required class="form-input">
+                        <input type="text" name="nombre" value="{client['nombre']}" class="form-input"
+                               data-rules="required|minLength:3"
+                               data-label="Nombre Completo">
                     </div>
                     
-                    <div>
-                        <label class="form-label">Documento (DNI/RUC)</label>
-                        <input type="text" name="documento" value="{client.get('documento', '')}" class="form-input">
+                    <div class="form-group">
+                        <label class="form-label">Documento (NIT/C.C)</label>
+                        <input type="text" name="documento" value="{client.get('documento', '') or ''}" class="form-input"
+                               data-label="Documento">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Teléfono</label>
-                        <input type="text" name="telefono" value="{client.get('telefono', '')}" class="form-input">
+                        <input type="text" name="telefono" value="{client.get('telefono', '') or ''}" class="form-input"
+                               data-rules="phone"
+                               data-label="Teléfono">
                     </div>
                     
-                    <div>
+                    <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" value="{client.get('email', '')}" class="form-input">
+                        <input type="email" name="email" value="{client.get('email', '') or ''}" class="form-input"
+                               data-rules="email"
+                               data-label="Email">
                     </div>
                 </div>
                 
                 <div class="mt-20">
                     <label class="form-label">Dirección</label>
-                    <textarea name="direccion" rows="3" class="form-textarea">{client.get('direccion', '')}</textarea>
+                    <textarea name="direccion" rows="3" class="form-textarea">{client.get('direccion', '') or ''}</textarea>
                 </div>
                 
                 <div class="form-actions mt-30">
-                    <button type="submit" class="btn btn-primary">Actualizar Cliente</button>
-                    <a href="/clientes/" class="btn btn-secondary no-underline">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Cliente</button>
+                    <a href="/clientes/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
                 </div>
             </form>
         </div>
+        {error_script}
         """
 
         return HttpResponse(Layout.render("Editar Cliente", user, "clientes", content))
+
