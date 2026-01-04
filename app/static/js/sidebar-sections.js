@@ -69,8 +69,6 @@ class SidebarSectionsManager {
         window.dispatchEvent(new CustomEvent('sectionCollapsed', {
             detail: { section: sectionName }
         }));
-        
-        console.log(`✅ Sección "${sectionName}" colapsada`);
     }
 
     expandSection(sectionElement, sectionName) {
@@ -81,8 +79,6 @@ class SidebarSectionsManager {
         window.dispatchEvent(new CustomEvent('sectionExpanded', {
             detail: { section: sectionName }
         }));
-        
-        console.log(`✅ Sección "${sectionName}" expandida`);
     }
 
     saveSectionState(sectionName, isCollapsed) {
@@ -110,8 +106,6 @@ class SidebarSectionsManager {
                 section.classList.add('collapsed');
             }
         });
-        
-        console.log('✅ Estados de secciones restaurados');
     }
 }
 

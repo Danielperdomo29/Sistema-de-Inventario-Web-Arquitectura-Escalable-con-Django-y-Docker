@@ -20,23 +20,33 @@ import json
 
 
 class AIService:
-    """Servicio de IA para el chatbot usando Google Gemini"""
+    """Servicio de IA para el chatbot usando Google Gemini o OpenRouter como fallback"""
 
     def __init__(self):
-        # Configurar la API key de Gemini desde variable de entorno
-        if genai is None:
-            raise ImportError(
-                "google-generativeai no está instalado. " "Ejecuta: pip install google-generativeai"
-            )
-
+        self.use_openrouter = False
+        self.openrouter = None
+        self.model = None
+        
+        # Intentar configurar Gemini primero
         api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key or api_key == "tu-api-key-aqui":
-            raise ValueError(
-                "GEMINI_API_KEY no está configurada. "
-                "Por favor, configura tu API key en el archivo .env"
-            )
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-2.0-flash")
+        if genai is not None and api_key and api_key != "tu-api-key-aqui":
+            try:
+                genai.configure(api_key=api_key)
+                self.model = genai.GenerativeModel("gemini-2.0-flash")
+            except Exception:
+                self.model = None
+        
+        # Si Gemini no está disponible, usar OpenRouter
+        if self.model is None:
+            try:
+                from app.services.openrouter_service import get_ai_service
+                self.openrouter = get_ai_service()
+                self.use_openrouter = True
+            except Exception as e:
+                raise ValueError(
+                    f"No se pudo configurar ningún servicio de IA. "
+                    f"Configura GEMINI_API_KEY o OPENROUTER_API_KEY en el archivo .env. Error: {str(e)}"
+                )
 
     def _get_models(self):
         """
@@ -306,13 +316,42 @@ class AIService:
             Responde en español de manera amigable y profesional.
             """
 
-            # Generar respuesta con Gemini
-            response = self.model.generate_content(prompt)
-
-            return response.text
+            # Generar respuesta con el servicio de IA disponible
+            if self.use_openrouter:
+                messages = [{"role": "user", "content": prompt}]
+                response_text = self.openrouter.chat(messages, temperature=0.7)
+                return response_text
+            else:
+                try:
+                    response = self.model.generate_content(prompt)
+                    return response.text
+                except Exception as gemini_error:
+                    error_str = str(gemini_error)
+                    
+                    # Detectar error 429 (cuota excedida) o rate limit
+                    if "429" in error_str or "quota" in error_str.lower() or "rate limit" in error_str.lower():
+                        # Cambiar automáticamente a OpenRouter
+                        if self.openrouter is None:
+                            try:
+                                from app.services.openrouter_service import get_ai_service
+                                self.openrouter = get_ai_service()
+                            except Exception as or_error:
+                                raise Exception(f"Gemini cuota excedida y OpenRouter no disponible: {str(or_error)}")
+                        
+                        # Marcar para usar OpenRouter en futuros requests
+                        self.use_openrouter = True
+                        
+                        # Intentar con OpenRouter ahora
+                        messages = [{"role": "user", "content": prompt}]
+                        response_text = self.openrouter.chat(messages, temperature=0.7)
+                        return response_text
+                    else:
+                        # Otro tipo de error de Gemini, propagar
+                        raise gemini_error
 
         except Exception as e:
             return f"Lo siento, hubo un error al procesar tu consulta. Por favor, intenta de nuevo. Error: {str(e)}"
+
 
     def get_help_message(self):
         """Retorna mensaje de ayuda con los comandos básicos"""

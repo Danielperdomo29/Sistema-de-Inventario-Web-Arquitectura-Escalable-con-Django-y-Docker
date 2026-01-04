@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 
 from app.views.layout import Layout
 
@@ -7,8 +8,11 @@ class ChatbotView:
     """Vista del Chatbot con IA"""
 
     @staticmethod
-    def render(user, history):
+    def render(user, history, request=None):
         """Renderiza la interfaz del chatbot"""
+        
+        # Obtener CSRF token
+        csrf_token = get_token(request) if request else ""
 
         # Construir mensajes del historial
         history_html = ""
@@ -51,6 +55,7 @@ class ChatbotView:
             </div>
         """
         content = f"""
+        <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
         <div class='card'>
             <div class='card-header'>
                 <span><i class='fas fa-robot'></i> Asistente Virtual con IA</span>

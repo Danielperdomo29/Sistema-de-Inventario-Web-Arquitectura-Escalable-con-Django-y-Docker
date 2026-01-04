@@ -1,6 +1,7 @@
 import json
 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from app.models.chatbot_message import ChatbotMessage
 from app.models.user import User
@@ -12,6 +13,7 @@ class ChatbotController:
     """Controlador del Chatbot con IA"""
 
     @staticmethod
+    @ensure_csrf_cookie
     def index(request):
         """Muestra la interfaz del chatbot"""
         # Verificar autenticación
@@ -30,8 +32,8 @@ class ChatbotController:
         # Obtener historial de conversación
         history = ChatbotMessage.get_history(user_id, limit=20)
 
-        # Renderizar vista
-        return HttpResponse(ChatbotView.render(user, history))
+        # Renderizar vista (pasando request para CSRF token)
+        return HttpResponse(ChatbotView.render(user, history, request))
 
     @staticmethod
     def send_message(request):

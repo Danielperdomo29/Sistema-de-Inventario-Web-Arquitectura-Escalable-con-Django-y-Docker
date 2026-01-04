@@ -33,6 +33,7 @@ Pillow==10.3.0
 
 # AI Integration
 google-generativeai
+requests>=2.31.0  # For DeepSeek API
 
 # DevSecOps Tools
 black==24.1.1

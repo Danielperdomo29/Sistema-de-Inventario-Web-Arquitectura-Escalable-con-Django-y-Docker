@@ -166,6 +166,8 @@ urlpatterns = [
     path("chatbot/send/", ChatbotController.send_message, name="chatbot_send"),
     path("chatbot/clear-history/", ChatbotController.clear_history, name="chatbot_clear_history"),
     path("chatbot/history/", ChatbotController.get_history, name="chatbot_history"),
+    # Analytics con IA (DeepSeek)
+    path("analytics/", include("app.views.analytics_urls")),
     # Módulo Fiscal - Fase A
     path("fiscal/", FiscalController.index, name="fiscal"),
     path("fiscal/perfiles/", FiscalController.perfiles_fiscales, name="fiscal_perfiles"),

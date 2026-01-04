@@ -67,6 +67,7 @@ class Layout:
         sistema_items = [
             {"url": "/roles/", "label": "Roles", "icon": "fas fa-user-tag", "key": "roles"},
             {"url": "/chatbot/", "label": "Chatbot IA", "icon": "fas fa-robot", "key": "chatbot"},
+            {"url": "/analytics/", "label": "Analytics IA", "icon": "fas fa-brain", "key": "analytics"},
             {"url": "/configuracion/", "label": "Configuración", "icon": "fas fa-cog", "key": "configuracion"},
             {"url": "/documentacion/", "label": "Documentación", "icon": "fas fa-book", "key": "documentacion"},
         ]
