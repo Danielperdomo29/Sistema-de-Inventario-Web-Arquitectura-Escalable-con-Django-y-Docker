@@ -44,6 +44,13 @@ class Product(models.Model):
         db_table = "productos"
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
+        indexes = [
+            models.Index(fields=['codigo'], name='idx_prod_codigo'),
+            models.Index(fields=['categoria'], name='idx_prod_categoria'),
+            models.Index(fields=['activo'], name='idx_prod_activo'),
+            models.Index(fields=['stock_actual'], name='idx_prod_stock'),
+            models.Index(fields=['activo', 'stock_actual'], name='idx_prod_activo_stock'),
+        ]
 
     def __str__(self):
         return self.nombre

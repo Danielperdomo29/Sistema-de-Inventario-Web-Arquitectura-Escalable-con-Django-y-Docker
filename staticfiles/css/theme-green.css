@@ -1,0 +1,226 @@
+/* ========================================
+   TEMA VERDE PROFESIONAL - Sistema de Inventario
+   Paleta: #72c071, #8bd089, #a5e0a2, #beefba, #d7ffd2
+   ======================================== */
+
+/* Variables de color */
+:root {
+    --green-primary: #72c071;
+    --green-light: #8bd089;
+    --green-lighter: #a5e0a2;
+    --green-soft: #beefba;
+    --green-background: #d7ffd2;
+    --white: #ffffff;
+    --text-dark: #2d3748;
+    --text-gray: #4a5568;
+    --shadow-subtle: 0 4px 6px rgba(0, 0, 0, 0.02);
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Body - Fondo verde suave */
+body {
+    background-color: var(--green-background) !important;
+    color: var(--text-dark);
+}
+
+/* Cards y Containers - Fondo blanco puro para destacar */
+.card,
+.container-fluid,
+.auth-card {
+    background-color: var(--white) !important;
+    box-shadow: var(--shadow-card) !important;
+    border: none !important;
+}
+
+/* Botones Success y Primary - Verde principal */
+.btn-success,
+.btn-primary {
+    background-color: var(--green-primary) !important;
+    border-color: var(--green-primary) !important;
+    color: var(--white) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover,
+.btn-primary:hover {
+    background-color: var(--green-light) !important;
+    border-color: var(--green-light) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(114, 192, 113, 0.3) !important;
+}
+
+.btn-success:active,
+.btn-primary:active {
+    background-color: var(--green-primary) !important;
+    transform: translateY(0);
+}
+
+/* Form Controls - Bordes verdes en hover/focus */
+.form-control,
+.form-input,
+.form-select,
+.form-textarea {
+    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-subtle);
+    transition: all 0.3s ease;
+}
+
+.form-control:hover,
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+    border-color: var(--green-lighter) !important;
+}
+
+.form-control:focus,
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: var(--green-primary) !important;
+    box-shadow: 0 0 0 3px rgba(114, 192, 113, 0.1) !important;
+    outline: none;
+}
+
+/* Table Headers - Fondo verde suave */
+thead,
+.table thead,
+table thead {
+    background-color: var(--green-soft) !important;
+    color: var(--text-dark) !important;
+}
+
+thead th,
+.table thead th,
+table thead th {
+    background-color: var(--green-soft) !important;
+    color: var(--text-dark) !important;
+    font-weight: 600;
+    border-bottom: 2px solid var(--green-lighter) !important;
+}
+
+/* Table Rows - Hover effect */
+tbody tr:hover,
+.table tbody tr:hover,
+table tbody tr:hover {
+    background-color: rgba(215, 255, 210, 0.3) !important;
+    transition: background-color 0.2s ease;
+}
+
+/* Sombras sutiles para profundidad */
+.card,
+.form-control,
+.form-input,
+.form-select,
+.form-textarea,
+.btn,
+.stat-card,
+.auth-card {
+    box-shadow: var(--shadow-subtle) !important;
+}
+
+/* Stat Cards - Gradiente verde */
+.stat-card {
+    background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-light) 100%) !important;
+    color: var(--white) !important;
+}
+
+/* Badges con tema verde */
+.badge-success {
+    background-color: var(--green-primary) !important;
+    color: var(--white) !important;
+}
+
+.badge-warning {
+    background-color: #f59e0b !important;
+    color: var(--white) !important;
+}
+
+/* Links - Color verde */
+a {
+    color: var(--green-primary);
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--green-light);
+    text-decoration: none;
+}
+
+/* Sidebar active - Verde */
+.sidebar-menu a.active,
+.sidebar-menu a:hover {
+    background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-light) 100%) !important;
+    color: var(--white) !important;
+}
+
+/* Navbar - Gradiente verde */
+.navbar {
+    background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-light) 100%) !important;
+}
+
+/* Alert Success */
+.alert-success {
+    background-color: rgba(114, 192, 113, 0.1) !important;
+    border-color: var(--green-lighter) !important;
+    color: var(--text-dark) !important;
+}
+
+/* Dashboard Welcome */
+.dashboard-welcome {
+    background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-light) 100%) !important;
+}
+
+/* Input Groups */
+.input-group-text {
+    background-color: var(--green-soft) !important;
+    border-color: var(--green-lighter) !important;
+    color: var(--text-dark) !important;
+}
+
+/* Progress Bars */
+.progress-bar {
+    background-color: var(--green-primary) !important;
+}
+
+/* Tabs */
+.nav-tabs .nav-link.active {
+    background-color: var(--white) !important;
+    border-color: var(--green-lighter) var(--green-lighter) var(--white) !important;
+    color: var(--green-primary) !important;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: var(--green-soft) var(--green-soft) var(--green-lighter) !important;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dropdown-item:hover {
+    background-color: var(--green-background) !important;
+    color: var(--green-primary) !important;
+}
+
+/* Modals */
+.modal-header {
+    background-color: var(--green-soft) !important;
+    border-bottom: 2px solid var(--green-lighter) !important;
+}
+
+/* Pagination */
+.pagination .page-link {
+    color: var(--green-primary) !important;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--green-primary) !important;
+    border-color: var(--green-primary) !important;
+}
+
+.pagination .page-link:hover {
+    background-color: var(--green-background) !important;
+    color: var(--green-primary) !important;
+}

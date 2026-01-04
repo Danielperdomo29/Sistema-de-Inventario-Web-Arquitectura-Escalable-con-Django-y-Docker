@@ -29,6 +29,7 @@ TEMPLATES = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",  # Debug Toolbar (early)
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",  # Required for auth
@@ -74,6 +75,8 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "django_otp.plugins.otp_static",
     "allauth_2fa",
+    # Development & Debugging
+    "debug_toolbar",
 ]
 
 # Authentication Backends
@@ -103,3 +106,22 @@ STATICFILES_DIRS = [
 # Media files (App uploads)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# Django Debug Toolbar
+if DEBUG:
+    INTERNAL_IPS = [
+        "127.0.0.1",
+        "localhost",
+    ]
+
+# Cache Configuration (FileBasedCache for development, Redis for production)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'cache'),
+        'TIMEOUT': 300,  # 5 minutos default
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}

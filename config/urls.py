@@ -187,6 +187,13 @@ urlpatterns += [
     path("accounts/", include("allauth.urls")),
 ]
 
+# Debug Toolbar (DEBE IR PRIMERO en desarrollo)
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
+
 # Servir archivos estáticos en desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])

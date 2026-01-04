@@ -15,6 +15,11 @@ class Client(models.Model):
         db_table = "clientes"
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"
+        indexes = [
+            models.Index(fields=['documento'], name='idx_client_documento'),
+            models.Index(fields=['email'], name='idx_client_email'),
+            models.Index(fields=['activo'], name='idx_client_activo'),
+        ]
 
     def __str__(self):
         return self.nombre

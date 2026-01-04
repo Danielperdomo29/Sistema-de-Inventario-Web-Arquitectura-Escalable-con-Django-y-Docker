@@ -36,6 +36,13 @@ class Sale(models.Model):
         db_table = "ventas"
         verbose_name = "Venta"
         verbose_name_plural = "Ventas"
+        indexes = [
+            models.Index(fields=['fecha'], name='idx_sale_fecha'),
+            models.Index(fields=['cliente'], name='idx_sale_cliente'),
+            models.Index(fields=['usuario'], name='idx_sale_usuario'),
+            models.Index(fields=['estado'], name='idx_sale_estado'),
+            models.Index(fields=['-fecha', 'estado'], name='idx_sale_fecha_estado'),
+        ]
     
     def calculate_totals(self):
         """Calcula subtotal, IVA y total desde los detalles."""
