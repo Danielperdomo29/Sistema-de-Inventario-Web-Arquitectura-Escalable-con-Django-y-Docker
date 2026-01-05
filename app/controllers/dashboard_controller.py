@@ -39,6 +39,21 @@ class DashboardController:
             "total_movimientos": InventoryMovement.count(),
         }
 
+        # KPIs Profesionales para Contadores (Fase 5)
+        from app.services.kpi_service import KPIService
+        
+        try:
+            kpis = {
+                'margen_bruto': KPIService.get_margen_bruto_hoy(),
+                'ticket_promedio': KPIService.get_ticket_promedio(),
+                'top_productos': KPIService.get_top_productos_semana(3),
+                'stock_bajo': KPIService.get_stock_bajo(),
+                'ventas_mes': KPIService.get_ventas_mes_evolucion()
+            }
+        except Exception as e:
+            # Fallback si hay error en KPIs
+            kpis = None
+
         # Obtener productos con stock bajo (menos de 10 unidades)
         productos_bajo_stock = Product.get_low_stock(limit=10)
 
@@ -51,6 +66,6 @@ class DashboardController:
         # Renderizar dashboard
         return HttpResponse(
             DashboardView.index(
-                user, request.path, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras
+                user, request.path, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras, kpis
             )
         )

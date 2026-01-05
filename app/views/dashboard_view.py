@@ -7,7 +7,7 @@ class DashboardView:
     """Vista del Dashboard"""
 
     @staticmethod
-    def index(user, request_path, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras):
+    def index(user, request_path, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras, kpis=None):
         """Vista principal del dashboard mejorada"""
 
         # Tarjetas de estadísticas principales
@@ -252,9 +252,288 @@ class DashboardView:
         </div>
         """
 
+        # KPIs Profesionales con Gráficas (Fase 5)
+        kpi_section = ""
+        if kpis:
+            # Chart.js CDN
+            chartjs_cdn = '\u003cscript src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"\u003e\u003c/script\u003e'
+            
+            # KPI Cards
+            kpi_cards = f"""
+            \u003c!-- KPIs Profesionales para Contadores --\u003e
+            \u003cdiv class="kpi-section"\u003e
+                \u003ch2 class="section-title"\u003e\u003ci class="fas fa-chart-bar"\u003e\u003c/i\u003e KPIs Profesionales\u003c/h2\u003e
+                
+                \u003cdiv class="kpi-cards-grid"\u003e
+                    \u003c!-- Margen Bruto --\u003e
+                    \u003cdiv class="kpi-card {"kpi-positive" if kpis['margen_bruto']['tendencia'] == 'up' else 'kpi-negative'}"\u003e
+                        \u003cdiv class="kpi-header"\u003e
+                            \u003cspan class="kpi-icon"\u003e\u003ci class="fas fa-chart-line"\u003e\u003c/i\u003e\u003c/span\u003e
+                            \u003cspan class="kpi-title"\u003eMargen Bruto Hoy\u003c/span\u003e
+                        \u003c/div\u003e
+                        \u003cdiv class="kpi-value"\u003e${kpis['margen_bruto']['margen_hoy']:,.2f}\u003c/div\u003e
+                        \u003cdiv class="kpi-trend {"trend-up" if kpis['margen_bruto']['tendencia'] == 'up' else 'trend-down'}"\u003e
+                            \u003ci class="fas fa-arrow-{kpis['margen_bruto']['tendencia']}"\u003e\u003c/i\u003e
+                            {abs(kpis['margen_bruto']['cambio_pct'])}% vs ayer
+                        \u003c/div\u003e
+                    \u003c/div\u003e
+                    
+                    \u003c!-- Ticket Promedio --\u003e
+                    \u003cdiv class="kpi-card"\u003e
+                        \u003cdiv class="kpi-header"\u003e
+                            \u003cspan class="kpi-icon"\u003e\u003ci class="fas fa-receipt"\u003e\u003c/i\u003e\u003c/span\u003e
+                            \u003cspan class="kpi-title"\u003eTicket Promedio\u003c/span\u003e
+                        \u003c/div\u003e
+                        \u003cdiv class="kpi-value"\u003e${kpis['ticket_promedio']['ticket_promedio']:,.2f}\u003c/div\u003e
+                        \u003cdiv class="kpi-info"\u003e{kpis['ticket_promedio']['cantidad_ventas']} ventas este mes\u003c/div\u003e
+                    \u003c/div\u003e
+                    
+                    \u003c!-- Stock Bajo Alert --\u003e
+                    \u003cdiv class="kpi-card {"kpi-alert" if kpis['stock_bajo']['count'] > 0 else 'kpi-success'}"\u003e
+                        \u003cdiv class="kpi-header"\u003e
+                            \u003cspan class="kpi-icon"\u003e\u003ci class="fas fa-exclamation-triangle"\u003e\u003c/i\u003e\u003c/span\u003e
+                            \u003cspan class="kpi-title"\u003eAlerta Stock Bajo\u003c/span\u003e
+                        \u003c/div\u003e
+                        \u003cdiv class="kpi-value"\u003e{kpis['stock_bajo']['count']}\u003c/div\u003e
+                        \u003cdiv class="kpi-info"\u003eproductos requieren atención\u003c/div\u003e
+                    \u003c/div\u003e
+                    
+                    \u003c!-- Total Ventas del Mes --\u003e
+                    \u003cdiv class="kpi-card kpi-highlight"\u003e
+                        \u003cdiv class="kpi-header"\u003e
+                            \u003cspan class="kpi-icon"\u003e\u003ci class="fas fa-dollar-sign"\u003e\u003c/i\u003e\u003c/span\u003e
+                            \u003cspan class="kpi-title"\u003eVentas del Mes\u003c/span\u003e
+                        \u003c/div\u003e
+                        \u003cdiv class="kpi-value"\u003e${kpis['ventas_mes']['total_mes']:,.2f}\u003c/div\u003e
+                        \u003cdiv class="kpi-info"\u003eTotal acumulado\u003c/div\u003e
+                    \u003c/div\u003e
+                \u003c/div\u003e
+            \u003c/div\u003e
+            """
+            
+            # Gráficas
+            import json
+            charts_section = f"""
+            \u003cdiv class="charts-container"\u003e
+                \u003c!-- Ventas del Mes --\u003e
+                \u003cdiv class="chart-card"\u003e
+                    \u003ch3\u003e\u003ci class="fas fa-chart-area"\u003e\u003c/i\u003e Evolución de Ventas - Mes Actual\u003c/h3\u003e
+                    \u003ccanvas id="ventasMesChart"\u003e\u003c/canvas\u003e
+                \u003c/div\u003e
+                
+                \u003c!-- Top Productos --\u003e
+                \u003cdiv class="chart-card"\u003e
+                    \u003ch3\u003e\u003ci class="fas fa-trophy"\u003e\u003c/i\u003e Top 3 Productos (Última Semana)\u003c/h3\u003e
+                    \u003ccanvas id="topProductosChart"\u003e\u003c/canvas\u003e
+                \u003c/div\u003e
+            \u003c/div\u003e
+            
+            {chartjs_cdn}
+            \u003cscript\u003e
+            // Ventas del Mes - Line Chart
+            const ventasCtx = document.getElementById('ventasMesChart');
+            if (ventasCtx) {{
+                new Chart(ventasCtx, {{
+                    type: 'line',
+                    data: {{
+                        labels: {json.dumps(kpis['ventas_mes']['labels'])},
+                        datasets: [{{
+                            label: 'Ventas Diarias',
+                            data: {json.dumps(kpis['ventas_mes']['data'])},
+                            borderColor: 'rgb(99, 102, 241)',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {{
+                            legend: {{ display: false }},
+                            tooltip: {{
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                callbacks: {{
+                                    label: function(context) {{
+                                        return 'Ventas: $' + context.parsed.y.toLocaleString('es-CO', {{minimumFractionDigits: 2}});
+                                    }}
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                ticks: {{
+                                    callback: function(value) {{
+                                        return '$' + value.toLocaleString('es-CO');
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // Top Productos - Bar Chart
+            const productosCtx = document.getElementById('topProductosChart');
+            if (productosCtx) {{
+                const topProductos = {json.dumps(kpis['top_productos'])};
+                
+                new Chart(productosCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: topProductos.map(p => p.nombre),
+                        datasets: [{{
+                            label: 'Cantidad Vendida',
+                            data: topProductos.map(p => p.cantidad),
+                            backgroundColor: [
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(251, 191, 36, 0.8)'
+                            ],
+                            borderWidth: 0
+                        }}]
+                    }},
+                    options: {{
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {{
+                            legend: {{ display: false }},
+                            tooltip: {{
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                callbacks: {{
+                                    afterLabel: function(context) {{
+                                        const producto = topProductos[context.dataIndex];
+                                        return 'Ingresos: $' + producto.ingresos.toLocaleString('es-CO', {{minimumFractionDigits: 2}});
+                                    }}
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            x: {{
+                                beginAtZero: true,
+                                ticks: {{
+                                    stepSize: 1
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+            \u003c/script\u003e
+            
+            \u003cstyle\u003e
+            .kpi-section {{
+                margin: 2rem 0;
+                padding: 1.5rem;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 16px;
+                color: white;
+            }}
+            .section-title {{
+                margin: 0 0 1.5rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }}
+            .kpi-cards-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+            }}
+            .kpi-card {{
+                background: white;
+                border-radius: 12px;
+                padding: 1.5rem;
+                color: #333;
+                transition: transform 0.2s;
+            }}
+            .kpi-card:hover {{
+                transform: translateY(-4px);
+                box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            }}
+            .kpi-header {{
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+                font-weight: 600;
+                color: #666;
+            }}
+            .kpi-icon {{
+                font-size: 1.2rem;
+            }}
+            .kpi-value {{
+                font-size: 2rem;
+                font-weight: 700;
+                color: #1f2937;
+                margin-bottom: 0.5rem;
+            }}
+            .kpi-trend, .kpi-info {{
+                font-size: 0.9rem;
+                font-weight: 500;
+            }}
+            .trend-up {{
+                color: #10b981;
+            }}
+            .trend-down {{
+                color: #ef4444;
+            }}
+            .kpi-positive {{
+                border-left: 4px solid #10b981;
+            }}
+            .kpi-negative {{
+                border-left: 4px solid #ef4444;
+            }}
+            .kpi-alert {{
+                border-left: 4px solid #f59e0b;
+            }}
+            .kpi-success {{
+                border-left: 4px solid #10b981;
+            }}
+            .kpi-highlight {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }}
+            .kpi-highlight .kpi-header,
+            .kpi-highlight .kpi-value,
+            .kpi-highlight .kpi-info {{
+                color: white;
+            }}
+            .charts-container {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+                gap: 2rem;
+                margin: 2rem 0;
+            }}
+            .chart-card {{
+                background: white;
+                padding: 1.5rem;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }}
+            .chart-card h3 {{
+                margin: 0 0 1.5rem 0;
+                color: #1f2937;
+                font-size: 1.1rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            \u003c/style\u003e
+            """
+            
+            kpi_section = kpi_cards + charts_section
+
         content = (
             welcome_card
             + main_stats
+            + kpi_section
             + secondary_stats
             + productos_stock_section
             + ultimas_ventas_section
