@@ -45,6 +45,42 @@ services:
     command: redis-server --appendonly yes
     restart: unless-stopped
 
+  # Celery Worker (Fase 3 - Async Tasks)
+  celery_worker:
+    build: .
+    command: celery -A config worker -l INFO
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_URL=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  # Celery Beat (Fase 3 - Scheduled Tasks)
+  celery_beat:
+    build: .
+    command: celery -A config beat -l INFO
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - .env
+    restart: unless-stopped
+
 volumes:
   mysql_data:
   redis_data:

@@ -12,3 +12,8 @@ pymysql.install_as_MySQLdb()
 # Configuramos PyMySQL para que se identifique como versión compatible
 pymysql.version_info = (2, 2, 1, "final", 0)
 pymysql.__version__ = "2.2.1"
+
+# Import Celery app (debe cargarse cuando Django inicia)
+from .celery import app as celery_app
+
+__all__ = ('celery_app',)

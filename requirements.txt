@@ -46,6 +46,9 @@ hiredis==2.3.2
 # Load Testing
 locust==2.20.0
 
+# Celery (Fase 3 - Async Tasks)
+celery==5.3.4
+
 # DevSecOps Tools
 black==24.1.1
 pylint==3.0.3
