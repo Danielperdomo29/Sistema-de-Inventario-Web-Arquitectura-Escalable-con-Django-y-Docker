@@ -38,6 +38,14 @@ requests==2.31.0  # For API clients (OpenRouter, DeepSeek)
 # Development & Debugging
 django-debug-toolbar==4.2.0
 
+# Redis Cache (Fase 2 - Production)
+django-redis==5.4.0
+redis==5.0.1
+hiredis==2.3.2
+
+# Load Testing
+locust==2.20.0
+
 # DevSecOps Tools
 black==24.1.1
 pylint==3.0.3

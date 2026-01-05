@@ -114,17 +114,29 @@ if DEBUG:
         "localhost",
     ]
 
-# Cache Configuration (FileBasedCache for development, Redis for production)
+# Redis Cache (Fase 2 - Production Ready)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(BASE_DIR, 'cache'),
-        'TIMEOUT': 300,  # 5 minutos default
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
         'OPTIONS': {
-            'MAX_ENTRIES': 1000
-        }
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 50,
+                'decode_responses': True,
+            },
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+        },
+        'KEY_PREFIX': 'inventario',
+        'TIMEOUT': 300,  # 5 minutos default
     }
 }
+
+# Session en Redis (mejor performance que DB)
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 # Query Logging para validación de performance
 LOGGING = {
