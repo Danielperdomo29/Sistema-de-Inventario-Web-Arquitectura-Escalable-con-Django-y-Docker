@@ -79,6 +79,10 @@ class ProductController:
 
                 # Crear el producto
                 Product.create(data)
+                
+                # Invalidar caché de productos para reflejar el nuevo producto
+                from django.core.cache import cache
+                cache.delete('catalog:products:all')
 
                 # Redireccionar a la lista
                 return HttpResponseRedirect("/productos/")
@@ -148,6 +152,10 @@ class ProductController:
 
                 # Actualizar el producto
                 Product.update(product_id, data)
+                
+                # Invalidar caché de productos para reflejar cambios
+                from django.core.cache import cache
+                cache.delete('catalog:products:all')
 
                 # Redireccionar a la lista
                 return HttpResponseRedirect("/productos/")
