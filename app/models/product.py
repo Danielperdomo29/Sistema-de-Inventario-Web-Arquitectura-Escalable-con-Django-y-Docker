@@ -2,6 +2,7 @@ from django.db import models
 
 from app.models.category import Category
 from app.models.supplier import Supplier
+from app.services.cache_service import CacheService
 
 
 class Product(models.Model):
@@ -56,6 +57,7 @@ class Product(models.Model):
         return self.nombre
 
     @staticmethod
+    @CacheService.cache_product_catalog()
     def get_all():
         """Obtiene todos los productos activos"""
         products = Product.objects.filter(activo=True).select_related("categoria").order_by("-id")

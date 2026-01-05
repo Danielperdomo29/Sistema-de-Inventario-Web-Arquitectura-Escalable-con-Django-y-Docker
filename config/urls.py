@@ -187,12 +187,12 @@ urlpatterns += [
     path("accounts/", include("allauth.urls")),
 ]
 
-# Debug Toolbar (DEBE IR PRIMERO en desarrollo)
-if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+# Debug Toolbar (DESACTIVADO TEMPORALMENTE - no crítico, optimizaciones funcionan)
+# if settings.DEBUG:
+#     import debug_toolbar
+#     urlpatterns = [
+#         path('__debug__/', include(debug_toolbar.urls)),
+#     ] + urlpatterns
 
 # Servir archivos estáticos en desarrollo
 if settings.DEBUG:
