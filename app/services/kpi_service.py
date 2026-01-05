@@ -17,71 +17,82 @@ class KPIService:
     CACHE_TIMEOUT_LONG = 60 * 60 * 2  # 2 horas - Datos históricos
     
     @staticmethod
-    def get_margen_bruto_hoy():
+    def get_margen_bruto(dias=180):
         """
-        Margen bruto del día vs ayer
-        KPI #1 - Crítico para contadores
+        Margen bruto del periodo vs periodo anterior
+        KPI #1 - CR\u00cdTICO para contadores (Fase 1: Filtro din\u00e1mico)
+        
+        Args:
+            dias: D\u00edas hacia atr\u00e1s para analizar (default 180)
         
         Returns:
             dict: {
-                'margen_hoy': float,
-                'margen_ayer': float,
+                'margen_periodo': float,
+                'margen_anterior': float,
                 'cambio_pct': float,
                 'tendencia': 'up'|'down'
             }
         """
-        cache_key = 'kpi:margen_bruto:today'
+        # Validar periodo
+        if dias not in [7, 30, 90, 180, 365]:
+            dias = 180
+        
+        cache_key = f'kpi:margen_bruto:dias:{dias}'
         cached = cache.get(cache_key)
         if cached:
             return cached
         
         from app.models.sale import Sale, SaleDetail
         
-        hoy = timezone.now().date()
-        ayer = hoy - timedelta(days=1)
+        fecha_limite = timezone.now() - timedelta(days=dias)
+        fecha_anterior = fecha_limite - timedelta(days=dias)
         
-        # Ventas de hoy
-        ventas_hoy = Sale.objects.filter(fecha__date=hoy).aggregate(
+        # Ventas del periodo actual
+        ventas_periodo = Sale.objects.filter(fecha__gte=fecha_limite).aggregate(
             total=Sum('total')
         )['total'] or 0
         
-        # Costo de ventas de hoy (desde SaleDetail)
-        costo_hoy = SaleDetail.objects.filter(
-            venta__fecha__date=hoy
+        # Costo de ventas del periodo (desde SaleDetail)
+        costo_periodo = SaleDetail.objects.filter(
+            venta__fecha__gte=fecha_limite
         ).annotate(
             costo_total=F('cantidad') * F('producto__precio_compra')
         ).aggregate(
             total=Sum('costo_total')
         )['total'] or 0
         
-        margen_hoy = float(ventas_hoy - costo_hoy)
+        margen_periodo = float(ventas_periodo - costo_periodo)
         
-        # Ayer (para comparación)
-        ventas_ayer = Sale.objects.filter(fecha__date=ayer).aggregate(
+        # Periodo anterior (para comparaci\u00f3n)
+        ventas_anterior = Sale.objects.filter(
+            fecha__gte=fecha_anterior,
+            fecha__lt=fecha_limite
+        ).aggregate(
             total=Sum('total')
         )['total'] or 0
         
-        costo_ayer = SaleDetail.objects.filter(
-            venta__fecha__date=ayer
+        costo_anterior = SaleDetail.objects.filter(
+            venta__fecha__gte=fecha_anterior,
+            venta__fecha__lt=fecha_limite
         ).annotate(
             costo_total=F('cantidad') * F('producto__precio_compra')
         ).aggregate(
             total=Sum('costo_total')
         )['total'] or 0
         
-        margen_ayer = float(ventas_ayer - costo_ayer)
+        margen_anterior = float(ventas_anterior - costo_anterior)
         
-        # % de cambio (robustez para división por cero)
-        if margen_ayer > 0:
-            cambio_pct = ((margen_hoy - margen_ayer) / margen_ayer) * 100
-        elif margen_hoy > 0:
-            cambio_pct = 100  # 100% de incremento si no había ventas ayer
+        # % de cambio (robustez para divisi\u00f3n por cero)
+        if margen_anterior > 0:
+            cambio_pct = ((margen_periodo - margen_anterior) / margen_anterior) * 100
+        elif margen_periodo > 0:
+            cambio_pct = 100
         else:
             cambio_pct = 0
         
         result = {
-            'margen_hoy': round(margen_hoy, 2),
-            'margen_ayer': round(margen_ayer, 2),
+            'margen_periodo': round(margen_periodo, 2),
+            'margen_anterior': round(margen_anterior, 2),
             'cambio_pct': round(cambio_pct, 2),
             'tendencia': 'up' if cambio_pct > 0 else 'down'
         }
@@ -90,10 +101,13 @@ class KPIService:
         return result
     
     @staticmethod
-    def get_ticket_promedio():
+    def get_ticket_promedio(dias=180):
         """
-        Ticket promedio del mes
-        KPI #2 - Comportamiento del cliente
+        Ticket promedio del periodo
+        KPI #2 - Comportamiento del cliente (Fase 1: Filtro din\u00e1mico)
+        
+        Args:
+            dias: D\u00edas hacia atr\u00e1s para analizar (default 180)
         
         Returns:
             dict: {
@@ -101,25 +115,27 @@ class KPIService:
                 'cantidad_ventas': int
             }
         """
-        cache_key = 'kpi:ticket_promedio:month'
+        # Validar periodo
+        if dias not in [7, 30, 90, 180, 365]:
+            dias = 180
+        
+        cache_key = f'kpi:ticket_promedio:dias:{dias}'
         cached = cache.get(cache_key)
         if cached:
             return cached
         
         from app.models.sale import Sale
         
-        mes_actual = timezone.now().month
-        año_actual = timezone.now().year
+        fecha_limite = timezone.now() - timedelta(days=dias)
         
         stats = Sale.objects.filter(
-            fecha__year=año_actual,
-            fecha__month=mes_actual
+            fecha__gte=fecha_limite
         ).aggregate(
             total=Sum('total'),
             count=Count('id')
         )
         
-        # ROBUSTEZ: Evita división por cero
+        # ROBUSTEZ: Evita divisi\u00f3n por cero
         ventas_count = stats['count'] or 0
         ventas_total = stats['total'] or 0
         ticket_promedio = (ventas_total / ventas_count) if ventas_count > 0 else 0.0
@@ -133,32 +149,38 @@ class KPIService:
         return result
     
     @staticmethod
-    def get_top_productos_semana(limit=3):
+    def get_top_productos(dias=180, limit=3):
         """
-        Top productos más vendidos de la semana
-        KPI #3 - Productos estrella
+        Top productos m\u00e1s vendidos del periodo
+        KPI #3 - Productos estrella (Fase 1: Filtro din\u00e1mico)
         
         Args:
+            dias: D\u00edas hacia atr\u00e1s para analizar (default 180)
             limit: Cantidad de productos a retornar (default 3)
         
         Returns:
             list: [{
-                'producto__nombre': str,
-                'cantidad_total': int,
-                'ingresos_total': float
+                'nombre': str,
+                'codigo': str,
+                'cantidad': int,
+                'ingresos': float
             }]
         """
-        cache_key = f'kpi:top_productos:week:{limit}'
+        # Validar periodo
+        if dias not in [7, 30, 90, 180, 365]:
+            dias = 180
+       
+        cache_key = f'kpi:top_productos:dias:{dias}:limit:{limit}'
         cached = cache.get(cache_key)
         if cached:
             return cached
         
         from app.models.sale import SaleDetail
         
-        hace_7_dias = timezone.now() - timedelta(days=7)
+        fecha_limite = timezone.now() - timedelta(days=dias)
         
         top_productos = SaleDetail.objects.filter(
-            venta__fecha__gte=hace_7_dias
+            venta__fecha__gte=fecha_limite
         ).values(
             'producto__nombre', 'producto__codigo'
         ).annotate(
@@ -215,53 +237,71 @@ class KPIService:
         return result
     
     @staticmethod
-    def get_ventas_mes_evolucion():
+    def get_ventas_evolucion(dias=180):
         """
-        Evolución de ventas del mes día a día
-        KPI #5 - Tendencia mensual
+        Evolución de ventas del periodo (día a día o agrupado)
+        KPI #5 - Tendencia del periodo (Fase 1: Filtro dinámico)
+        
+        Args:
+            dias: Días hacia atrás para analizar (default 180)
         
         Returns:
             dict: {
                 'labels': list,
                 'data': list,
-                'total_mes': float
+                'total_periodo': float
             }
         """
-        cache_key = 'kpi:ventas_mes:evolucion'
+        # Validar periodo
+        if dias not in [7, 30, 90, 180, 365]:
+            dias = 180
+       
+        cache_key = f'kpi:ventas_evolucion:dias:{dias}'
         cached = cache.get(cache_key)
         if cached:
             return cached
         
         from app.models.sale import Sale
-        from django.db.models.functions import TruncDate
+        from django.db.models.functions import TruncDate, TruncWeek
         
-        mes_actual = timezone.now().month
-        año_actual = timezone.now().year
+        fecha_limite = timezone.now() - timedelta(days=dias)
         
-        # Group by date
-        ventas_por_dia = Sale.objects.filter(
-            fecha__year=año_actual,
-            fecha__month=mes_actual
-        ).annotate(
-            dia=TruncDate('fecha')
-        ).values('dia').annotate(
-            total_dia=Sum('total')
-        ).order_by('dia')
+        # Agrupar por día si <= 30 días, por semana si > 30
+        if dias <= 30:
+            # Agrupación diaria
+            ventas_agrupadas = Sale.objects.filter(
+                fecha__gte=fecha_limite
+            ).annotate(
+                periodo=TruncDate('fecha')
+            ).values('periodo').annotate(
+                total_periodo=Sum('total')
+            ).order_by('periodo')
+            
+            labels = [v['periodo'].strftime('%d/%m') for v in ventas_agrupadas]
+        else:
+            # Agrupación semanal
+            ventas_agrupadas = Sale.objects.filter(
+                fecha__gte=fecha_limite
+            ).annotate(
+                periodo=TruncWeek('fecha')
+            ).values('periodo').annotate(
+                total_periodo=Sum('total')
+            ).order_by('periodo')
+            
+            labels = [f"Sem {v['periodo'].isocalendar()[1]}" for v in ventas_agrupadas]
         
-        labels = []
         data = []
-        total_mes = 0
+        total_general = 0
         
-        for v in ventas_por_dia:
-            labels.append(v['dia'].strftime('%d'))
-            total_dia = float(v['total_dia'])
-            data.append(total_dia)
-            total_mes += total_dia
+        for v in ventas_agrupadas:
+            total = float(v['total_periodo'])
+            data.append(round(total, 2))
+            total_general += total
         
         result = {
             'labels': labels,
             'data': data,
-            'total_mes': round(total_mes, 2)
+            'total_periodo': round(total_general, 2)
         }
         
         cache.set(cache_key, result, KPIService.CACHE_TIMEOUT_MEDIUM)

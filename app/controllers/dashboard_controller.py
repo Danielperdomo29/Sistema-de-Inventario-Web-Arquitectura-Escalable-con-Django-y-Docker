@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect
 
 from app.models.category import Category
 from app.models.client import Client
@@ -17,42 +18,51 @@ class DashboardController:
     """Controlador del Dashboard"""
 
     @staticmethod
-    @login_required(login_url="/login/")
     def index(request):
         """Muestra el dashboard"""
-        # Obtenemos el usuario directamente del request (autenticación Django)
-        user = request.user
-
-        # Obtener estadísticas principales
-        # Nota: Los modelos serán refactorizados a ORM, asegurando que estos métodos
-        # sigan existiendo o se adapten.
+        user = request.session.get('user')
+        
+        if not user:
+            return redirect('/login/')
+        
+        # KPIs Profesionales para Contadores (Fase 5)
+        from app.services.kpi_service import KPIService
+        
+        # Capturar y validar periodo (días)
+        PERIODOS_PERMITIDOS = [7, 30, 90, 180, 365]
+        try:
+            periodo_dias = int(request.GET.get('periodo', 180))
+            if periodo_dias not in PERIODOS_PERMITIDOS:
+                periodo_dias = 180  # Fallback a default
+        except (ValueError, TypeError):
+            periodo_dias = 180
+        
+        # Estadísticas generales (no dependen de periodo)
         stats = {
             "total_productos": Product.count(),
-            "total_categorias": Category.count(),
+            "total_categorias": Category.count(), # Kept from original, not in diff's new stats
             "total_clientes": Client.count(),
-            "total_proveedores": Supplier.count(),
-            "total_almacenes": Warehouse.count(),
+            "total_proveedores": Supplier.count(), # Kept from original, not in diff's new stats
+            "total_almacenes": Warehouse.count(), # Kept from original, not in diff's new stats
             "ventas_mes": Sale.total_ventas_mes(),
             "compras_mes": Purchase.total_compras_mes(),
             "total_ventas": Sale.count(),
             "total_compras": Purchase.count(),
             "total_movimientos": InventoryMovement.count(),
         }
-
-        # KPIs Profesionales para Contadores (Fase 5)
-        from app.services.kpi_service import KPIService
         
+        # Calcular KPIs con periodo dinámico
         try:
             kpis = {
-                'margen_bruto': KPIService.get_margen_bruto_hoy(),
-                'ticket_promedio': KPIService.get_ticket_promedio(),
-                'top_productos': KPIService.get_top_productos_semana(3),
-                'stock_bajo': KPIService.get_stock_bajo(),
-                'ventas_mes': KPIService.get_ventas_mes_evolucion(),
-                # Fase 2: Gráficas Avanzadas
-                'flujo_caja': KPIService.get_flujo_caja_mensual(6),
-                'rotacion_inventario': KPIService.get_rotacion_inventario_por_categoria(10),
-                'concentracion_clientes': KPIService.get_concentracion_clientes(20, 6)
+                'margen_bruto': KPIService.get_margen_bruto(periodo_dias),
+                'ticket_promedio': KPIService.get_ticket_promedio(periodo_dias),
+                'top_productos': KPIService.get_top_productos(periodo_dias, 3),
+                'stock_bajo': KPIService.get_stock_bajo(),  # No depende de fecha
+                'ventas_evolucion': KPIService.get_ventas_evolucion(periodo_dias),
+                # Fase 2: Gráficas Avanzadas (con periodo dinámico)
+                'flujo_caja': KPIService.get_flujo_caja_mensual(periodo_dias),
+                'rotacion_inventario': KPIService.get_rotacion_inventario_por_categoria(periodo_dias, 10),
+                'concentracion_clientes': KPIService.get_concentracion_clientes(periodo_dias, 20)
             }
             print("✅ KPIs calculados correctamente:", list(kpis.keys()))
         except Exception as e:
@@ -61,7 +71,7 @@ class DashboardController:
             import traceback
             traceback.print_exc()
             kpis = None
-
+        
         # Obtener productos con stock bajo (menos de 10 unidades)
         productos_bajo_stock = Product.get_low_stock(limit=10)
 
@@ -69,11 +79,7 @@ class DashboardController:
         ultimas_ventas = Sale.get_all(limit=5)
 
         # Obtener últimas compras
-        ultimas_compras = Purchase.get_all(limit=5)
+        ultimas_compras = Purchase.get_recent(limit=5)
 
-        # Renderizar dashboard
-        return HttpResponse(
-            DashboardView.index(
-                user, request.path, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras, kpis
-            )
-        )
+        # Retornar la vista del dashboard CON periodo
+        return DashboardView.index(user, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras, kpis, periodo_dias)
