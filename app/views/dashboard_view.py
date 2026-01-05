@@ -7,8 +7,18 @@ class DashboardView:
     """Vista del Dashboard"""
 
     @staticmethod
-    def index(user, request_path, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras, kpis=None):
-        """Vista principal del dashboard mejorada"""
+    def index(user, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras, kpis=None, periodo_dias=180):
+        """Vista principal del dashboard mejorada CON filtro de periodo"""
+        
+        # Mapeo de periodo a texto legible
+        periodo_labels = {
+            7: 'Últimos 7 días',
+            30: 'Últimos 30 días',
+            90: 'Últimos 3 meses',
+            180: 'Últimos 6 meses',
+            365: 'Último año'
+        }
+        periodo_text = periodo_labels.get(periodo_dias, f'Últimos {periodo_dias} días')
 
         # Tarjetas de estadísticas principales
         main_stats = f"""
@@ -249,6 +259,29 @@ class DashboardView:
         <div class="welcome-banner">
             <h1>Bienvenido, {user.nombre_completo}</h1>
             <p>Rol: {user.rol} | Dashboard del Sistema de Inventario</p>
+        </div>
+        """
+        
+        # Filtro de Periodo (Fase 1 - Filtro Dinámico)
+        period_filter = f"""
+        <div class="period-filter-section">
+            <form method="GET" action="/dashboard/" class="period-filter-form">
+                <div class="filter-group">
+                    <label for="periodo">
+                        <i class="fas fa-calendar-alt"></i> Periodo de Análisis:
+                    </label>
+                    <select name="periodo" id="periodo" class="period-select" onchange="this.form.submit()">
+                        <option value="7" {'selected' if periodo_dias == 7 else ''}>Últimos 7 días</option>
+                        <option value="30" {'selected' if periodo_dias == 30 else ''}>Últimos 30 días</option>
+                        <option value="90" {'selected' if periodo_dias == 90 else ''}>Últimos 3 meses</option>
+                        <option value="180" {'selected' if periodo_dias == 180 else ''}>Últimos 6 meses</option>
+                        <option value="365" {'selected' if periodo_dias == 365 else ''}>Último año</option>
+                    </select>
+                    <span class="period-indicator">
+                        <i class="fas fa-filter"></i> Mostrando: <strong>{periodo_text}</strong>
+                    </span>
+                </div>
+            </form>
         </div>
         """
 
@@ -1177,6 +1210,97 @@ class DashboardView:
             .alert-baja .alert-icon {{
                 color: #16a34a;
             }}
+            
+            /* Filtro de Periodo */
+            .period-filter-section {{
+                margin: 2rem 0;
+                padding: 1.5rem;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 1rem;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            }}
+            
+            .period-filter-form {{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }}
+            
+            .filter-group {{
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }}
+            
+            .filter-group label {{
+                color: white;
+                font-weight: 600;
+                font-size: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            
+            .period-select {{
+                padding: 0.75rem 1.5rem;
+                border: 2px solid white;
+                border-radius: 0.5rem;
+                font-size: 1rem;
+                font-weight: 500;
+                background: white;
+                color: #667eea;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                min-width: 200px;
+            }}
+            
+            .period-select:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }}
+            
+            .period-select:focus {{
+                outline: none;
+                border-color: #ffd700;
+                box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+            }}
+            
+            .period-indicator {{
+                padding: 0.75rem 1.25rem;
+                background: rgba(255, 255, 255, 0.2);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 0.5rem;
+                color: white;
+                font-size: 0.95rem;
+                backdrop-filter: blur(10px);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            
+            .period-indicator strong {{
+                color: #ffd700;
+                font-weight: 700;
+            }}
+            
+            /* Responsive */
+            @media (max-width: 768px) {{
+                .filter-group {{
+                    flex-direction: column;
+                    gap: 0.75rem;
+                }}
+                
+                .period-select {{
+                    width: 100%;
+                }}
+                
+                .period-indicator {{
+                    width: 100%;
+                    justify-content: center;
+                }}
+            }}
             </style>
             """
         else:
@@ -1184,6 +1308,7 @@ class DashboardView:
 
         content = (
             welcome_card
+            + period_filter
             + main_stats
             + kpi_section
             + charts_advanced
