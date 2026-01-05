@@ -543,7 +543,7 @@ class DashboardView:
                     <button class="tab-btn active" data-tab="flujo-caja">
                         <i class="fas fa-money-bill-wave"></i> Flujo de Caja
                     </button>
-                    <button class="tab-btn" data-tab="rotacion" disabled title="Próximamente">
+                    <button class="tab-btn" data-tab="rotacion">
                         <i class="fas fa-sync-alt"></i> Rotación Inventario
                     </button>
                     <button class="tab-btn" data-tab="pareto" disabled title="Próximamente">
@@ -579,12 +579,18 @@ class DashboardView:
                     </div>
                 </div>
                 
-                <!-- Placeholder tabs (para futuro) -->
+                <!-- Tab Content: Rotación de Inventario -->
                 <div class="tab-content" id="tab-rotacion">
-                    <div class="placeholder-content">
-                        <i class="fas fa-sync-alt fa-3x"></i>
-                        <p>Próximamente: Rotación de Inventario por Categoría</p>
-                        <small>Fase 2.2 - Optimización de Capital de Trabajo</small>
+                    <div class="chart-card-large">
+                        <h3>
+                            <i class="fas fa-sync-alt"></i> 
+                            Rotación de Inventario por Categoría
+                        </h3>
+                        <p class="chart-description">
+                            <strong>Días de Inventario:</strong> Tiempo promedio que tarda el inventario en venderse. 
+                            Menor = Mejor eficiencia. Mayor = Capital inmovilizado.
+                        </p>
+                        <canvas id="rotacionInventarioChart"></canvas>
                     </div>
                 </div>
                 
@@ -695,6 +701,100 @@ class DashboardView:
                                     callback: function(value) {{
                                         return '$' + value.toLocaleString('es-CO');
                                     }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // Rotación de Inventario Chart (Horizontal Bar)
+            const rotacionCtx = document.getElementById('rotacionInventarioChart');
+            if (rotacionCtx) {{
+                const rotacionData = {json.dumps(kpis['rotacion_inventario'])};
+                
+                // Colores dinámicos basados en días de inventario
+                // Verde: <30 días (excelente)
+                // Amarillo: 30-60 días (normal)
+                // Naranja: 60-90 días (lento)
+                // Rojo: >90 días (crítico)
+                const barColors = rotacionData.dias_inventario.map(dias => {{
+                    if (dias < 30) return 'rgba(34, 197, 94, 0.8)';  // Verde
+                    if (dias < 60) return 'rgba(234, 179, 8, 0.8)';  // Amarillo
+                    if (dias < 90) return 'rgba(249, 115, 22, 0.8)'; // Naranja
+                    return 'rgba(239, 68, 68, 0.8)';  // Rojo (incluye 999 = sin ventas)
+                }});
+                
+                new Chart(rotacionCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: rotacionData.labels,
+                        datasets: [{{
+                            label: 'Días de Inventario',
+                            data: rotacionData.dias_inventario,
+                            backgroundColor: barColors,
+                            borderColor: barColors.map(color => color.replace('0.8', '1')),
+                            borderWidth: 1
+                        }}]
+                    }},
+                    options: {{
+                        indexAxis: 'y',  // Barras horizontales
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {{
+                            legend: {{
+                                display: false
+                            }},
+                            tooltip: {{
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                callbacks: {{
+                                    label: function(context) {{
+                                        const dias = context.parsed.x;
+                                        const index = context.dataIndex;
+                                        const rotacion = rotacionData.rotacion_anual[index];
+                                        const costo = rotacionData.costo_inventario[index];
+                                        
+                                        // Mensaje especial para inventario estancado
+                                        if (dias >= 999) {{
+                                            return [
+                                                'Días: Sin rotación (sin ventas)',
+                                                `Costo Inventario: \\$${{costo.toLocaleString('es-CO', {{
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                }})}}`
+                                            ];
+                                        }}
+                                        
+                                        return [
+                                            `Días Inventario: ${{dias.toFixed(1)}}`,
+                                            `Rotación Anual: ${{rotacion.toFixed(2)}}x`,
+                                            `Costo Inventario: \\$${{costo.toLocaleString('es-CO', {{
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }})}}`
+                                        ];
+                                    }}
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            x: {{
+                                beginAtZero: true,
+                                title: {{
+                                    display: true,
+                                    text: 'Días de Inventario'
+                                }},
+                                ticks: {{
+                                    callback: function(value) {{
+                                        if (value >= 999) return 'Sin rotación';
+                                        return value + ' días';
+                                    }}
+                                }}
+                            }},
+                            y: {{
+                                ticks: {{
+                                    autoSkip: false
                                 }}
                             }}
                         }}
@@ -846,6 +946,17 @@ class DashboardView:
             .placeholder-content small {{
                 font-size: 0.9rem;
                 color: #9ca3af;
+            }}
+            
+            .chart-description {{
+                margin: 0 0 1.5rem 0;
+                padding: 1rem;
+                background: #f3f4f6;
+                border-left: 4px solid #667eea;
+                border-radius: 4px;
+                font-size: 0.95rem;
+                color: #4b5563;
+                line-height: 1.6;
             }}
             </style>
             """

@@ -362,6 +362,131 @@ class KPIService:
         return result
     
     @staticmethod
+    def get_rotacion_inventario_por_categoria(top_n=10):
+        """
+        Rotación de inventario por categoría (Días de Inventario)
+        Fase 2.2 - Dashboard Profesional Avanzado
+        
+        Fórmula: Días de Inventario = (Costo Inventario / Costo Ventas Mensual) * 30
+        
+        Args:
+            top_n: Cantidad de categorías a mostrar (default 10)
+        
+        Returns:
+            dict: {
+                'labels': ['Categoría A', 'Categoría B', ...],
+                'dias_inventario': [45, 60, 30, ...],
+                'costo_inventario': [50000, 80000, ...],
+                'rotacion_anual': [8, 6, 12, ...]  # veces que rota por año
+            }
+        """
+        cache_key = f'kpi:rotacion_inventario:top:{top_n}'
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+        
+        from app.models.product import Product
+        from app.models.sale import SaleDetail
+        from django.db.models import DecimalField
+        from django.db.models import ExpressionWrapper
+        
+        # 1. Costo de Inventario Actual por Categoría
+        # = SUM(stock_actual * precio_compra) por categoría
+        inventario_por_categoria = Product.objects.filter(
+            activo=True
+        ).values(
+            'categoria__nombre'
+        ).annotate(
+            costo_inventario=Sum(
+                ExpressionWrapper(
+                    F('stock_actual') * F('precio_compra'),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                )
+            )
+        ).filter(
+            costo_inventario__gt=0  # Solo categorías con inventario
+        )
+        
+        # 2. Costo de Ventas (últimos 30 días) por Categoría
+        # = SUM(cantidad_vendida * precio_compra_producto)
+        fecha_limite = timezone.now() - timedelta(days=30)
+        
+        ventas_por_categoria = SaleDetail.objects.filter(
+            venta__fecha__gte=fecha_limite
+        ).values(
+            'producto__categoria__nombre'
+        ).annotate(
+            costo_ventas=Sum(
+                ExpressionWrapper(
+                    F('cantidad') * F('producto__precio_compra'),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                )
+            )
+        )
+        
+        # 3. Combinar datos y calcular Días de Inventario
+        # Crear diccionarios para lookup
+        inventario_dict = {
+            item['categoria__nombre']: float(item['costo_inventario'] or 0)
+            for item in inventario_por_categoria
+        }
+        
+        ventas_dict = {
+            item['producto__categoria__nombre']: float(item['costo_ventas'] or 0)
+            for item in ventas_por_categoria
+        }
+        
+        # Obtener todas las categorías con inventario
+        categorias = inventario_dict.keys()
+        
+        # Calcular métricas por categoría
+        resultados = []
+        for categoria in categorias:
+            costo_inv = inventario_dict.get(categoria, 0)
+            costo_ven = ventas_dict.get(categoria, 0)
+            
+            # Días de Inventario = (Costo Inventario / Costo Ventas) * 30
+            # Robustez: Si no hay ventas, días = infinito (usamos 999)
+            if costo_ven > 0:
+                dias_inventario = (costo_inv / costo_ven) * 30
+                # Rotación Anual = 365 / días_inventario
+                rotacion_anual = 365 / dias_inventario if dias_inventario > 0 else 0
+            else:
+                dias_inventario = 999  # Sin ventas = inventario estancado
+                rotacion_anual = 0
+            
+            resultados.append({
+                'categoria': categoria,
+                'costo_inventario': round(costo_inv, 2),
+                'costo_ventas': round(costo_ven, 2),
+                'dias_inventario': round(dias_inventario, 1),
+                'rotacion_anual': round(rotacion_anual, 2)
+            })
+        
+        # Ordenar por días de inventario (mayor a menor = más crítico)
+        resultados.sort(key=lambda x: x['dias_inventario'], reverse=True)
+        
+        # Tomar top N
+        resultados = resultados[:top_n]
+        
+        # Preparar datos para Chart.js (barras horizontales)
+        labels = [r['categoria'] for r in resultados]
+        dias_inventario = [r['dias_inventario'] for r in resultados]
+        costo_inventario = [r['costo_inventario'] for r in resultados]
+        rotacion_anual = [r['rotacion_anual'] for r in resultados]
+        
+        result = {
+            'labels': labels,
+            'dias_inventario': dias_inventario,
+            'costo_inventario': costo_inventario,
+            'rotacion_anual': rotacion_anual,
+            'categorias_count': len(labels)
+        }
+        
+        cache.set(cache_key, result, KPIService.CACHE_TIMEOUT_MEDIUM)
+        return result
+    
+    @staticmethod
     def clear_all_kpi_cache():
         """Invalida todos los cachés de KPIs (usar al finalizar día)"""
         cache_keys = [
@@ -370,7 +495,8 @@ class KPIService:
             'kpi:top_productos:week:3',
             'kpi:stock_bajo',
             'kpi:ventas_mes:evolucion',
-            'kpi:flujo_caja:meses:6'  # Nuevo en Fase 2.1
+            'kpi:flujo_caja:meses:6',  # Fase 2.1
+            'kpi:rotacion_inventario:top:10'  # Fase 2.2
         ]
         
         for key in cache_keys:
