@@ -268,6 +268,100 @@ class KPIService:
         return result
     
     @staticmethod
+    def get_flujo_caja_mensual(meses=6):
+        """
+        Flujo de caja mensual: Ingresos vs Egresos
+        Fase 2.1 - Dashboard Profesional Avanzado
+        
+        Args:
+            meses: Cantidad de meses a mostrar (default 6)
+        
+        Returns:
+            dict: {
+                'labels': ['Ene 2026', 'Feb 2026', ...],
+                'ingresos': [120000.0, 135000.0, ...],
+                'egresos': [80000.0, 95000.0, ...],
+                'flujo_neto': [40000.0, 40000.0, ...],
+                'total_ingresos': float,
+                'total_egresos': float,
+                'total_neto': float
+            }
+        """
+        cache_key = f'kpi:flujo_caja:meses:{meses}'
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+        
+        from app.models.sale import Sale
+        from app.models.purchase import Purchase
+        from django.db.models.functions import TruncMonth
+        
+        # Últimos N meses
+        fecha_limite = timezone.now() - timedelta(days=30 * meses)
+        
+        # Ingresos por mes (Ventas)
+        ingresos_por_mes = Sale.objects.filter(
+            fecha__gte=fecha_limite
+        ).annotate(
+            mes=TruncMonth('fecha')
+        ).values('mes').annotate(
+            total=Sum('total')
+        ).order_by('mes')
+        
+        # Egresos por mes (Compras)
+        egresos_por_mes = Purchase.objects.filter(
+            fecha__gte=fecha_limite
+        ).annotate(
+            mes=TruncMonth('fecha')
+        ).values('mes').annotate(
+            total=Sum('total')
+        ).order_by('mes')
+        
+        # Crear diccionarios para lookup eficiente
+        ingresos_dict = {i['mes']: float(i['total']) for i in ingresos_por_mes}
+        egresos_dict = {e['mes']: float(e['total']) for e in egresos_por_mes}
+        
+        # Obtener todos los meses en el rango (union de ambos)
+        all_months = set(ingresos_dict.keys()) | set(egresos_dict.keys())
+        all_months = sorted(all_months)
+        
+        # Preparar datos para Chart.js
+        labels = []
+        ingresos = []
+        egresos = []
+        flujo_neto = []
+        
+        # Meses en español (seguro, sin user input)
+        meses_es = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                    'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+        
+        for mes in all_months:
+            # Label del mes (formato: "Ene 2026")
+            labels.append(f"{meses_es[mes.month - 1]} {mes.year}")
+            
+            # Valores (0 si no hay datos en ese mes)
+            ingreso = ingresos_dict.get(mes, 0)
+            egreso = egresos_dict.get(mes, 0)
+            neto = ingreso - egreso
+            
+            ingresos.append(round(ingreso, 2))
+            egresos.append(round(egreso, 2))
+            flujo_neto.append(round(neto, 2))
+        
+        result = {
+            'labels': labels,
+            'ingresos': ingresos,
+            'egresos': egresos,
+            'flujo_neto': flujo_neto,
+            'total_ingresos': round(sum(ingresos), 2),
+            'total_egresos': round(sum(egresos), 2),
+            'total_neto': round(sum(flujo_neto), 2)
+        }
+        
+        cache.set(cache_key, result, KPIService.CACHE_TIMEOUT_MEDIUM)
+        return result
+    
+    @staticmethod
     def clear_all_kpi_cache():
         """Invalida todos los cachés de KPIs (usar al finalizar día)"""
         cache_keys = [
@@ -275,7 +369,8 @@ class KPIService:
             'kpi:ticket_promedio:month',
             'kpi:top_productos:week:3',
             'kpi:stock_bajo',
-            'kpi:ventas_mes:evolucion'
+            'kpi:ventas_mes:evolucion',
+            'kpi:flujo_caja:meses:6'  # Nuevo en Fase 2.1
         ]
         
         for key in cache_keys:

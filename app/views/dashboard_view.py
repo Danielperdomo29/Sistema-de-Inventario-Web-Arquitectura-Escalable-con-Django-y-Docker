@@ -529,11 +529,334 @@ class DashboardView:
             """
             
             kpi_section = kpi_cards + charts_section
+            
+            # Fase 2: Gráficas Avanzadas con Tabs
+            charts_advanced = f"""
+            <!-- Gráficas Avanzadas (Fase 2) -->
+            <div class="charts-advanced-section">
+                <h2 class="section-title-advanced">
+                    <i class="fas fa-chart-pie"></i> Análisis Financiero Avanzado
+                </h2>
+                
+                <!-- Tab Navigation -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" data-tab="flujo-caja">
+                        <i class="fas fa-money-bill-wave"></i> Flujo de Caja
+                    </button>
+                    <button class="tab-btn" data-tab="rotacion" disabled title="Próximamente">
+                        <i class="fas fa-sync-alt"></i> Rotación Inventario
+                    </button>
+                    <button class="tab-btn" data-tab="pareto" disabled title="Próximamente">
+                        <i class="fas fa-users"></i> Análisis Clientes
+                    </button>
+                </div>
+                
+                <!-- Tab Content: Flujo de Caja -->
+                <div class="tab-content active" id="tab-flujo-caja">
+                    <div class="chart-card-large">
+                        <h3>
+                            <i class="fas fa-chart-line"></i> 
+                            Flujo de Caja Mensual (Últimos 6 Meses)
+                        </h3>
+                        
+                        <!-- Resumen de Flujo de Caja -->
+                        <div class="cash-flow-summary">
+                            <div class="summary-item positive">
+                                <span>Total Ingresos:</span>
+                                <strong>${kpis['flujo_caja']['total_ingresos']:,.2f}</strong>
+                            </div>
+                            <div class="summary-item negative">
+                                <span>Total Egresos:</span>
+                                <strong>${kpis['flujo_caja']['total_egresos']:,.2f}</strong>
+                            </div>
+                            <div class="summary-item {"positive" if kpis['flujo_caja']['total_neto'] > 0 else "negative"}">
+                                <span>Flujo Neto:</span>
+                                <strong>${kpis['flujo_caja']['total_neto']:,.2f}</strong>
+                            </div>
+                        </div>
+                        
+                        <canvas id="flujoCajaChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Placeholder tabs (para futuro) -->
+                <div class="tab-content" id="tab-rotacion">
+                    <div class="placeholder-content">
+                        <i class="fas fa-sync-alt fa-3x"></i>
+                        <p>Próximamente: Rotación de Inventario por Categoría</p>
+                        <small>Fase 2.2 - Optimización de Capital de Trabajo</small>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-pareto">
+                    <div class="placeholder-content">
+                        <i class="fas fa-users fa-3x"></i>
+                        <p>Próximamente: Análisis de Concentración de Clientes</p>
+                        <small>Fase 2.3 - Análisis de Pareto (80/20)</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- JavaScript para Tabs y Flujo de Caja -->
+            <script>
+            // Tab switching (seguro, sin innerHTML)
+            document.querySelectorAll('.tab-btn').forEach(btn => {{
+                btn.addEventListener('click', function() {{
+                    if (this.disabled) return;
+                    
+                    // Remove active class
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active to current (usando dataset, seguro)
+                    this.classList.add('active');
+                    const tabId = 'tab-' + this.dataset.tab;
+                    const tabContent = document.getElementById(tabId);
+                    if (tabContent) {{
+                        tabContent.classList.add('active');
+                    }}
+                }});
+            }});
+            
+            // Flujo de Caja Chart
+            const flujoCajaCtx = document.getElementById('flujoCajaChart');
+            if (flujoCajaCtx) {{
+                // Datos seguros desde backend (solo números y strings controlados)
+                const flujoCajaData = {json.dumps(kpis['flujo_caja'])};
+                
+                new Chart(flujoCajaCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: flujoCajaData.labels,
+                        datasets: [
+                            {{
+                                label: 'Ingresos',
+                                data: flujoCajaData.ingresos,
+                                backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                                borderColor: 'rgba(34, 197, 94, 1)',
+                                borderWidth: 1
+                            }},
+                            {{
+                                label: 'Egresos',
+                                data: flujoCajaData.egresos,
+                                backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                                borderColor: 'rgba(239, 68, 68, 1)',
+                                borderWidth: 1
+                            }},
+                            {{
+                                type: 'line',
+                                label: 'Flujo Neto',
+                                data: flujoCajaData.flujo_neto,
+                                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                                borderColor: 'rgba(99, 102, 241, 1)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4,
+                                yAxisID: 'y'
+                            }}
+                        ]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {{
+                            mode: 'index',
+                            intersect: false
+                        }},
+                        plugins: {{
+                            legend: {{ 
+                                position: 'top',
+                                labels: {{
+                                    usePointStyle: true,
+                                    padding: 15
+                                }}
+                            }},
+                            tooltip: {{
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                callbacks: {{
+                                    label: function(context) {{
+                                        const label = context.dataset.label || '';
+                                        const value = context.parsed.y.toLocaleString('es-CO', {{
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }});
+                                        return label + ': $' + value;
+                                    }}
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                ticks: {{
+                                    callback: function(value) {{
+                                        return '$' + value.toLocaleString('es-CO');
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+            </script>
+            
+            <style>
+            .charts-advanced-section {{
+                margin: 2rem 0;
+                padding: 1.5rem;
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }}
+            
+            .section-title-advanced {{
+                margin: 0 0 1.5rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #1f2937;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            
+            .tab-navigation {{
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+                border-bottom: 2px solid #e5e7eb;
+                flex-wrap: wrap;
+            }}
+            
+            .tab-btn {{
+                background: none;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+                font-weight: 600;
+                color: #6b7280;
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            
+            .tab-btn:hover:not(:disabled) {{
+                color: #667eea;
+                background: #f3f4f6;
+            }}
+            
+            .tab-btn.active {{
+                color: #667eea;
+                border-bottom-color: #667eea;
+            }}
+            
+            .tab-btn:disabled {{
+                opacity: 0.5;
+                cursor: not-allowed;
+            }}
+            
+            .tab-content {{
+                display: none;
+                animation: fadeIn 0.3s;
+            }}
+            
+            .tab-content.active {{
+                display: block;
+            }}
+            
+            @keyframes fadeIn {{
+                from {{ opacity: 0; }}
+                to {{ opacity: 1; }}
+            }}
+            
+            .chart-card-large {{
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+            }}
+            
+            .chart-card-large h3 {{
+                margin: 0 0 1.5rem 0;
+                color: #1f2937;
+                font-size: 1.2rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            
+            .cash-flow-summary {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+                padding: 1.5rem;
+                background: #f9fafb;
+                border-radius: 8px;
+            }}
+            
+            .summary-item {{
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }}
+            
+            .summary-item span {{
+                font-size: 0.9rem;
+                color: #6b7280;
+                font-weight: 500;
+            }}
+            
+            .summary-item strong {{
+                font-size: 1.5rem;
+                font-weight: 700;
+            }}
+            
+            .summary-item.positive strong {{
+                color: #22c55e;
+            }}
+            
+            .summary-item.negative strong {{
+                color: #ef4444;
+            }}
+            
+            .placeholder-content {{
+                text-align: center;
+                padding: 4rem 2rem;
+                color: #9ca3af;
+            }}
+            
+            .placeholder-content i {{
+                margin-bottom: 1rem;
+                color: #d1d5db;
+            }}
+            
+            .placeholder-content p {{
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin: 1rem 0 0.5rem 0;
+                color: #6b7280;
+            }}
+            
+            .placeholder-content small {{
+                font-size: 0.9rem;
+                color: #9ca3af;
+            }}
+            </style>
+            """
+        else:
+            charts_advanced = ""
 
         content = (
             welcome_card
             + main_stats
             + kpi_section
+            + charts_advanced
             + secondary_stats
             + productos_stock_section
             + ultimas_ventas_section

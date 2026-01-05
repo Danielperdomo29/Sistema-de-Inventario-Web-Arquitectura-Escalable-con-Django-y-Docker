@@ -48,7 +48,9 @@ class DashboardController:
                 'ticket_promedio': KPIService.get_ticket_promedio(),
                 'top_productos': KPIService.get_top_productos_semana(3),
                 'stock_bajo': KPIService.get_stock_bajo(),
-                'ventas_mes': KPIService.get_ventas_mes_evolucion()
+                'ventas_mes': KPIService.get_ventas_mes_evolucion(),
+                # Fase 2: Gráficas Avanzadas
+                'flujo_caja': KPIService.get_flujo_caja_mensual(6)
             }
             print("✅ KPIs calculados correctamente:", list(kpis.keys()))
         except Exception as e:
