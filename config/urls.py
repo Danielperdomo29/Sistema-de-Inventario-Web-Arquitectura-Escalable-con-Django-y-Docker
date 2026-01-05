@@ -181,6 +181,24 @@ urlpatterns = [
     path("fiscal/", include("app.fiscal.urls")),
 ]
 
+# Async Tasks URLs (Fase 4)
+from app.controllers import async_report_controller
+
+urlpatterns += [
+    # Reportes Async
+    path("tasks/report/monthly/", async_report_controller.AsyncReportController.generate_monthly_report_async, name="async_monthly_report"),
+    path("tasks/report/daily/", async_report_controller.AsyncReportController.generate_daily_summary_async, name="async_daily_report"),
+    
+    # Stock Async
+    path("tasks/stock/check/", async_report_controller.AsyncReportController.check_low_stock_async, name="async_stock_check"),
+    
+    # Batch Operations
+    path("tasks/invoices/batch/", async_report_controller.AsyncReportController.batch_invoices_async, name="async_batch_invoices"),
+    
+    # Task Status
+    path("tasks/status/<str:task_id>/", async_report_controller.AsyncReportController.check_task_status, name="task_status"),
+]
+
 # Django-Allauth & 2FA URLs
 urlpatterns += [
     path("accounts/", include("allauth_2fa.urls")), # Include 2FA urls before allauth urls

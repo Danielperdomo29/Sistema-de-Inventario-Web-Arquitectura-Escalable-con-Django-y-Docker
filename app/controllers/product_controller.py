@@ -183,6 +183,10 @@ class ProductController:
         # Eliminar solo si es POST
         if request.method == "POST":
             Product.delete(product_id)
+            
+            # Invalidar caché de productos para reflejar cambios
+            from django.core.cache import cache
+            cache.delete('catalog:products:all')
 
         # Redireccionar a la lista
         return HttpResponseRedirect("/productos/")
