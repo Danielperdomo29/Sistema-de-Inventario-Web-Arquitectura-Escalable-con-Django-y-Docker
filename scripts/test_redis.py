@@ -19,46 +19,46 @@ def test_redis_connection():
     
     redis_url = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1')
     print("=" * 70)
-    print("VALIDACIÓN DE REDIS - FASE 2")
+    print("VALIDACION DE REDIS - FASE 2")
     print("=" * 70)
-    print(f"\n📡 Conectando a: {redis_url}")
+    print(f"\n--> Conectando a: {redis_url}")
     
     try:
         r = redis.from_url(redis_url, decode_responses=True)
         
         # Test 1: Ping
-        print("\n🔍 Test 1: Ping")
+        print("\n[Test 1] Ping")
         result = r.ping()
-        print(f"   ✅ Respuesta: {result}")
+        print(f"   OK - Respuesta: {result}")
         
         # Test 2: Set/Get básico
-        print("\n🔍 Test 2: Set/Get Performance")
+        print("\n[Test 2] Set/Get Performance")
         start = time.time()
         r.set('test_key', 'test_value', ex=60)
         value = r.get('test_key')
         elapsed = (time.time() - start) * 1000
         
         if value == 'test_value':
-            print(f"   ✅ Set/Get exitoso: {elapsed:.2f}ms")
+            print(f"   OK - Set/Get exitoso: {elapsed:.2f}ms")
         else:
-            print(f"   ❌ Valor incorrecto: {value}")
+            print(f"   ERROR - Valor incorrecto: {value}")
             return False
         
         # Test 3: Info de memoria
-        print("\n🔍 Test 3: Información del Servidor")
+        print("\n[Test 3] Informacion del Servidor")
         info = r.info('memory')
-        print(f"   ✅ Memoria usada: {info['used_memory_human']}")
-        print(f"   ✅ Keys totales: {r.dbsize()}")
+        print(f"   OK - Memoria usada: {info['used_memory_human']}")
+        print(f"   OK - Keys totales: {r.dbsize()}")
         
         # Test 4: Performance de múltiples operaciones
-        print("\n🔍 Test 4: Performance Batch (100 ops)")
+        print("\n[Test 4] Performance Batch (100 ops)")
         start = time.time()
         for i in range(100):
             r.set(f'bench_key_{i}', f'value_{i}', ex=60)
         elapsed = (time.time() - start) * 1000
         avg = elapsed / 100
-        print(f"   ✅ Total: {elapsed:.2f}ms")
-        print(f"   ✅ Promedio por operación: {avg:.2f}ms")
+        print(f"   OK - Total: {elapsed:.2f}ms")
+        print(f"   OK - Promedio por operacion: {avg:.2f}ms")
         
         # Cleanup
         for i in range(100):
@@ -66,24 +66,24 @@ def test_redis_connection():
         r.delete('test_key')
         
         print("\n" + "=" * 70)
-        print("✅ REDIS FUNCIONANDO CORRECTAMENTE")
+        print("OK - REDIS FUNCIONANDO CORRECTAMENTE")
         print("=" * 70)
         print()
         
         return True
         
     except redis.ConnectionError as e:
-        print(f"\n❌ Error de conexión: {e}")
+        print(f"\nERROR - Error de conexion: {e}")
         print()
         print("Soluciones:")
-        print("  1. Verifica que Redis esté corriendo:")
+        print("  1. Verifica que Redis este corriendo:")
         print("     - Docker: docker ps | grep redis")
         print("     - Local: redis-cli ping")
         print("  2. Verifica REDIS_URL en .env")
         print("  3. Verifica firewall/puerto 6379")
         return False
     except Exception as e:
-        print(f"\n❌ Error inesperado: {e}")
+        print(f"\nERROR - Error inesperado: {e}")
         return False
 
 if __name__ == "__main__":
