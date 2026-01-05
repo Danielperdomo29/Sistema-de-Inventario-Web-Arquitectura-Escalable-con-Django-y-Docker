@@ -50,8 +50,12 @@ class DashboardController:
                 'stock_bajo': KPIService.get_stock_bajo(),
                 'ventas_mes': KPIService.get_ventas_mes_evolucion()
             }
+            print("✅ KPIs calculados correctamente:", list(kpis.keys()))
         except Exception as e:
             # Fallback si hay error en KPIs
+            print(f"❌ ERROR en KPIs: {type(e).__name__}: {str(e)}")
+            import traceback
+            traceback.print_exc()
             kpis = None
 
         # Obtener productos con stock bajo (menos de 10 unidades)

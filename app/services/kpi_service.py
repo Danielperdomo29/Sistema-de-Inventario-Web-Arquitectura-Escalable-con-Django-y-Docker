@@ -35,8 +35,7 @@ class KPIService:
         if cached:
             return cached
         
-        from app.models.sale import Sale
-        from app.models.sale_detail import SaleDetail
+        from app.models.sale import Sale, SaleDetail
         
         hoy = timezone.now().date()
         ayer = hoy - timedelta(days=1)
@@ -154,7 +153,7 @@ class KPIService:
         if cached:
             return cached
         
-        from app.models.sale_detail import SaleDetail
+        from app.models.sale import SaleDetail
         
         hace_7_dias = timezone.now() - timedelta(days=7)
         
