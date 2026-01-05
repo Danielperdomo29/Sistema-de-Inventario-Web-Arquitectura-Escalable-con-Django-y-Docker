@@ -51,7 +51,8 @@ class DashboardController:
                 'ventas_mes': KPIService.get_ventas_mes_evolucion(),
                 # Fase 2: Gráficas Avanzadas
                 'flujo_caja': KPIService.get_flujo_caja_mensual(6),
-                'rotacion_inventario': KPIService.get_rotacion_inventario_por_categoria(10)
+                'rotacion_inventario': KPIService.get_rotacion_inventario_por_categoria(10),
+                'concentracion_clientes': KPIService.get_concentracion_clientes(20, 6)
             }
             print("✅ KPIs calculados correctamente:", list(kpis.keys()))
         except Exception as e:

@@ -546,7 +546,7 @@ class DashboardView:
                     <button class="tab-btn" data-tab="rotacion">
                         <i class="fas fa-sync-alt"></i> Rotación Inventario
                     </button>
-                    <button class="tab-btn" data-tab="pareto" disabled title="Próximamente">
+                    <button class="tab-btn" data-tab="pareto">
                         <i class="fas fa-users"></i> Análisis Clientes
                     </button>
                 </div>
@@ -594,11 +594,34 @@ class DashboardView:
                     </div>
                 </div>
                 
+                <!-- Tab Content: Análisis de Pareto -->
                 <div class="tab-content" id="tab-pareto">
-                    <div class="placeholder-content">
-                        <i class="fas fa-users fa-3x"></i>
-                        <p>Próximamente: Análisis de Concentración de Clientes</p>
-                        <small>Fase 2.3 - Análisis de Pareto (80/20)</small>
+                    <div class="chart-card-large">
+                        <h3>
+                            <i class="fas fa-users"></i> 
+                            Análisis de Concentración de Clientes (Pareto)
+                        </h3>
+                        
+                        <!-- Alerta de Concentración -->
+                        <div class="pareto-alert alert-{kpis['concentracion_clientes']['alerta']}">
+                            <div class="alert-icon">
+                                {"<i class='fas fa-exclamation-triangle'></i>" if kpis['concentracion_clientes']['alerta'] == 'alta' else "<i class='fas fa-info-circle'></i>" if kpis['concentracion_clientes']['alerta'] == 'media' else "<i class='fas fa-check-circle'></i>"}
+                            </div>
+                            <div class="alert-content">
+                                <strong>Nivel de Concentración: {kpis['concentracion_clientes']['alerta'].upper()}</strong>
+                                <p>
+                                    {kpis['concentracion_clientes']['clientes_80']} clientes generan el 80% de las ventas 
+                                    ({kpis['concentracion_clientes']['concentracion_pct']:.1f}% del total de {kpis['concentracion_clientes']['total_clientes']} clientes).
+                                    {"⚠️ ¡Riesgo alto! Diversificar cartera." if kpis['concentracion_clientes']['alerta'] == 'alta' else "⚡ Concentración moderada, monitorear." if kpis['concentracion_clientes']['alerta'] == 'media' else "✅ Cartera bien diversificada."}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <p class="chart-description">
+                            <strong>Regla 80/20 (Pareto):</strong> Identifica qué porcentaje de tus clientes genera el 80% de tus ingresos. 
+                            Línea roja marca el 80%. Alta concentración = Mayor riesgo.
+                        </p>
+                        <canvas id="paretoClientesChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -801,6 +824,141 @@ class DashboardView:
                     }}
                 }});
             }}
+            
+            // Pareto Clientes Chart (Mixed: Bar + Line, Doble Eje Y)
+            const paretoCtx = document.getElementById('paretoClientesChart');
+            if (paretoCtx) {{
+                const paretoData = {json.dumps(kpis['concentracion_clientes'])};
+                
+                // Crear dataset para línea de 80% (threshold)
+                const threshold80 = new Array(paretoData.labels.length).fill(80);
+                
+                new Chart(paretoCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: paretoData.labels,
+                        datasets: [
+                            {{
+                                type: 'bar',
+                                label: 'Ventas ($)',
+                                data: paretoData.ventas,
+                                backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                                borderColor: 'rgba(99, 102, 241, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y'  // Eje izquierdo
+                            }},
+                            {{
+                                type: 'line',
+                                label: '% Acumulado',
+                                data: paretoData.porcentaje_acumulado,
+                                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                borderColor: 'rgba(16, 185, 129, 1)',
+                                borderWidth: 3,
+                                fill: false,
+                                tension: 0.4,
+                                yAxisID: 'y1',  // Eje derecho
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }},
+                            {{
+                                type: 'line',
+                                label: 'Umbral 80%',
+                                data: threshold80,
+                                borderColor: 'rgba(239, 68, 68, 1)',
+                                borderWidth: 2,
+                                borderDash: [10, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                yAxisID: 'y1',  // Eje derecho
+                                pointHoverRadius: 0
+                            }}
+                        ]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {{
+                            mode: 'index',
+                            intersect: false
+                        }},
+                        plugins: {{
+                            legend: {{
+                                position: 'top',
+                                labels: {{
+                                    usePointStyle: true,
+                                    padding: 15
+                                }}
+                            }},
+                            tooltip: {{
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                callbacks: {{
+                                    label: function(context) {{
+                                        const label = context.dataset.label || '';
+                                        
+                                        if (label === 'Ventas ($)') {{
+                                            const value = context.parsed.y.toLocaleString('es-CO', {{
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }});
+                                            return label + ': $' + value;
+                                        }} else if (label === '% Acumulado') {{
+                                            return label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                        }} else if (label === 'Umbral 80%') {{
+                                            return null;  // No mostrar tooltip para threshold
+                                        }}
+                                        return label + ': ' + context.parsed.y;
+                                    }},
+                                    footer: function(tooltipItems) {{
+                                        // Mostrar insight en el primer cliente que cruza 80%
+                                        const index = tooltipItems[0].dataIndex;
+                                        const acumulado = paretoData.porcentaje_acumulado[index];
+                                        
+                                        if (acumulado >= 80 && (index === 0 || paretoData.porcentaje_acumulado[index - 1] < 80)) {{
+                                            return '\\n⚠️ Este cliente alcanza el 80%';
+                                        }}
+                                        return '';
+                                    }}
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                type: 'linear',
+                                position: 'left',
+                                beginAtZero: true,
+                                title: {{
+                                    display: true,
+                                    text: 'Ventas ($)'
+                                }},
+                                ticks: {{
+                                    callback: function(value) {{
+                                        return '$' + value.toLocaleString('es-CO');
+                                    }}
+                                }}
+                            }},
+                            y1: {{
+                                type: 'linear',
+                                position: 'right',
+                                min: 0,
+                                max: 100,
+                                title: {{
+                                    display: true,
+                                    text: '% Acumulado'
+                                }},
+                                ticks: {{
+                                    callback: function(value) {{
+                                        return value + '%';
+                                    }}
+                                }},
+                                grid: {{
+                                    drawOnChartArea: false  // Solo mostrar grid del eje Y izquierdo
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
             </script>
             
             <style>
@@ -957,6 +1115,67 @@ class DashboardView:
                 font-size: 0.95rem;
                 color: #4b5563;
                 line-height: 1.6;
+            }}
+            
+            .pareto-alert {{
+                display: flex;
+                align-items: flex-start;
+                gap: 1rem;
+                margin: 0 0 1.5rem 0;
+                padding: 1rem 1.25rem;
+                border-radius: 8px;
+                border-left: 4px solid;
+            }}
+            
+            .pareto-alert .alert-icon {{
+                font-size: 1.5rem;
+                flex-shrink: 0;
+                margin-top: 0.25rem;
+            }}
+            
+            .pareto-alert .alert-content strong {{
+                display: block;
+                margin-bottom: 0.5rem;
+                font-size: 1rem;
+            }}
+            
+            .pareto-alert .alert-content p {{
+                margin: 0;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }}
+            
+            /* Alerta Alta (Roja) */
+            .alert-alta {{
+                background: #fef2f2;
+                border-left-color: #ef4444;
+                color: #991b1b;
+            }}
+            
+            .alert-alta .alert-icon {{
+                color: #dc2626;
+            }}
+            
+            /* Alerta Media (Amarilla) */
+            .alert-media {{
+                background: #fefce8;
+                border-left-color: #eab308;
+                color: #854d0e;
+            }}
+            
+            .alert-media .alert-icon {{
+                color: #ca8a04;
+            }}
+            
+            /* Alerta Baja (Verde) */
+            .alert-baja {{
+                background: #f0fdf4;
+                border-left-color: #22c55e;
+                color: #166534;
+            }}
+            
+            .alert-baja .alert-icon {{
+                color: #16a34a;
             }}
             </style>
             """

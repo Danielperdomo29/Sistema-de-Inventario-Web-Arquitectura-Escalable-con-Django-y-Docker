@@ -487,6 +487,122 @@ class KPIService:
         return result
     
     @staticmethod
+    def get_concentracion_clientes(top_n=20, meses=6):
+        """
+        Análisis de Pareto: Concentración de Clientes
+        Fase 2.3 - Dashboard Profesional Avanzado
+        
+        Identifica la regla 80/20: ¿El 80% de las ventas viene del 20% de los clientes?
+        
+        Args:
+            top_n: Cantidad de clientes a analizar (default 20)
+            meses: Meses hacia atrás para analizar (default 6)
+        
+        Returns:
+            dict: {
+                'labels': ['Cliente A', 'Cliente B', ...],
+                'ventas': [50000, 40000, 30000, ...],
+                'porcentaje_acumulado': [25, 45, 60, ...],  # % acumulado
+                'total_ventas': float,
+                'clientes_80': int,  # Cuántos clientes hacen 80% de ventas
+                'concentracion_pct': float,  # % de clientes que hacen 80%
+                'alerta': 'alta'|'media'|'baja'  # Nivel de concentración
+            }
+        """
+        cache_key = f'kpi:concentracion_clientes:top:{top_n}:meses:{meses}'
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+        
+        from app.models.sale import Sale
+        from app.models.client import Client
+        
+        # Límite de fecha
+        fecha_limite = timezone.now() - timedelta(days=30 * meses)
+        
+        # Ventas por cliente (últimos N meses)
+        ventas_por_cliente = Sale.objects.filter(
+            fecha__gte=fecha_limite
+        ).values(
+            'cliente__nombre', 'cliente__id'
+        ).annotate(
+            total_ventas=Sum('total')
+        ).order_by('-total_ventas')[:top_n]
+        
+        if not ventas_por_cliente:
+            # No hay datos
+            return {
+                'labels': [],
+                'ventas': [],
+                'porcentaje_acumulado': [],
+                'total_ventas': 0,
+                'clientes_80': 0,
+                'concentracion_pct': 0,
+                'alerta': 'baja'
+            }
+        
+        # Calcular total de ventas (para %)
+        total_ventas_global = sum([float(v['total_ventas'] or 0) for v in ventas_por_cliente])
+        
+        # Preparar datos con % acumulado
+        labels = []
+        ventas = []
+        porcentaje_acumulado = []
+        acumulado = 0
+        clientes_80 = 0  # Cuántos clientes necesitas para llegar a 80%
+        encontrado_80 = False
+        
+        for i, cliente in enumerate(ventas_por_cliente):
+            nombre = cliente['cliente__nombre'] or f"Cliente #{cliente['cliente__id']}"
+            venta = float(cliente['total_ventas'] or 0)
+            
+            # Calcular % de esta venta
+            pct_venta = (venta / total_ventas_global) * 100 if total_ventas_global > 0 else 0
+            acumulado += pct_venta
+            
+            # Identificar cuántos clientes hacen 80%
+            if not encontrado_80 and acumulado >= 80:
+                clientes_80 = i + 1
+                encontrado_80 = True
+            
+            labels.append(nombre)
+            ventas.append(round(venta, 2))
+            porcentaje_acumulado.append(round(acumulado, 2))
+        
+        # Si nunca llegamos a 80% (pocos datos), clientes_80 = total
+        if not encontrado_80:
+            clientes_80 = len(ventas_por_cliente)
+        
+        # Calcular concentración (% de clientes que hacen 80% de ventas)
+        total_clientes = Client.objects.filter(activo=True).count()
+        concentracion_pct = (clientes_80 / total_clientes * 100) if total_clientes > 0 else 0
+        
+        # Alerta de concentración
+        # Alta: <10% de clientes hacen 80% (muy riesgoso)
+        # Media: 10-20% de clientes hacen 80%
+        # Baja: >20% de clientes hacen 80% (diversificado)
+        if concentracion_pct < 10:
+            alerta = 'alta'
+        elif concentracion_pct < 20:
+            alerta = 'media'
+        else:
+            alerta = 'baja'
+        
+        result = {
+            'labels': labels,
+            'ventas': ventas,
+            'porcentaje_acumulado': porcentaje_acumulado,
+            'total_ventas': round(total_ventas_global, 2),
+            'clientes_80': clientes_80,
+            'concentracion_pct': round(concentracion_pct, 2),
+            'alerta': alerta,
+            'total_clientes': total_clientes
+        }
+        
+        cache.set(cache_key, result, KPIService.CACHE_TIMEOUT_MEDIUM)
+        return result
+    
+    @staticmethod
     def clear_all_kpi_cache():
         """Invalida todos los cachés de KPIs (usar al finalizar día)"""
         cache_keys = [
@@ -496,7 +612,8 @@ class KPIService:
             'kpi:stock_bajo',
             'kpi:ventas_mes:evolucion',
             'kpi:flujo_caja:meses:6',  # Fase 2.1
-            'kpi:rotacion_inventario:top:10'  # Fase 2.2
+            'kpi:rotacion_inventario:top:10',  # Fase 2.2
+            'kpi:concentracion_clientes:top:20:meses:6'  # Fase 2.3
         ]
         
         for key in cache_keys:
