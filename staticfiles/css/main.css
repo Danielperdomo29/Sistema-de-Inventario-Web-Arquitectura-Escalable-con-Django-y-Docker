@@ -90,10 +90,10 @@ body {
 }
 
 .sidebar {
-  width: 300px; /* Default 300px as requested */
-  background: white;
-  padding: 20px 0; /* Adjusted padding */
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  width: 240px; /* Más compacto y minimalista */
+  background: #2c3e50; /* Fondo oscuro */
+  padding: 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 999;
@@ -103,39 +103,41 @@ body {
 }
 
 .sidebar.collapsed {
-  width: 80px;
+  width: 70px;
 }
 
 /* Header Controls */
 .sidebar-header-controls {
-  padding: 0 20px 20px 20px;
+  padding: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0;
 }
 
 .sidebar-header-controls h3 {
   margin: 0;
-  font-size: 1.2rem;
-  color: #333;
+  font-size: 1rem;
+  color: #ecf0f1;
   white-space: nowrap;
   transition: opacity 0.3s;
+  font-weight: 600;
 }
 
 .sidebar-toggle {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.2rem;
-  color: #666;
+  font-size: 1.1rem;
+  color: #bdc3c7;
   padding: 5px;
-  transition: transform 0.3s;
+  transition: all 0.3s;
 }
 
 .sidebar-toggle:hover {
-  color: #667eea;
+  color: #14b8a6;
+  transform: scale(1.1);
 }
 
 .sidebar.collapsed .sidebar-header-controls h3 {
@@ -145,27 +147,31 @@ body {
 
 .sidebar.collapsed .sidebar-header-controls {
   justify-content: center;
-  padding: 0 0 20px 0;
+  padding: 15px 0;
 }
 
 /* Sections */
 .sidebar-section {
-  margin-bottom: 5px;
+  margin-bottom: 0;
 }
 
 .sidebar-section-header {
-  padding: 10px 20px;
+  padding: 12px 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  color: #666;
+  color: #ecf0f1;
   font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   transition: background 0.2s;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-section-header:hover {
-  background-color: #f8f9fa;
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .sidebar.collapsed .sidebar-section-header span,
@@ -175,7 +181,7 @@ body {
 
 .sidebar.collapsed .sidebar-section-header {
   justify-content: center;
-  padding: 15px 0;
+  padding: 12px 0;
 }
 
 .sidebar.collapsed .sidebar-section-header i {
@@ -183,10 +189,31 @@ body {
   font-size: 1.2rem;
 }
 
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-toggle {
+  background: none;
+  border: none;
+  color: #bdc3c7;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+  transition: transform 0.3s;
+}
+
+.section-toggle:hover {
+  color: #14b8a6;
+}
+
 /* Menu Items */
 .sidebar-menu {
   list-style: none;
-  padding: 0 10px;
+  padding: 5px 8px;
+  margin: 0;
 }
 
 .sidebar-menu li {
@@ -196,31 +223,37 @@ body {
 .sidebar-menu a {
   display: flex;
   align-items: center;
-  padding: 12px 15px;
-  color: #4b5563;
+  padding: 10px 12px;
+  color: #bdc3c7;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: all 0.2s;
   white-space: nowrap;
   overflow: hidden;
+  font-size: 0.9rem;
 }
 
 .sidebar-menu i {
-  width: 24px;
+  width: 20px;
   margin-right: 12px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   text-align: center;
   transition: margin 0.3s;
 }
 
-.sidebar-menu a:hover,
+.sidebar-menu a:hover {
+  background: rgba(20, 184, 166, 0.1);
+  color: #14b8a6;
+}
+
 .sidebar-menu a.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #14b8a6;
   color: white;
+  font-weight: 500;
 }
 
 .sidebar.collapsed .sidebar-menu {
-  padding: 0 5px;
+  padding: 5px;
 }
 
 .sidebar.collapsed .sidebar-menu span {
@@ -230,12 +263,12 @@ body {
 
 .sidebar.collapsed .sidebar-menu a {
   justify-content: center;
-  padding: 15px 0;
+  padding: 12px 0;
 }
 
 .sidebar.collapsed .sidebar-menu i {
   margin-right: 0;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
 /* Main Content Adjustments */
@@ -243,11 +276,7 @@ body {
   display: none;
 }
 
-.sidebar-section .section-toggle i {
-  transition: transform 0.3s;
-}
-
-.sidebar-section.collapsed .section-toggle i {
+.sidebar-section.collapsed .section-toggle {
   transform: rotate(-90deg);
 }
 

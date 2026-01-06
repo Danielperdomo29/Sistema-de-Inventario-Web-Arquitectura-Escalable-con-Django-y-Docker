@@ -252,6 +252,11 @@
     .chat-message .message-text {
         line-height: 1.6;
     }
+    
+    /* Fix: User message text must be black for visibility */
+    .chat-message.user .message-text {
+        color: black !important;
+    }
 
     /* Empty State */
     .empty-state {
@@ -294,8 +299,8 @@
 {% block content %}
 <div class="analytics-container">
     <div class="analytics-header">
-        <h2><i class="fas fa-brain"></i> Analytics con Inteligencia Artificial</h2>
-        <p style="color: #666; margin-top: 8px;">Análisis inteligente de tu negocio powered by DeepSeek AI</p>
+        <h2><i class="fas fa-brain"></i> HUB DE GESTIÓN - Analytics IA</h2>
+        <p style="color: #666; margin-top: 8px; font-size: 0.9em;">Sistema de Facturación Electrónica e Inteligencia de Inventarios</p>
     </div>
 
     <!-- Stats Cards -->

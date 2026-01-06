@@ -265,7 +265,7 @@ class DashboardView:
         # Filtro de Periodo (Fase 1 - Filtro Dinámico)
         period_filter = f"""
         <div class="period-filter-section">
-            <form method="GET" action="/dashboard/" class="period-filter-form">
+            <form method="GET" action="/" class="period-filter-form">
                 <div class="filter-group">
                     <label for="periodo">
                         <i class="fas fa-calendar-alt"></i> Periodo de Análisis:
@@ -283,13 +283,24 @@ class DashboardView:
                 </div>
             </form>
         </div>
+        
+        <!-- Notificación de actualización de datos -->
+        <div class="alert-info" style="margin: 20px 0; padding: 12px 20px; background: #e3f2fd; border-left: 4px solid #2196F3; border-radius: 4px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-info-circle" style="color: #2196F3; font-size: 1.2rem;"></i>
+            <div style="flex: 1;">
+                <strong>Actualización de Datos:</strong> Por motivos de seguridad y optimización de rendimiento, los datos del dashboard se actualizan automáticamente cada 2-3 minutos. 
+                <a href="javascript:location.reload();" style="color: #1976D2; text-decoration: underline; margin-left: 10px;">
+                    <i class="fas fa-sync-alt"></i> Refrescar ahora
+                </a>
+            </div>
+        </div>
         """
 
         # KPIs Profesionales con Gráficas (Fase 5)
         kpi_section = ""
         if kpis:
             # Chart.js CDN
-            chartjs_cdn = '\u003cscript src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"\u003e\u003c/script\u003e'
+            chartjs_cdn = '\u003cscript src="/static/js/vendor/chart.min.js"\u003e\u003c/script\u003e'
             
             # KPI Cards
             kpi_cards = f"""
@@ -302,12 +313,12 @@ class DashboardView:
                     \u003cdiv class="kpi-card {"kpi-positive" if kpis['margen_bruto']['tendencia'] == 'up' else 'kpi-negative'}"\u003e
                         \u003cdiv class="kpi-header"\u003e
                             \u003cspan class="kpi-icon"\u003e\u003ci class="fas fa-chart-line"\u003e\u003c/i\u003e\u003c/span\u003e
-                            \u003cspan class="kpi-title"\u003eMargen Bruto Hoy\u003c/span\u003e
+                            \u003cspan class="kpi-title"\u003eMargen Bruto Periodo\u003c/span\u003e
                         \u003c/div\u003e
-                        \u003cdiv class="kpi-value"\u003e${kpis['margen_bruto']['margen_hoy']:,.2f}\u003c/div\u003e
+                        \u003cdiv class="kpi-value"\u003e${kpis['margen_bruto']['margen_periodo']:,.2f}\u003c/div\u003e
                         \u003cdiv class="kpi-trend {"trend-up" if kpis['margen_bruto']['tendencia'] == 'up' else 'trend-down'}"\u003e
                             \u003ci class="fas fa-arrow-{kpis['margen_bruto']['tendencia']}"\u003e\u003c/i\u003e
-                            {abs(kpis['margen_bruto']['cambio_pct'])}% vs ayer
+                            {abs(kpis['margen_bruto']['cambio_pct'])}% vs periodo anterior
                         \u003c/div\u003e
                     \u003c/div\u003e
                     
@@ -469,7 +480,6 @@ class DashboardView:
                 color: white;
             }}
             .section-title {{
-                margin: 0 0 1.5rem 0;
                 font-size: 1.5rem;
                 font-weight: 600;
             }}

@@ -94,7 +94,7 @@ SESSION_COOKIE_SAMESITE = "Lax"  # Protección CSRF
 SESSION_COOKIE_NAME = "__Host-sessionid" if not DEBUG else "sessionid"
 
 CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # Debe ser False para AJAX (JavaScript necesita leer el token)
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_NAME = "__Host-csrftoken" if not DEBUG else "csrftoken"
 
@@ -386,8 +386,16 @@ if ENABLE_ALLAUTH:
     # ========================================================================
 
     # Prevenir ataques de timing en login
-    ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-    ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutos
+    # Rate limiting configuration (Allauth 0.50+)
+    ACCOUNT_RATE_LIMITS = {
+        'login_failed': '5/5m',      # 5 intentos en 5 minutos
+        'signup': '10/1h',           # 10 registros por hora
+        'password_reset': '5/1h',    # 5 restablecimientos de contraseña por hora
+    }
+    
+    # Desactivar en entorno de desarrollo
+    if DEBUG:
+        ACCOUNT_RATE_LIMITS = {}
 
     # Forzar lowercase en emails
     ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Sistema de Inventario] "

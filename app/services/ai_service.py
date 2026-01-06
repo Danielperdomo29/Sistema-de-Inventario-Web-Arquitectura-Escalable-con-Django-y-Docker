@@ -10,6 +10,10 @@ from dotenv import load_dotenv
 # Cargar variables de entorno
 load_dotenv()
 
+# Suprimir FutureWarnings (incluyendo Google AI) - debe ejecutarse ANTES de imports
+import warnings
+warnings.simplefilter('ignore', FutureWarning)
+
 # Imports que no dependen de Django
 try:
     import google.generativeai as genai
@@ -186,8 +190,40 @@ class AIService:
             return f"Error al obtener resumen de compras: {str(e)}"
 
     def process_query(self, user_message, user_id):
-        """Procesa una consulta del usuario usando IA"""
+        """Procesa una consulta del usuario usando IA conversacional"""
         try:
+            # Sistema conversacional - NO basado en comandos
+            system_context = """Eres un asistente virtual amigable de BizFlow Pro.
+
+Personalidad: Amigable, profesional, conversacional (no robótico)
+
+BizFlow Pro tiene:
+📦 Inventario (productos, stock, categorías)
+💰 Ventas (clientes, facturas DIAN)
+🛒 Compras (proveedores)
+📊 Dashboard (KPIs, gráficas)
+📋 Fiscal (IVA, retención)
+
+Responde SIEMPRE de forma útil y amigable. NO digas "comando no reconocido"."""
+
+            if self.use_openrouter:
+                response = self.openrouter.chat(
+                    user_message,
+                    system_prompt=system_context,
+                    max_tokens=250,
+                    temperature=0.7
+                )
+            else:
+                # Gemini
+                full_prompt = f"{system_context}\n\nUsuario: {user_message}\n\nRespuesta:"
+                response_obj = self.model.generate_content(full_prompt)
+                response = response_obj.text
+            
+            return response.strip()
+            
+        except Exception as e:
+            return "¡Hola! 😊 Estoy aquí para ayudarte. ¿En qué te puedo asistir?"
+
             # Obtener contexto del inventario
             inventory_context = self.get_inventory_context()
 

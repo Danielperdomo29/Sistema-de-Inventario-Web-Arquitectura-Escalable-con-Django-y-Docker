@@ -20,10 +20,11 @@ class DashboardController:
     @staticmethod
     def index(request):
         """Muestra el dashboard"""
-        user = request.session.get('user')
-        
-        if not user:
+        # Usar autenticación nativa de Django (compatible con AuthController)
+        if not request.user.is_authenticated:
             return redirect('/login/')
+        
+        user = request.user
         
         # KPIs Profesionales para Contadores (Fase 5)
         from app.services.kpi_service import KPIService
@@ -53,21 +54,34 @@ class DashboardController:
         
         # Calcular KPIs con periodo dinámico
         try:
+            # Primero calcular ventas_evolucion con el periodo seleccionado
+            ventas_evol = KPIService.get_ventas_evolucion(periodo_dias)
+            
+            # Para la gráfica "Mes Actual", siempre usar 30 días (agrupación diaria)
+            ventas_mes_data = KPIService.get_ventas_evolucion(30)
+            
             kpis = {
+                # FASE 1: KPIs con periodo dinámico (ya actualizados)
                 'margen_bruto': KPIService.get_margen_bruto(periodo_dias),
                 'ticket_promedio': KPIService.get_ticket_promedio(periodo_dias),
                 'top_productos': KPIService.get_top_productos(periodo_dias, 3),
                 'stock_bajo': KPIService.get_stock_bajo(),  # No depende de fecha
-                'ventas_evolucion': KPIService.get_ventas_evolucion(periodo_dias),
-                # Fase 2: Gráficas Avanzadas (con periodo dinámico)
-                'flujo_caja': KPIService.get_flujo_caja_mensual(periodo_dias),
-                'rotacion_inventario': KPIService.get_rotacion_inventario_por_categoria(periodo_dias, 10),
-                'concentracion_clientes': KPIService.get_concentracion_clientes(periodo_dias, 20)
+                'ventas_evolucion': ventas_evol,
+                # Gráfica "Mes Actual": siempre últimos 30 días con agrupación diaria
+                'ventas_mes': {
+                    'total_mes': stats['ventas_mes'],
+                    'labels': ventas_mes_data['labels'],  # Formato: dd/mm (días)
+                    'data': ventas_mes_data['data']
+                },
+                # FASE 2: Gráficas Avanzadas (con parámetros correctos)
+                'flujo_caja': KPIService.get_flujo_caja_mensual(meses=6),
+                'rotacion_inventario': KPIService.get_rotacion_inventario_por_categoria(top_n=10),
+                'concentracion_clientes': KPIService.get_concentracion_clientes(top_n=20, meses=6)
             }
-            print("✅ KPIs calculados correctamente:", list(kpis.keys()))
+            print("[OK] KPIs calculados correctamente:", list(kpis.keys()))
         except Exception as e:
             # Fallback si hay error en KPIs
-            print(f"❌ ERROR en KPIs: {type(e).__name__}: {str(e)}")
+            print(f"[ERROR] en KPIs: {type(e).__name__}: {str(e)}")
             import traceback
             traceback.print_exc()
             kpis = None
@@ -79,7 +93,7 @@ class DashboardController:
         ultimas_ventas = Sale.get_all(limit=5)
 
         # Obtener últimas compras
-        ultimas_compras = Purchase.get_recent(limit=5)
+        ultimas_compras = Purchase.get_all(limit=5)
 
         # Retornar la vista del dashboard CON periodo
         return DashboardView.index(user, stats, productos_bajo_stock, ultimas_ventas, ultimas_compras, kpis, periodo_dias)

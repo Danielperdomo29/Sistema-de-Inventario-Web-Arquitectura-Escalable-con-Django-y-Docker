@@ -24,9 +24,12 @@ class Layout:
                 <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle menu">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1>Sistema de Inventario</h1>
+                <div style="text-align: left;">
+                    <h1 style="color: white; font-weight: 700; letter-spacing: -0.5px; margin: 0; font-size: 1.3em;">HUB DE GESTIÓN</h1>
+                    <p style="font-size: 0.65em; color: #ddd; margin: 0; font-weight: 300;">Sistema de Facturación Electrónica e Inteligencia de Inventarios</p>
+                </div>
                 <div class="navbar-menu">
-                    <span>Hola, {user.username}</span>
+                    <span style="color: white; font-weight: 500;">¡Hola, {user.username}!</span>
                     <a href="/configuracion/" style="margin-right: 15px;"><i class="fas fa-user-cog"></i> Mi Perfil</a>
                     <a href="/logout/">Cerrar Sesión</a>
                 </div>
@@ -171,7 +174,7 @@ class Layout:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>{title} - Sistema de Inventario</title>
+            <title>{title} - HUB DE GESTIÓN</title>
             {styles}
         </head>
         <body>

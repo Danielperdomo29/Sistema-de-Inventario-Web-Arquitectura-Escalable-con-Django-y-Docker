@@ -79,7 +79,7 @@ class ChatbotView:
                 </div>
             </div>
         </div>
-        <script src='/static/js/chatbot.js'></script>
+        <script src='/static/js/chatbot.js?v=2.0'></script>
         """
         html = Layout.render(title="Chatbot IA", user=user, active_page="chatbot", content=content)
         return HttpResponse(html)

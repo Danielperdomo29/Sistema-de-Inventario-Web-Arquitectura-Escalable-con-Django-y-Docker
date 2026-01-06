@@ -40,7 +40,7 @@ class PurchaseView:
                         <form method="POST" action="/compras/{purchase['id']}/eliminar/" class="d-inline">
                             {csrf_token}
                             <button type="submit" class="btn btn-danger" 
-                                    onclick="return confirm('¿Estás seguro de eliminar esta compra?')">
+                                    onclick="event.preventDefault(); var form = this.form; if(typeof Swal !== 'undefined') {{ Swal.fire({{ title: '¿Eliminar compra?', text: 'Esta acción no se puede deshacer', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' }}).then(function(result) {{ if (result.isConfirmed) {{ form.submit(); }} }}); }} else if (confirm('¿Estás seguro de eliminar esta compra?')) {{ form.submit(); }} return false;">
                                 Eliminar
                             </button>
                         </form>
@@ -137,15 +137,17 @@ class PurchaseView:
                     
                     <div>
                         <label class="form-label">Proveedor *</label>
-                        <select name="proveedor_id" required class="form-select">
+                        <select name="proveedor_id" id="supplierSelect" required class="form-select">
                             {suppliers_options}
                         </select>
                     </div>
+
                     
                     <div>
                         <label class="form-label">Fecha *</label>
-                        <input type="date" name="fecha" required class="form-input">
+                        <input type="date" name="fecha" required class="form-input" value="{__import__('datetime').date.today().isoformat()}">
                     </div>
+
                     
                     <div>
                         <label class="form-label">Estado</label>
@@ -315,7 +317,7 @@ class PurchaseView:
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Fecha <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" name="fecha" value="{purchase['fecha']}" required>
+                            <input type="date" class="form-control" name="fecha" value="{str(purchase['fecha']).split()[0] if purchase['fecha'] else ''}" required>
                         </div>
                         
                         <div class="col-md-6 mb-3">

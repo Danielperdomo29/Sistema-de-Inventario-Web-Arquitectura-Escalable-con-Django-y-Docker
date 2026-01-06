@@ -11,7 +11,7 @@ from django.core.cache import cache
 class KPIService:
     """Servicio centralizado para cálculo de KPIs con caché"""
     
-    # Timeouts de caché por criticidad
+    # Timeouts de caché optimizados (balance performance/actualización)
     CACHE_TIMEOUT_SHORT = 60 * 5      # 5 min - Datos críticos
     CACHE_TIMEOUT_MEDIUM = 60 * 30    # 30 min - Datos menos críticos
     CACHE_TIMEOUT_LONG = 60 * 60 * 2  # 2 horas - Datos históricos

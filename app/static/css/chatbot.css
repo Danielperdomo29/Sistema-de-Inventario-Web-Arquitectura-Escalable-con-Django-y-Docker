@@ -240,7 +240,7 @@
 
 .bot-message .message-text {
     background: white;
-    color: #333;
+    color: #000;  /* Negro para mejor legibilidad */
     border: 1px solid #e9ecef;
 }
 
