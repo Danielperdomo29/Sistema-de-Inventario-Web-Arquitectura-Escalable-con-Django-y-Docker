@@ -1,0 +1,1002 @@
+/* ===================================================================
+   THEME: Professional Neutral - Contraste y Elegancia
+   Colores neutros con toques de azul corporativo
+   =================================================================== */
+
+:root {
+    /* Colores principales - Neutros con azul */
+    --primary: #2563eb;           /* Azul corporativo */
+    --primary-dark: #1e40af;
+    --primary-light: #3b82f6;
+    
+    /* Grises neutros */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    /* Sidebar oscuro */
+    --sidebar-bg: #1e293b;
+    --sidebar-hover: #334155;
+    --sidebar-active: #2563eb;
+    
+    /* Estados */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+}
+
+/* ===================================================================
+   NAVBAR - Profesional y Limpio
+   =================================================================== */
+.navbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;  /* Por encima del sidebar */
+    height: 70px;
+}
+
+.navbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1.5rem;
+    height: 100%;
+}
+
+.navbar h1 {
+    color: white;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.navbar-menu {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.navbar-menu span {
+    color: white;
+    font-weight: 500;
+}
+
+.navbar-menu span i {
+    color: #3b82f6;
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
+}
+
+.navbar-menu a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar-menu a:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.navbar-menu a i {
+    color: #3b82f6;
+}
+
+/* ===================================================================
+   SIDEBAR - Contraste y Claridad
+   =================================================================== */
+.sidebar {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    width: 280px;
+    height: calc(100vh - 70px);  /* No tapa navbar */
+    position: fixed;
+    left: 0;
+    top: 70px;  /* Debajo del navbar */
+    overflow-y: auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
+    z-index: 50;  /* Debajo del navbar (que tiene z-index: 1000) */
+}
+
+/* Scrollbar personalizada */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.sidebar-section {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
+    border-left: 3px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-section-header::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+    transform: translateY(-50%);
+    transition: width 0.3s ease;
+}
+
+.sidebar-section-header:hover::before {
+    width: 100%;
+}
+
+.sidebar-section-header:hover {
+    background: rgba(59, 130, 246, 0.05);
+    border-left-color: #3b82f6;
+}
+
+.sidebar-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 1.05rem !important;  /* Más grande como en productos */
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+}
+
+/* Iconos con colores específicos por sección */
+.sidebar-section:nth-child(1) .sidebar-section-title i {
+    color: #06b6d4;  /* Cyan - Inventario */
+    font-size: 1.3rem !important;
+    filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.5));
+    width: 24px !important;
+    text-align: center;
+}
+
+.sidebar-section:nth-child(2) .sidebar-section-title i {
+    color: #2ecc71;  /* Verde - Facturación */
+    font-size: 1.3rem !important;
+    filter: drop-shadow(0 0 8px rgba(46, 204, 113, 0.5));
+    width: 24px !important;
+    text-align: center;
+}
+
+.sidebar-section:nth-child(3) .sidebar-section-title i {
+    color: #f39c12;  /* Naranja/Dorado - Obligaciones Fiscales */
+    font-size: 1.3rem !important;
+    filter: drop-shadow(0 0 8px rgba(243, 156, 18, 0.5));
+    width: 24px !important;
+    text-align: center;
+}
+
+.sidebar-section:nth-child(4) .sidebar-section-title i {
+    color: #e74c3c;  /* Rojo - Sistema */
+    font-size: 1.3rem !important;
+    filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.5));
+    width: 24px !important;
+    text-align: center;
+}
+
+/* Asegurar que todos los iconos tengan el mismo tamaño base */
+.sidebar-section-title i {
+    font-size: 1.3rem !important;
+    width: 24px !important;
+    text-align: center;
+}
+
+/* Forzar tamaño de texto en todas las páginas */
+.sidebar .sidebar-section-header .sidebar-section-title,
+.sidebar-section-header .sidebar-section-title,
+.sidebar-section .sidebar-section-header .sidebar-section-title,
+.sidebar .sidebar-section-header .section-title,
+.sidebar-section-header .section-title,
+.sidebar-section .sidebar-section-header .section-title {
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    color: #e2e8f0 !important;
+    text-transform: capitalize !important;
+    letter-spacing: 0.02em !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+}
+
+/* Estilos de iconos para section-title también */
+.section-title i {
+    font-size: 1.3rem !important;
+    width: 24px !important;
+    text-align: center;
+}
+
+.sidebar-section:nth-child(1) .section-title i {
+    color: #06b6d4 !important;  /* Cyan - Inventario */
+    filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.5));
+}
+
+.sidebar-section:nth-child(2) .section-title i {
+    color: #2ecc71 !important;  /* Verde - Facturación */
+    filter: drop-shadow(0 0 8px rgba(46, 204, 113, 0.5));
+}
+
+.sidebar-section:nth-child(3) .section-title i {
+    color: #f39c12 !important;  /* Naranja/Dorado - Obligaciones Fiscales */
+    filter: drop-shadow(0 0 8px rgba(243, 156, 18, 0.5));
+}
+
+.sidebar-section:nth-child(4) .section-title i {
+    color: #e74c3c !important;  /* Rojo - Sistema */
+    filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.5));
+}
+
+/* Items del menú (sidebar-menu en lugar de sidebar-section-items) */
+.sidebar-menu li a,
+.sidebar .sidebar-menu li a {
+    font-size: 0.9rem !important;
+    color: #cbd5e1 !important;
+    text-decoration: none;
+    padding: 0.75rem 1.25rem 0.75rem 3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-menu li a.active,
+.sidebar .sidebar-menu li a.active {
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.2) 0%, transparent 100%);
+    color: white !important;
+    font-weight: 600 !important;
+    border-left: 4px solid #667eea;
+    position: relative;
+}
+
+/* Indicador visual para item activo */
+.sidebar-menu li a.active::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: #667eea;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
+}
+
+.sidebar-menu li a:hover {
+    background: rgba(59, 130, 246, 0.08);
+    color: white !important;
+    border-left: 3px solid #3b82f6;
+}
+
+.sidebar-section-toggle {
+    color: var(--gray-400);
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.sidebar-section-header:hover .sidebar-section-toggle {
+    color: #3b82f6;
+    transform: scale(1.1);
+}
+
+.sidebar-section.collapsed .sidebar-section-toggle {
+    transform: rotate(-90deg);
+}
+
+.sidebar-section-items {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.sidebar-section.collapsed .sidebar-section-items {
+    max-height: 0 !important;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem 0.75rem 3rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.sidebar-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+    transition: width 0.3s ease;
+}
+
+.sidebar-item:hover::before {
+    width: 100%;
+}
+
+.sidebar-item:hover {
+    background: rgba(59, 130, 246, 0.08);
+    color: white;
+    border-left-color: #3b82f6;
+    padding-left: 3.5rem;
+}
+
+.sidebar-item.active {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.2) 0%, transparent 100%);
+    color: white;
+    font-weight: 600;
+    border-left-color: #3b82f6;
+    box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
+}
+
+.sidebar-item i {
+    width: 20px;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--gray-400);
+    transition: all 0.3s ease;
+}
+
+.sidebar-item.active i,
+.sidebar-item:hover i {
+    color: #3b82f6;
+    transform: scale(1.1);
+}
+
+/* ===================================================================
+   CONTENT AREA
+   =================================================================== */
+.content,
+.main-content {
+    margin-left: 280px;
+    margin-top: 70px;  /* Espacio para navbar fijo */
+    padding: 2rem;
+    background: var(--gray-50);
+    min-height: calc(100vh - 70px);
+    width: calc(100% - 280px);  /* Ajuste completo */
+    box-sizing: border-box;
+}
+
+/* Scrollbar personalizada para content */
+.content::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+    width: 10px;
+}
+
+.content::-webkit-scrollbar-track,
+.main-content::-webkit-scrollbar-track {
+    background: var(--gray-200);
+    border-radius: 10px;
+}
+
+.content::-webkit-scrollbar-thumb,
+.main-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+    border-radius: 10px;
+    border: 2px solid var(--gray-200);
+}
+
+.content::-webkit-scrollbar-thumb:hover,
+.main-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #64748b 0%, #475569 100%);
+}
+
+/* Container dentro del content */
+.container {
+    max-width: 100%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+/* ===================================================================
+   CARDS - Diseño Moderno
+   =================================================================== */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--gray-200);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.card-header h2,
+.card-header h3 {
+    margin: 0;
+    color: var(--gray-900);
+    font-weight: 600;
+}
+
+.card-header i {
+    color: var(--primary);
+    font-size: 1.5rem;
+}
+
+/* ===================================================================
+   BUTTONS - Profesionales
+   =================================================================== */
+.btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.btn-secondary:hover {
+    background: var(--gray-300);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+/* ===================================================================
+   FORMS - Limpios y Claros
+   =================================================================== */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--gray-700);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-control,
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 2px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.form-control:focus,
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ===================================================================
+   ACTION BUTTONS - Estandarizados para todas las secciones
+   =================================================================== */
+
+/* Container de botones de acción en tablas */
+.action-buttons,
+.actions-column,
+td.actions,
+.table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 140px;  /* Ancho mínimo consistente */
+}
+
+/* Botones de acción base */
+.btn-action,
+.action-btn,
+.btn-edit,
+.btn-delete,
+.btn-view {
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    border: none !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.375rem !important;
+    min-width: 65px !important;  /* Mismo ancho para todos */
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Botón Editar - Naranja */
+.btn-edit,
+.btn-warning,
+a.btn-warning,
+button.btn-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: white !important;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3) !important;
+}
+
+.btn-edit:hover,
+.btn-warning:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4) !important;
+}
+
+/* Botón Eliminar - Rojo */
+.btn-delete,
+.btn-danger,
+a.btn-danger,
+button.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3) !important;
+}
+
+.btn-delete:hover,
+.btn-danger:hover {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Botón Ver/Detalles - Azul */
+.btn-view,
+.btn-info,
+a.btn-info,
+button.btn-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
+}
+
+.btn-view:hover,
+.btn-info:hover {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Iconos dentro de botones */
+.btn-action i,
+.btn-edit i,
+.btn-delete i,
+.btn-view i,
+.btn-warning i,
+.btn-danger i,
+.btn-info i {
+    font-size: 0.875rem;
+    margin: 0 !important;
+}
+
+/* Botones pequeños (sm) si se necesitan */
+.btn-sm.btn-action,
+.btn-sm.btn-edit,
+.btn-sm.btn-delete,
+.btn-sm.btn-view {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+    min-width: 60px !important;
+}
+
+/* Estados disabled */
+.btn-action:disabled,
+.btn-edit:disabled,
+.btn-delete:disabled,
+.btn-view:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Responsive - En móvil hacer los botones más pequeños */
+@media (max-width: 768px) {
+    .action-buttons,
+    .actions-column {
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+    
+    .btn-action,
+    .btn-edit,
+    .btn-delete,
+    .btn-view {
+        width: 100%;
+        min-width: auto !important;
+    }
+}
+
+/* ===================================================================
+   TABLES - Profesionales
+   =================================================================== */
+.table {
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead {
+    background: var(--gray-100);
+}
+
+.table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table td {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid var(--gray-200);
+    color: var(--gray-600);
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: var(--gray-50);
+}
+
+/* ===================================================================
+   BADGES - Estados
+   =================================================================== */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* ===================================================================
+   HAMBURGER MENU
+   =================================================================== */
+.hamburger-menu {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-right: 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===================================================================
+   RESPONSIVE
+   =================================================================== */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .content {
+        margin-left: 0;
+    }
+}
+
+/* ===================================================================
+   UTILITIES
+   =================================================================== */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.me-1 { margin-right: 0.25rem; }
+/* ===================================================================
+   ANALYTICS & DASHBOARD SECTIONS - Sincronizado con Tema
+   =================================================================== */
+
+/* Welcome Banner - Gris neutro */
+.welcome-banner {
+    background: #4b5563;
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-banner h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.welcome-banner p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+/* Period Filter Section - Purple gradient matching navbar */
+.period-filter-section {
+    background: linear-gradient(265deg, #667eea 0%, #764ba2 100%);
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.period-filter-section .filter-label {
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.period-filter-section .filter-label i {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.period-filter-section select,
+.period-filter-section .form-select {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 0.625rem 1rem;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.period-filter-section select:hover,
+.period-filter-section .form-select:hover {
+    background: white;
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-1px);
+}
+
+.period-filter-section select:focus,
+.period-filter-section .form-select:focus {
+    outline: none;
+    background: white;
+    border-color: white;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.period-filter-section .current-selection {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .period-filter-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .period-filter-section select,
+    .period-filter-section .form-select {
+        width: 100%;
+    }
+    
+    .welcome-banner {
+        padding: 1.5rem;
+    }
+    
+    .welcome-banner h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Analytics-specific stats cards */
+.analytics-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.analytics-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--gray-200);
+    transition: all 0.3s ease;
+}
+
+.analytics-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.analytics-stat-card h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.analytics-stat-card .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.analytics-stat-card .change {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.analytics-stat-card .change.positive {
+    color: var(--success);
+}
+
+.analytics-stat-card .change.negative {
+    color: var(--danger);
+}
+

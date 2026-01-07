@@ -11,7 +11,7 @@ class Layout:
         <link rel="stylesheet" href="/static/css/dashboard.css">
         <link rel="stylesheet" href="/static/css/swal.css">
         <link rel="stylesheet" href="/static/css/chatbot.css">
-        <link rel="stylesheet" href="/static/css/theme-corporate-neutral.css?v=6.0">
+        <link rel="stylesheet" href="/static/css/theme-professional-neutral.css?v=11.0">
         <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
         """
 
@@ -29,7 +29,7 @@ class Layout:
                     <p style="font-size: 0.65em; color: #ddd; margin: 0; font-weight: 300;">Sistema de Facturación Electrónica e Inteligencia de Inventarios</p>
                 </div>
                 <div class="navbar-menu">
-                    <span style="color: white; font-weight: 500;">¡Hola, {user.username}!</span>
+                    <span style="color: white; font-weight: 500;"><i class="fas fa-user-circle"></i> ¡Hola, {user.username}!</span>
                     <a href="/configuracion/" style="margin-right: 15px;"><i class="fas fa-user-cog"></i> Mi Perfil</a>
                     <a href="/logout/">Cerrar Sesión</a>
                 </div>
