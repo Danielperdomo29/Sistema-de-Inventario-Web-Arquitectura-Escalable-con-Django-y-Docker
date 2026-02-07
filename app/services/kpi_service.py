@@ -2,7 +2,7 @@
 Servicio de KPIs para Dashboard
 Calcula métricas críticas para contadores y administradores
 """
-from django.db.models import Sum, Count, Avg, F
+from django.db.models import Sum, Count, Avg, F, Q
 from django.utils import timezone
 from datetime import timedelta
 from django.core.cache import cache
@@ -578,7 +578,8 @@ class KPIService:
                 'total_ventas': 0,
                 'clientes_80': 0,
                 'concentracion_pct': 0,
-                'alerta': 'baja'
+                'alerta': 'baja',
+                'total_clientes': Client.objects.filter(activo=True).count()
             }
         
         # Calcular total de ventas (para %)
@@ -658,3 +659,253 @@ class KPIService:
         
         for key in cache_keys:
             cache.delete(key)
+    
+    # ============================================================================
+    # COMPONENTE 1: MÉTRICAS DE VENTAS (Análisis Financiero)
+    # ============================================================================
+    
+    @staticmethod
+    def get_rentabilidad_productos(dias=30, limit=5):
+        """
+        [VENTAS] Top productos más rentables por margen de ganancia.
+        Útil para: Análisis financiero, estrategia de precios, enfoque comercial.
+        
+        Args:
+            dias: Período de análisis (default: 30 días)
+            limit: Cantidad de productos a retornar (default: 5)
+        
+        Returns:
+            Lista con margen_porcentaje, ganancia_total, unidades_vendidas
+        """
+        cache_key = f"kpi:rentabilidad:{dias}:{limit}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+        
+        from app.models import SaleDetail
+        from django.db.models import DecimalField
+        
+        fecha_inicio = timezone.now() - timedelta(days=dias)
+        
+        productos_rentables = (
+            SaleDetail.objects
+            .filter(venta__fecha__gte=fecha_inicio)
+            .values(
+                'producto__id', 
+                'producto__nombre', 
+                'producto__precio_venta', 
+                'producto__precio_compra'
+            )
+            .annotate(
+                total_vendido=Sum('cantidad'),
+                ganancia_total=Sum(
+                    F('cantidad') * (F('precio_unitario') - F('producto__precio_compra')),
+                    output_field=DecimalField()
+                )
+            )
+            .filter(ganancia_total__gt=0)
+            .order_by('-ganancia_total')[:limit]
+        )
+        
+        resultado = []
+        for item in productos_rentables:
+            precio_venta = float(item['producto__precio_venta'])
+            precio_compra = float(item['producto__precio_compra'])
+            
+            if precio_venta > 0:
+                margen_porcentaje = ((precio_venta - precio_compra) / precio_venta) * 100
+            else:
+                margen_porcentaje = 0
+            
+            resultado.append({
+                'nombre': item['producto__nombre'],
+                'margen_porcentaje': round(margen_porcentaje, 2),
+                'ganancia_total': float(item['ganancia_total']),
+                'unidades_vendidas': item['total_vendido'],
+                'precio_venta': precio_venta
+            })
+        
+        cache.set(cache_key, resultado, KPIService.CACHE_TIMEOUT_MEDIUM)
+        return resultado
+    
+    @staticmethod
+    def get_productos_abc_analysis(dias=30):
+        """
+        [VENTAS] Análisis ABC de Pareto (80/20) para productos.
+        Útil para: Priorización de inventario, estrategia comercial.
+        
+        Clasificación:
+        - Clase A: 20% productos que generan 80% ganancias
+        - Clase B: 30% productos siguientes (15% ganancias)
+        - Clase C: 50% productos restantes (5% ganancias)
+        
+        Returns:
+            {
+                'productos': List[Dict] con clasificación,
+                'resumen': Dict con estadísticas por clase
+            }
+        """
+        cache_key = f"kpi:abc_analysis:{dias}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+        
+        from app.models import Product, SaleDetail
+        from django.db.models import DecimalField
+        from django.db.models.functions import Coalesce
+        from decimal import Decimal
+        
+        fecha_inicio = timezone.now() - timedelta(days=dias)
+        
+        productos = (
+            Product.objects
+            .filter(activo=True)
+            .annotate(
+                ganancia_total=Coalesce(
+                    Sum(
+                        F('saledetail__cantidad') * 
+                        (F('saledetail__precio_unitario') - F('precio_compra')),
+                        filter=Q(saledetail__venta__fecha__gte=fecha_inicio),
+                        output_field=DecimalField()
+                    ),
+                    Decimal('0.00')
+                )
+            )
+            .filter(ganancia_total__gt=0)
+            .order_by('-ganancia_total')
+        )
+        
+        ganancia_total_general = sum(float(p.ganancia_total) for p in productos)
+        
+        if ganancia_total_general == 0:
+            return {
+                'productos': [],
+                'resumen': {
+                    'clase_a': {'cantidad': 0, 'ganancia_total': 0, 'porcentaje': 0},
+                    'clase_b': {'cantidad': 0, 'ganancia_total': 0, 'porcentaje': 0},
+                    'clase_c': {'cantidad': 0, 'ganancia_total': 0, 'porcentaje': 0}
+                }
+            }
+        
+        resultado_productos = []
+        acumulado = 0
+        resumen = {
+            'clase_a': {'cantidad': 0, 'ganancia_total': 0, 'porcentaje': 0},
+            'clase_b': {'cantidad': 0, 'ganancia_total': 0, 'porcentaje': 0},
+            'clase_c': {'cantidad': 0, 'ganancia_total': 0, 'porcentaje': 0}
+        }
+        
+        for producto in productos:
+            ganancia = float(producto.ganancia_total)
+            acumulado += ganancia
+            porcentaje_acumulado = (acumulado / ganancia_total_general) * 100
+            
+            if porcentaje_acumulado <= 80:
+                clasificacion = 'A'
+            elif porcentaje_acumulado <= 95:
+                clasificacion = 'B'
+            else:
+                clasificacion = 'C'
+            
+            resultado_productos.append({
+                'id': producto.id,
+                'nombre': producto.nombre,
+                'codigo': producto.codigo,
+                'ganancia_total': ganancia,
+                'porcentaje_acumulado': round(porcentaje_acumulado, 2),
+                'clasificacion': clasificacion
+            })
+            
+            clase_key = f'clase_{clasificacion.lower()}'
+            resumen[clase_key]['cantidad'] += 1
+            resumen[clase_key]['ganancia_total'] += ganancia
+        
+        for clase in ['clase_a', 'clase_b', 'clase_c']:
+            if ganancia_total_general > 0:
+                resumen[clase]['porcentaje'] = round(
+                    (resumen[clase]['ganancia_total'] / ganancia_total_general) * 100, 
+                    2
+                )
+        
+        resultado = {
+            'productos': resultado_productos,
+            'resumen': resumen
+        }
+        
+        cache.set(cache_key, resultado, KPIService.CACHE_TIMEOUT_MEDIUM)
+        return resultado
+    
+    # ============================================================================
+    # COMPONENTE 1: MÉTRICAS DE INVENTARIO (Gestión Operativa)
+    # ============================================================================
+    
+    @staticmethod
+    def get_rotacion_inventario(limit=5):
+        """
+        [INVENTARIO] Rotación de inventario por producto.
+        Útil para: Gestión de almacén, identificar productos lentos.
+        
+        Fórmula: Rotación (días) = Stock Actual / Ventas Diarias Promedio (30 días)
+        
+        Clasificación:
+        - Rápida: < 30 días
+        - Media: 30-60 días
+        - Lenta: > 60 días
+        
+        Returns:
+            Lista con rotacion_dias, clasificacion, color, stock_actual
+        """
+        cache_key = f"kpi:rotacion_inventario:{limit}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+        
+        from app.models import Product, SaleDetail
+        from django.db.models.functions import Coalesce
+        
+        fecha_inicio = timezone.now() - timedelta(days=30)
+        
+        productos_con_ventas = (
+            Product.objects
+            .filter(activo=True, stock_actual__gt=0)
+            .annotate(
+                ventas_30d=Coalesce(
+                    Sum('saledetail__cantidad', filter=Q(saledetail__venta__fecha__gte=fecha_inicio)),
+                    0
+                )
+            )
+            .filter(ventas_30d__gt=0)
+        )
+        
+        resultado = []
+        for producto in productos_con_ventas:
+            ventas_diarias = producto.ventas_30d / 30.0
+            if ventas_diarias > 0:
+                rotacion_dias = int(producto.stock_actual / ventas_diarias)
+                
+                if rotacion_dias < 30:
+                    clasificacion = 'Rápida'
+                    color = 'success'
+                elif rotacion_dias < 60:
+                    clasificacion = 'Media'
+                    color = 'warning'
+                else:
+                    clasificacion = 'Lenta'
+                    color = 'danger'
+                
+                resultado.append({
+                    'nombre': producto.nombre,
+                    'codigo': producto.codigo,
+                    'rotacion_dias': rotacion_dias,
+                    'clasificacion': clasificacion,
+                    'color': color,
+                    'stock_actual': producto.stock_actual,
+                    'ventas_30d': producto.ventas_30d
+                })
+        
+        resultado.sort(key=lambda x: x['rotacion_dias'])
+        resultado = resultado[:limit]
+        
+        cache.set(cache_key, resultado, KPIService.CACHE_TIMEOUT_MEDIUM)
+        return resultado
+

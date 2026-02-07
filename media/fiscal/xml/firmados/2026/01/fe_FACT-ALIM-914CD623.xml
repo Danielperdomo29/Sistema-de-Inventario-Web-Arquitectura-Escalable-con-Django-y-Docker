@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sts="dian:gov:co:facturaelectronica:Structures-2-1" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" xmlns:xades141="http://uri.etsi.org/01903/v1.4.1#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ext:UBLExtensions>
+    <ext:UBLExtension>
+      <ext:ExtensionContent>
+        <sts:DianExtensions>
+          <sts:InvoiceControl>
+            <sts:InvoiceAuthorization text="18760000001"/>
+          </sts:InvoiceControl>
+        </sts:DianExtensions>
+      </ext:ExtensionContent>
+    </ext:UBLExtension>
+    <ext:UBLExtension>
+      <ext:ExtensionContent/>
+    </ext:UBLExtension>
+  </ext:UBLExtensions>
+  <cbc:UBLVersionID>UBL 2.1</cbc:UBLVersionID>
+  <cbc:CustomizationID>10</cbc:CustomizationID>
+  <cbc:ProfileID>DIAN 2.1</cbc:ProfileID>
+  <cbc:ID>FACT-ALIM-914CD623</cbc:ID>
+  <cbc:UUID schemeID="CUFE" schemeName="CUFE-SHA384">1c15f5fad5e613099a9dec0f671565e6d46e994d4d1f3b310f653b4439b8d7e55dc3a955508da82727047d1018de2bef</cbc:UUID>
+  <cbc:IssueDate>2026-01-08</cbc:IssueDate>
+  <cbc:IssueTime>12:08:40-05:00</cbc:IssueTime>
+  <cbc:InvoiceTypeCode>01</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>COP</cbc:DocumentCurrencyCode>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyTaxScheme>
+        <cbc:RegistrationName>MI EMPRESA S.A.S</cbc:RegistrationName>
+        <cbc:CompanyID schemeID="1" schemeName="31">900123456</cbc:CompanyID>
+      </cac:PartyTaxScheme>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyTaxScheme>
+        <cbc:RegistrationName>Carlos Lopez</cbc:RegistrationName>
+        <cbc:CompanyID schemeName="13">222222222222</cbc:CompanyID>
+      </cac:PartyTaxScheme>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="COP">23.80</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="COP">23.80</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="COP">23.80</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="COP">23.80</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+</Invoice>

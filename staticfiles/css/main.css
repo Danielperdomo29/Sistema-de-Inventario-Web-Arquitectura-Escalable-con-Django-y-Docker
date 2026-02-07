@@ -90,10 +90,10 @@ body {
 }
 
 .sidebar {
-  width: 240px; /* Más compacto y minimalista */
-  background: #2c3e50; /* Fondo oscuro */
-  padding: 0;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+  width: 300px; /* Default 300px as requested */
+  background: white;
+  padding: 20px 0; /* Adjusted padding */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 999;
@@ -103,41 +103,39 @@ body {
 }
 
 .sidebar.collapsed {
-  width: 70px;
+  width: 80px;
 }
 
 /* Header Controls */
 .sidebar-header-controls {
-  padding: 15px;
+  padding: 0 20px 20px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 0;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 10px;
 }
 
 .sidebar-header-controls h3 {
   margin: 0;
-  font-size: 1rem;
-  color: #ecf0f1;
+  font-size: 1.2rem;
+  color: #333;
   white-space: nowrap;
   transition: opacity 0.3s;
-  font-weight: 600;
 }
 
 .sidebar-toggle {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.1rem;
-  color: #bdc3c7;
+  font-size: 1.2rem;
+  color: #666;
   padding: 5px;
-  transition: all 0.3s;
+  transition: transform 0.3s;
 }
 
 .sidebar-toggle:hover {
-  color: #14b8a6;
-  transform: scale(1.1);
+  color: #667eea;
 }
 
 .sidebar.collapsed .sidebar-header-controls h3 {
@@ -147,31 +145,27 @@ body {
 
 .sidebar.collapsed .sidebar-header-controls {
   justify-content: center;
-  padding: 15px 0;
+  padding: 0 0 20px 0;
 }
 
 /* Sections */
 .sidebar-section {
-  margin-bottom: 0;
+  margin-bottom: 5px;
 }
 
 .sidebar-section-header {
-  padding: 12px 15px;
+  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  color: #ecf0f1;
+  color: #666;
   font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   transition: background 0.2s;
-  background: rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-section-header:hover {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: #f8f9fa;
 }
 
 .sidebar.collapsed .sidebar-section-header span,
@@ -181,7 +175,7 @@ body {
 
 .sidebar.collapsed .sidebar-section-header {
   justify-content: center;
-  padding: 12px 0;
+  padding: 15px 0;
 }
 
 .sidebar.collapsed .sidebar-section-header i {
@@ -189,31 +183,10 @@ body {
   font-size: 1.2rem;
 }
 
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.section-toggle {
-  background: none;
-  border: none;
-  color: #bdc3c7;
-  cursor: pointer;
-  padding: 0;
-  font-size: 0.9rem;
-  transition: transform 0.3s;
-}
-
-.section-toggle:hover {
-  color: #14b8a6;
-}
-
 /* Menu Items */
 .sidebar-menu {
   list-style: none;
-  padding: 5px 8px;
-  margin: 0;
+  padding: 0 10px;
 }
 
 .sidebar-menu li {
@@ -223,37 +196,31 @@ body {
 .sidebar-menu a {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
-  color: #bdc3c7;
+  padding: 12px 15px;
+  color: #4b5563;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.2s;
   white-space: nowrap;
   overflow: hidden;
-  font-size: 0.9rem;
 }
 
 .sidebar-menu i {
-  width: 20px;
+  width: 24px;
   margin-right: 12px;
-  font-size: 1rem;
+  font-size: 1.1rem;
   text-align: center;
   transition: margin 0.3s;
 }
 
-.sidebar-menu a:hover {
-  background: rgba(20, 184, 166, 0.1);
-  color: #14b8a6;
-}
-
+.sidebar-menu a:hover,
 .sidebar-menu a.active {
-  background: #14b8a6;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  font-weight: 500;
 }
 
 .sidebar.collapsed .sidebar-menu {
-  padding: 5px;
+  padding: 0 5px;
 }
 
 .sidebar.collapsed .sidebar-menu span {
@@ -263,12 +230,12 @@ body {
 
 .sidebar.collapsed .sidebar-menu a {
   justify-content: center;
-  padding: 12px 0;
+  padding: 15px 0;
 }
 
 .sidebar.collapsed .sidebar-menu i {
   margin-right: 0;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 
 /* Main Content Adjustments */
@@ -276,7 +243,11 @@ body {
   display: none;
 }
 
-.sidebar-section.collapsed .section-toggle {
+.sidebar-section .section-toggle i {
+  transition: transform 0.3s;
+}
+
+.sidebar-section.collapsed .section-toggle i {
   transform: rotate(-90deg);
 }
 
@@ -1412,6 +1383,50 @@ table td.empty-message-cell {
     grid-template-columns: 1fr;
   }
 
+  .stats-primary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-secondary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Navbar menu - Ocultar texto, solo iconos */
+  .navbar-menu a {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+
+  /* Chart containers - altura adaptativa */
+  .chart-card {
+    padding: 15px;
+  }
+
+  .chart-card canvas {
+    max-height: 250px !important;
+  }
+
+  /* ABC Table - scroll horizontal */
+  #abcTableContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #abcTableContent table {
+    min-width: 600px;
+  }
+
+  /* Welcome banner */
+  .welcome-banner,
+  .dashboard-welcome {
+    padding: 20px;
+  }
+
+  .welcome-banner h1,
+  .dashboard-welcome h1 {
+    font-size: 1.5rem;
+  }
+
   /* Buttons */
   .btn-group {
     flex-direction: column;
@@ -1428,8 +1443,13 @@ table td.empty-message-cell {
     font-size: 0.85rem;
   }
 
-  .navbar-menu span {
+  /* Ocultar texto del navbar, solo iconos */
+  .navbar-menu span:not(.fa):not(.fas):not(.far) {
     display: none;
+  }
+
+  .navbar-menu a {
+    padding: 6px 8px;
   }
 
   .sidebar {
@@ -1449,8 +1469,47 @@ table td.empty-message-cell {
     padding: 15px 10px;
   }
 
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
   .card-header h2 {
     font-size: 1.1rem;
+  }
+
+  /* Stats cards más compactos */
+  .stat-card-primary,
+  .stat-card {
+    padding: 15px;
+  }
+
+  .stat-card-info h2 {
+    font-size: 1.8rem;
+  }
+
+  .stat-card-icon {
+    font-size: 2rem;
+  }
+
+  .stats-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Chart.js - altura reducida en móvil */
+  .chart-card canvas {
+    max-height: 200px !important;
+  }
+
+  /* ABC Table */
+  #abcTableContent table {
+    font-size: 0.75rem;
+  }
+
+  #abcTableContent th,
+  #abcTableContent td {
+    padding: 8px 6px;
   }
 
   .btn {
@@ -1473,4 +1532,21 @@ table td.empty-message-cell {
   .documentation-container {
     padding: 20px 10px;
   }
+
+  /* Welcome banner ultra compacto */
+  .welcome-banner,
+  .dashboard-welcome {
+    padding: 15px;
+  }
+
+  .welcome-banner h1,
+  .dashboard-welcome h1 {
+    font-size: 1.2rem;
+  }
+
+  .welcome-banner p,
+  .dashboard-welcome p {
+    font-size: 0.85rem;
+  }
 }
+

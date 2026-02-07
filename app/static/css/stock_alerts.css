@@ -1,0 +1,304 @@
+/**
+ * Estilos para el sistema de alertas de stock
+ * Diseño moderno y profesional para notificaciones SweetAlert2
+ */
+
+/* Popup principal de alertas */
+.stock-alert-popup {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border-radius: 1rem !important;
+}
+
+/* Contenido de la alerta */
+.stock-alert-popup .alert-content {
+    text-align: left;
+    padding: 1rem;
+    line-height: 1.6;
+}
+
+.stock-alert-popup .alert-content p {
+    margin-bottom: 0.5rem;
+}
+
+.stock-alert-popup .alert-content strong {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Título de la alerta */
+.stock-alert-popup .swal2-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 1rem 0 0.5rem 0;
+}
+
+/* Icono de la alerta */
+.stock-alert-popup .swal2-icon {
+    margin: 1.5rem auto 1rem auto;
+}
+
+/* Botones personalizados */
+.stock-alert-popup .swal2-actions {
+    margin-top: 1.5rem;
+    gap: 0.75rem;
+}
+
+.stock-alert-popup .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.stock-alert-popup .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stock-alert-popup .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+}
+
+.stock-alert-popup .btn-success:hover {
+    background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+}
+
+.stock-alert-popup .btn-secondary {
+    background: #6c757d;
+    border: none;
+}
+
+.stock-alert-popup .btn-secondary:hover {
+    background: #5a6268;
+}
+
+/* Badge pulsante para alertas críticas */
+.badge-critical {
+    animation: pulse-red 2s infinite;
+    background-color: #dc3545 !important;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 600;
+}
+
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(220, 53, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+/* Badge para alertas de advertencia */
+.badge-warning {
+    animation: pulse-yellow 2s infinite;
+    background-color: #ffc107 !important;
+    color: #212529;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 600;
+}
+
+@keyframes pulse-yellow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(255, 193, 7, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+}
+
+/* Indicador de alerta en el navbar (opcional) */
+.stock-alert-indicator {
+    position: relative;
+    display: inline-block;
+}
+
+.stock-alert-indicator .badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 10px;
+    background-color: #dc3545;
+    color: white;
+    font-weight: 700;
+    animation: pulse-red 2s infinite;
+}
+
+/* Estilos para la lista de alertas (si se implementa una vista dedicada) */
+.alert-list-item {
+    border-left: 4px solid #dee2e6;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.alert-list-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.alert-list-item.nivel-ROJO {
+    border-left-color: #dc3545;
+}
+
+.alert-list-item.nivel-AMARILLO {
+    border-left-color: #ffc107;
+}
+
+.alert-list-item.nivel-VERDE {
+    border-left-color: #28a745;
+}
+
+.alert-list-item .alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.alert-list-item .alert-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.alert-list-item .alert-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.alert-list-item .alert-body {
+    color: #6c757d;
+    margin-bottom: 0.75rem;
+}
+
+.alert-list-item .alert-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.alert-list-item .alert-actions .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stock-alert-popup {
+        width: 90% !important;
+        max-width: 400px !important;
+    }
+    
+    .stock-alert-popup .alert-content {
+        padding: 0.75rem;
+    }
+    
+    .stock-alert-popup .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animación de entrada para las alertas */
+@keyframes slideInDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.stock-alert-popup.swal2-show {
+    animation: slideInDown 0.3s ease-out;
+}
+
+/* Toast notification (alternativa ligera) */
+.stock-alert-toast {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    min-width: 300px;
+    max-width: 400px;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 1rem;
+    z-index: 9999;
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.stock-alert-toast.critical {
+    border-left: 4px solid #dc3545;
+}
+
+.stock-alert-toast.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.stock-alert-toast .toast-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.stock-alert-toast .toast-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+
+.stock-alert-toast .toast-title {
+    font-weight: 600;
+    flex: 1;
+}
+
+.stock-alert-toast .toast-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    line-height: 1;
+}
+
+.stock-alert-toast .toast-close:hover {
+    color: #212529;
+}
+
+.stock-alert-toast .toast-body {
+    color: #6c757d;
+    font-size: 0.9rem;
+}

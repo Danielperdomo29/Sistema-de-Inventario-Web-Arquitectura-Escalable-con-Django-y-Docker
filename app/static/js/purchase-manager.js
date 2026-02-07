@@ -21,7 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const purchaseForm = document.getElementById('purchaseForm');
     if (purchaseForm) {
         purchaseForm.addEventListener('submit', function(e) {
-            if (details.length === 0) {
+            // Verificar si está en modo "sin productos"
+            const noProductsMode = document.getElementById('no_products_mode');
+            const isNoProductsMode = noProductsMode && noProductsMode.checked;
+            
+            // Solo validar productos si NO está en modo "sin productos"
+            if (!isNoProductsMode && details.length === 0) {
                 e.preventDefault();
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({

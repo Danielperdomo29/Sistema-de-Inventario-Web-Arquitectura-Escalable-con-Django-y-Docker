@@ -298,9 +298,10 @@
 
 {% block content %}
 <div class="analytics-container">
-    <div class="analytics-header">
-        <h2><i class="fas fa-brain"></i> HUB DE GESTIÓN - Analytics IA</h2>
-        <p style="color: #666; margin-top: 8px; font-size: 0.9em;">Sistema de Facturación Electrónica e Inteligencia de Inventarios</p>
+    <!-- Header con estilo HUB DE GESTIÓN -->
+    <div class="welcome-banner" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; color: white;">
+        <h1 style="margin: 0; font-size: 1.8rem; font-weight: 600;"><i class="fas fa-brain"></i> Analytics IA</h1>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Sistema de Facturación Electrónica e Inteligencia de Inventarios</p>
     </div>
 
     <!-- Stats Cards -->
@@ -368,6 +369,157 @@
                     <p>Haz preguntas sobre tu negocio en español.</p>
                     <p style="font-size: 0.85rem;">Ejemplos: ventas del día, productos más vendidos, inventario bajo...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- Dashboard Unificado - Analytics ML & IA -->
+    <!-- ============================================ -->
+    <div class="unified-dashboard" id="unifiedDashboard">
+        <div class="dashboard-header" style="margin: 30px 0 20px 0;">
+            <h3 style="display: flex; align-items: center; gap: 10px; color: #333; font-size: 1.4rem;">
+                <i class="fas fa-chart-line" style="color: #667eea;"></i>
+                Dashboard Inteligente - Analytics ML & Recomendaciones
+            </h3>
+            <button class="ai-btn" onclick="cargarDashboardUnificado()" style="margin-top: 10px;">
+                <i class="fas fa-sync-alt"></i>
+                Actualizar Dashboard
+            </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="dashboardLoading" style="display: none; text-align: center; padding: 40px;">
+            <div class="typing-indicator" style="justify-content: center;">
+                <span></span><span></span><span></span>
+            </div>
+            <p style="color: #888;">Cargando datos del dashboard...</p>
+        </div>
+
+        <!-- Dashboard Content Grid -->
+        <div class="dashboard-grid" id="dashboardContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            
+            <!-- Clasificación ABC -->
+            <div class="ai-card">
+                <div class="ai-card-header">
+                    <div class="ai-card-title">
+                        <i class="fas fa-trophy" style="color: #f1c40f;"></i>
+                        Clasificación ABC de Productos
+                    </div>
+                </div>
+                <div id="abcContent" class="dashboard-metric">
+                    <div class="abc-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;">
+                        <div class="abc-item" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 20px; border-radius: 12px; color: white;">
+                            <div style="font-size: 2rem; font-weight: 700;" id="abcA">-</div>
+                            <div style="opacity: 0.9;">Clase A</div>
+                            <div style="font-size: 0.75rem; opacity: 0.8;">Top ventas</div>
+                        </div>
+                        <div class="abc-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white;">
+                            <div style="font-size: 2rem; font-weight: 700;" id="abcB">-</div>
+                            <div style="opacity: 0.9;">Clase B</div>
+                            <div style="font-size: 0.75rem; opacity: 0.8;">Importante</div>
+                        </div>
+                        <div class="abc-item" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 12px; color: white;">
+                            <div style="font-size: 2rem; font-weight: 700;" id="abcC">-</div>
+                            <div style="opacity: 0.9;">Clase C</div>
+                            <div style="font-size: 0.75rem; opacity: 0.8;">Bajo impacto</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anomalías Detectadas -->
+            <div class="ai-card">
+                <div class="ai-card-header">
+                    <div class="ai-card-title">
+                        <i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i>
+                        Anomalías Detectadas
+                    </div>
+                </div>
+                <div id="anomaliasContent" class="dashboard-metric">
+                    <div style="display: flex; justify-content: space-around; padding: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 700; color: #e74c3c;" id="anomaliasCriticas">0</div>
+                            <div style="color: #666;">Críticas</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 700; color: #f39c12;" id="anomaliasTotal">0</div>
+                            <div style="color: #666;">Total (7 días)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recomendaciones IA -->
+            <div class="ai-card">
+                <div class="ai-card-header">
+                    <div class="ai-card-title">
+                        <i class="fas fa-lightbulb" style="color: #f39c12;"></i>
+                        Recomendaciones IA
+                    </div>
+                </div>
+                <div id="recomendacionesContent" class="dashboard-metric">
+                    <div class="recom-list" style="padding: 10px;">
+                        <div class="recom-item" style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #fff3cd; border-radius: 8px; margin-bottom: 10px;">
+                            <i class="fas fa-truck" style="color: #856404; font-size: 1.5rem;"></i>
+                            <div>
+                                <div style="font-weight: 600; color: #856404;">Reabastecer</div>
+                                <div style="font-size: 1.2rem; font-weight: 700;" id="recomReabastecer">-</div>
+                            </div>
+                        </div>
+                        <div class="recom-item" style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #cce5ff; border-radius: 8px; margin-bottom: 10px;">
+                            <i class="fas fa-star" style="color: #004085; font-size: 1.5rem;"></i>
+                            <div>
+                                <div style="font-weight: 600; color: #004085;">Productos Estrella</div>
+                                <div style="font-size: 1.2rem; font-weight: 700;" id="recomEstrella">-</div>
+                            </div>
+                        </div>
+                        <div class="recom-item" style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #f8d7da; border-radius: 8px;">
+                            <i class="fas fa-tag" style="color: #721c24; font-size: 1.5rem;"></i>
+                            <div>
+                                <div style="font-weight: 600; color: #721c24;">Liquidar</div>
+                                <div style="font-size: 1.2rem; font-weight: 700;" id="recomLiquidar">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alertas del Sistema -->
+            <div class="ai-card">
+                <div class="ai-card-header">
+                    <div class="ai-card-title">
+                        <i class="fas fa-bell" style="color: #3498db;"></i>
+                        Alertas Activas
+                    </div>
+                </div>
+                <div id="alertasContent" class="dashboard-metric" style="max-height: 250px; overflow-y: auto;">
+                    <div class="alertas-list" id="alertasList" style="padding: 10px;">
+                        <p style="text-align: center; color: #888; padding: 20px;">
+                            <i class="fas fa-check-circle" style="color: #27ae60; font-size: 2rem;"></i><br>
+                            Sin alertas activas
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Estado del Sistema -->
+        <div class="system-status" style="margin-top: 20px; padding: 15px; background: #f8f9fc; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-server" style="color: #27ae60;"></i>
+                <span style="color: #666;">Estado del Sistema:</span>
+                <span id="sistemaEstado" style="font-weight: 600; color: #27ae60;">Verificando...</span>
+            </div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <span id="moduloCore" style="font-size: 0.85rem;"><i class="fas fa-circle" style="color: #ccc;"></i> Core</span>
+                <span id="moduloAnalytics" style="font-size: 0.85rem;"><i class="fas fa-circle" style="color: #ccc;"></i> Analytics</span>
+                <span id="moduloIA" style="font-size: 0.85rem;"><i class="fas fa-circle" style="color: #ccc;"></i> IA</span>
+                <span id="moduloDB" style="font-size: 0.85rem;"><i class="fas fa-circle" style="color: #ccc;"></i> Base de Datos</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #888;">
+                Última actualización: <span id="ultimaActualizacion">--</span>
             </div>
         </div>
     </div>
@@ -511,5 +663,165 @@
         div.textContent = text;
         return div.innerHTML;
     }
+
+    // ============================================
+    // Dashboard Unificado - Carga de datos
+    // ============================================
+
+    async function cargarDashboardUnificado() {
+        const loading = document.getElementById('dashboardLoading');
+        const content = document.getElementById('dashboardContent');
+        
+        loading.style.display = 'block';
+        
+        try {
+            // Cargar datos en paralelo
+            const [dashboardData, healthData] = await Promise.all([
+                fetchDashboardData(),
+                fetchHealthData()
+            ]);
+            
+            // Actualizar UI con los datos
+            actualizarDashboardUI(dashboardData);
+            actualizarHealthUI(healthData);
+            
+            // Actualizar timestamp
+            document.getElementById('ultimaActualizacion').textContent = 
+                new Date().toLocaleTimeString();
+            
+        } catch (error) {
+            console.error('Error cargando dashboard:', error);
+            document.getElementById('sistemaEstado').textContent = 'Error';
+            document.getElementById('sistemaEstado').style.color = '#e74c3c';
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+
+    async function fetchDashboardData() {
+        try {
+            const response = await fetch('/api/core/dashboard-unificado/', {
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching dashboard:', error);
+            return null;
+        }
+    }
+
+    async function fetchHealthData() {
+        try {
+            const response = await fetch('/api/core/health-global/');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching health:', error);
+            return null;
+        }
+    }
+
+    function actualizarDashboardUI(data) {
+        if (!data || !data.exito) return;
+        
+        const secciones = data.secciones || {};
+        
+        // Actualizar Analytics (ABC)
+        const analytics = secciones.analytics || {};
+        const abc = analytics.productos_abc || {};
+        document.getElementById('abcA').textContent = abc.A || 0;
+        document.getElementById('abcB').textContent = abc.B || 0;
+        document.getElementById('abcC').textContent = abc.C || 0;
+        
+        // Actualizar Anomalías
+        const anomalias = analytics.anomalias || {};
+        document.getElementById('anomaliasCriticas').textContent = anomalias.criticas || 0;
+        document.getElementById('anomaliasTotal').textContent = anomalias.total || 0;
+        
+        // Actualizar Recomendaciones IA
+        const ia = secciones.ia || {};
+        document.getElementById('recomReabastecer').textContent = 
+            (ia.productos_reabastecer || 0) + ' productos';
+        document.getElementById('recomEstrella').textContent = 
+            (ia.productos_estrella || 0) + ' productos';
+        document.getElementById('recomLiquidar').textContent = 
+            (ia.productos_liquidar || 0) + ' productos';
+        
+        // Actualizar Alertas
+        const alertas = data.alertas || [];
+        actualizarAlertasUI(alertas);
+    }
+
+    function actualizarAlertasUI(alertas) {
+        const container = document.getElementById('alertasList');
+        
+        if (!alertas || alertas.length === 0) {
+            container.innerHTML = `
+                <p style="text-align: center; color: #888; padding: 20px;">
+                    <i class="fas fa-check-circle" style="color: #27ae60; font-size: 2rem;"></i><br>
+                    Sin alertas activas
+                </p>
+            `;
+            return;
+        }
+        
+        const alertaColors = {
+            'CRITICA': { bg: '#f8d7da', border: '#f5c6cb', icon: '#721c24', iconClass: 'fa-exclamation-triangle' },
+            'ALTA': { bg: '#fff3cd', border: '#ffeeba', icon: '#856404', iconClass: 'fa-exclamation-circle' },
+            'MEDIA': { bg: '#cce5ff', border: '#b8daff', icon: '#004085', iconClass: 'fa-info-circle' }
+        };
+        
+        container.innerHTML = alertas.map(alerta => {
+            const color = alertaColors[alerta.tipo] || alertaColors['MEDIA'];
+            return `
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; 
+                            background: ${color.bg}; border-left: 4px solid ${color.icon}; 
+                            border-radius: 8px; margin-bottom: 10px;">
+                    <i class="fas ${color.iconClass}" style="color: ${color.icon}; font-size: 1.2rem; margin-top: 2px;"></i>
+                    <div>
+                        <div style="font-weight: 600; color: ${color.icon}; font-size: 0.85rem;">${alerta.tipo} - ${alerta.modulo}</div>
+                        <div style="color: #333; margin: 4px 0;">${alerta.mensaje}</div>
+                        <div style="font-size: 0.8rem; color: #666;">💡 ${alerta.accion}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function actualizarHealthUI(data) {
+        if (!data) return;
+        
+        const estado = data.status === 'healthy' ? 'Operativo' : 'Degradado';
+        const estadoEl = document.getElementById('sistemaEstado');
+        estadoEl.textContent = estado;
+        estadoEl.style.color = data.status === 'healthy' ? '#27ae60' : '#f39c12';
+        
+        const modulos = data.modulos || {};
+        
+        // Actualizar indicadores de módulos
+        actualizarModuloIndicador('moduloCore', modulos.core);
+        actualizarModuloIndicador('moduloAnalytics', modulos.analytics);
+        actualizarModuloIndicador('moduloIA', modulos.ia);
+        actualizarModuloIndicador('moduloDB', modulos.base_datos);
+    }
+
+    function actualizarModuloIndicador(elementId, activo) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        const icon = el.querySelector('i');
+        if (icon) {
+            icon.style.color = activo ? '#27ae60' : '#e74c3c';
+        }
+    }
+
+    // Cargar dashboard al iniciar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarDashboardUnificado();
+        
+        // Actualizar cada 5 minutos
+        setInterval(cargarDashboardUnificado, 5 * 60 * 1000);
+    });
 </script>
 {% endblock %}

@@ -372,6 +372,101 @@ class DashboardView:
                 \u003c/div\u003e
             \u003c/div\u003e
             
+            \u003c!-- COMPONENTE 1: KPI de Productos --\u003e
+            \u003cdiv class="kpi-productos-section" style="margin-top: 3rem;"\u003e
+                \u003ch2 class="section-title" style="margin-bottom: 2rem; color: #1f2937; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem;"\u003e
+                    \u003ci class="fas fa-chart-pie" style="color: #667eea;"\u003e\u003c/i\u003e 
+                    KPI de Productos - Análisis de Ventas e Inventario
+                \u003c/h2\u003e
+                
+                \u003c!-- Grid de Gráficas de KPI --\u003e
+                \u003cdiv class="charts-container"\u003e
+                    \u003c!-- [VENTAS] Top 5 Productos Más Vendidos --\u003e
+                    \u003cdiv class="chart-card"\u003e
+                        \u003ch3\u003e
+                            \u003ci class="fas fa-chart-bar" style="color: #28a745;"\u003e\u003c/i\u003e 
+                            Top 5 Productos Más Vendidos (Última Semana)
+                        \u003c/h3\u003e
+                        \u003cp style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;"\u003e
+                            \u003cstrong\u003e[VENTAS]\u003c/strong\u003e Productos con mayor volumen de unidades vendidas
+                        \u003c/p\u003e
+                        \u003cdiv style="height: 300px;"\u003e
+                            \u003ccanvas id="chartTopVendidos"\u003e\u003c/canvas\u003e
+                        \u003c/div\u003e
+                    \u003c/div\u003e
+                    
+                    \u003c!-- [INVENTARIO] Rotación de Inventario --\u003e
+                    \u003cdiv class="chart-card"\u003e
+                        \u003ch3\u003e
+                            \u003ci class="fas fa-sync-alt" style="color: #ffc107;"\u003e\u003c/i\u003e 
+                            Rotación de Inventario (Top 5)
+                        \u003c/h3\u003e
+                        \u003cp style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;"\u003e
+                            \u003cstrong\u003e[INVENTARIO]\u003c/strong\u003e Días promedio de rotación - 
+                            \u003cspan class="badge" style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;"\u003eRápida \u003c 30d\u003c/span\u003e
+                            \u003cspan class="badge" style="background: #ffc107; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;"\u003eMedia 30-60d\u003c/span\u003e
+                            \u003cspan class="badge" style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;"\u003eLenta \u003e 60d\u003c/span\u003e
+                        \u003c/p\u003e
+                        \u003cdiv style="height: 300px;"\u003e
+                            \u003ccanvas id="chartRotacion"\u003e\u003c/canvas\u003e
+                        \u003c/div\u003e
+                    \u003c/div\u003e
+                \u003c/div\u003e
+                
+                \u003c!-- Segunda fila de gráficas --\u003e
+                \u003cdiv class="charts-container" style="margin-top: 2rem;"\u003e
+                    \u003c!-- [VENTAS] Rentabilidad de Productos --\u003e
+                    \u003cdiv class="chart-card"\u003e
+                        \u003ch3\u003e
+                            \u003ci class="fas fa-money-bill-wave" style="color: #28a745;"\u003e\u003c/i\u003e 
+                            Top 5 Productos Más Rentables (Margen %)
+                        \u003c/h3\u003e
+                        \u003cp style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;"\u003e
+                            \u003cstrong\u003e[VENTAS]\u003c/strong\u003e Margen de ganancia: (Precio Venta - Precio Compra) / Precio Venta × 100
+                        \u003c/p\u003e
+                        \u003cdiv style="height: 300px;"\u003e
+                            \u003ccanvas id="chartRentabilidad"\u003e\u003c/canvas\u003e
+                        \u003c/div\u003e
+                    \u003c/div\u003e
+                    
+                    \u003c!-- [VENTAS] Análisis ABC de Pareto (Opcional) --\u003e
+                    \u003cdiv class="chart-card"\u003e
+                        \u003ch3\u003e
+                            \u003ci class="fas fa-star" style="color: #ffc107;"\u003e\u003c/i\u003e 
+                            Análisis ABC de Productos (Pareto 80/20)
+                        \u003c/h3\u003e
+                        \u003cp style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;"\u003e
+                            \u003cstrong\u003e[VENTAS]\u003c/strong\u003e Clasificación por ganancias - 
+                            \u003cspan style="color: #28a745; font-weight: 600;"\u003eClase A\u003c/span\u003e: 80% ganancias, 
+                            \u003cspan style="color: #ffc107; font-weight: 600;"\u003eClase B\u003c/span\u003e: 15%, 
+                            \u003cspan style="color: #dc3545; font-weight: 600;"\u003eClase C\u003c/span\u003e: 5%
+                        \u003c/p\u003e
+                        \u003cdiv style="height: 300px;"\u003e
+                            \u003ccanvas id="chartABCAnalysis"\u003e\u003c/canvas\u003e
+                        \u003c/div\u003e
+                        \u003c!-- Tabla detallada de productos ABC --\u003e
+                        \u003cdiv id="abcTableContainer" style="margin-top: 1.5rem; text-align: center;"\u003e
+                            \u003ch4 style="font-size: 1rem; color: #333; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;"\u003e
+                                \u003ci class="fas fa-list-alt" style="color: #667eea;"\u003e\u003c/i\u003e Top 10 Productos por Clasificacion ABC
+                            \u003c/h4\u003e
+                            \u003cdiv id="abcTableContent" style="font-size: 0.85rem; color: #888; text-align: center; padding: 1rem;"\u003e
+                                \u003ci class="fas fa-spinner fa-spin"\u003e\u003c/i\u003e Cargando productos...
+                            \u003c/div\u003e
+                        \u003c/div\u003e
+                    \u003c/div\u003e
+                \u003c/div\u003e
+                
+                \u003c!-- Botones de control --\u003e
+                \u003cdiv style="margin-top: 2rem; text-align: right;"\u003e
+                    \u003cbutton id="refreshKPI" class="btn btn-outline-primary" style="margin-right: 0.5rem;"\u003e
+                        \u003ci class="fas fa-sync-alt"\u003e\u003c/i\u003e Actualizar KPIs
+                    \u003c/button\u003e
+                    \u003cbutton id="exportKPI" class="btn btn-outline-secondary"\u003e
+                        \u003ci class="fas fa-file-excel"\u003e\u003c/i\u003e Exportar a Excel
+                    \u003c/button\u003e
+                \u003c/div\u003e
+            \u003c/div\u003e
+            
             {chartjs_cdn}
             \u003cscript\u003e
             // Ventas del Mes - Line Chart
@@ -485,8 +580,14 @@ class DashboardView:
             }}
             .kpi-cards-grid {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 1.5rem;
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }}
+            @media (min-width: 500px) {{
+                .kpi-cards-grid {{
+                    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                    gap: 1.5rem;
+                }}
             }}
             .kpi-card {{
                 background: white;
@@ -549,9 +650,16 @@ class DashboardView:
             }}
             .charts-container {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-                gap: 2rem;
-                margin: 2rem 0;
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            @media (min-width: 600px) {{
+                .charts-container {{
+                    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                    gap: 2rem;
+                    margin: 2rem 0;
+                }}
             }}
             .chart-card {{
                 background: white;
@@ -1093,12 +1201,20 @@ class DashboardView:
             
             .cash-flow-summary {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 1.5rem;
-                margin: 1.5rem 0;
-                padding: 1.5rem;
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin: 1rem 0;
+                padding: 1rem;
                 background: #f9fafb;
                 border-radius: 8px;
+            }}
+            @media (min-width: 500px) {{
+                .cash-flow-summary {{
+                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                    gap: 1.5rem;
+                    margin: 1.5rem 0;
+                    padding: 1.5rem;
+                }}
             }}
             
             .summary-item {{

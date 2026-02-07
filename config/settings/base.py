@@ -28,6 +28,9 @@ INSTALLED_APPS = [
     "app",
     "app.fiscal.apps.FiscalConfig",  # Fiscal module
     "facturacion",
+    "core",  # Core Infrastructure - EventBus & DataAggregator
+    "analytics",  # Analytics ML - Predicción y Optimización
+    "ia",  # IA - Chatbot RAG y Recomendaciones
 ]
 
 # Feature flag: Activar django-allauth
@@ -189,16 +192,41 @@ TIME_ZONE = "America/Bogota"
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Static files configuration
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [
-    BASE_DIR / "app" / "static",
+    os.path.join(BASE_DIR, "app", "static"),
 ]
 
-# Media files
+# Media files configuration
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# File upload settings for receipt system
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+
+# Security settings for file serving
+X_FRAME_OPTIONS = 'SAMEORIGIN'  # Allow iframe for PDF preview
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# ===== CONFIGURACIÓN TESSERACT OCR =====
+# Ruta de Tesseract (ajustar según instalación)
+TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Windows
+# TESSERACT_CMD = '/usr/bin/tesseract'  # Linux/Mac
+
+# Idiomas para OCR (español + inglés)
+OCR_LANGUAGES = 'spa+eng'
+
+# Confianza mínima para considerar válido
+OCR_MIN_CONFIDENCE = 0.3
+
+# Tamaño máximo de archivo para OCR (10MB)
+OCR_MAX_FILE_SIZE = 10 * 1024 * 1024
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -263,11 +291,20 @@ CSP_STYLE_SRC = (
     "https://cdnjs.cloudflare.com",
 )
 CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_FONT_SRC = ("'self'", "https://cdnjs.cloudflare.com")
-CSP_CONNECT_SRC = ("'self'",)
+CSP_FONT_SRC = ("'self'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net")
+CSP_CONNECT_SRC = ("'self'", "https://cdn.jsdelivr.net")
 CSP_FRAME_ANCESTORS = ("'none'",)  # Prevenir clickjacking
 CSP_BASE_URI = ("'self'",)
 CSP_FORM_ACTION = ("'self'",)
+
+# ============================================================================
+# CORE INFRASTRUCTURE - EventBus & DataAggregator
+# ============================================================================
+# URL de Redis (también usado por Celery)
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
+# Habilitar/deshabilitar EventBus
+EVENT_BUS_ENABLED = os.getenv("EVENT_BUS_ENABLED", "true").lower() == "true"
 
 # ============================================================================
 # DJANGO-ALLAUTH CONFIGURATION (Solo si ENABLE_ALLAUTH=True)
@@ -407,3 +444,25 @@ if ENABLE_ALLAUTH:
     # Adapters personalizados (para lógica custom)
     # ACCOUNT_ADAPTER = 'app.adapters.CustomAccountAdapter'
     # SOCIALACCOUNT_ADAPTER = 'app.adapters.CustomSocialAccountAdapter'
+
+
+# ============================================================================
+# API Security - Token Authentication
+# ============================================================================
+
+# Token secreto para autenticación de API (debe estar en .env)
+API_SECRET_TOKEN = os.getenv('API_SECRET_TOKEN', None)
+
+# OpenRouter/LLM API Key (para IA Chatbot)
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', None)
+OPENROUTER_API_URL = os.getenv('OPENROUTER_API_URL', 'https://openrouter.ai/api/v1/chat/completions')
+LLM_MODEL = os.getenv('LLM_MODEL', 'deepseek/deepseek-chat')
+
+# Rate limiting para APIs
+API_RATE_LIMIT_REQUESTS = int(os.getenv('API_RATE_LIMIT_REQUESTS', '100'))
+API_RATE_LIMIT_WINDOW = int(os.getenv('API_RATE_LIMIT_WINDOW', '60'))  # segundos
+
+# Redis URL (para EventBus y Cache)
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+EVENT_BUS_ENABLED = os.getenv('EVENT_BUS_ENABLED', 'true').lower() == 'true'
+

@@ -15,6 +15,11 @@ from app.controllers.inventory_movement_controller import InventoryMovementContr
 from app.controllers.product_controller import ProductController
 from app.controllers.purchase_controller import PurchaseController
 from app.controllers.purchase_detail_controller import PurchaseDetailController
+from app.controllers.purchase_receipt_controller import (
+    extract_total_from_receipt,
+    save_purchase_with_receipt,
+    view_receipt
+)
 from app.controllers.report_controller import ReportController
 from app.controllers.role_controller import RoleController
 from app.controllers.sale_controller import SaleController
@@ -166,6 +171,12 @@ urlpatterns = [
     path("chatbot/send/", ChatbotController.send_message, name="chatbot_send"),
     path("chatbot/clear-history/", ChatbotController.clear_history, name="chatbot_clear_history"),
     path("chatbot/history/", ChatbotController.get_history, name="chatbot_history"),
+    
+    # ===== API PARA FACTURAS CON OCR =====
+    path("api/purchases/extract-total/", extract_total_from_receipt, name="extract_receipt_total"),
+    path("api/purchases/save-with-receipt/", save_purchase_with_receipt, name="save_purchase_with_receipt"),
+    path("compras/<int:purchase_id>/factura/", view_receipt, name="view_receipt"),
+    
     # Analytics con IA (DeepSeek)
     path("analytics/", include("app.views.analytics_urls")),
     # Módulo Fiscal - Fase A
@@ -179,6 +190,40 @@ urlpatterns = [
     path("dian/", include("facturacion.urls")),
     # API Fiscal & Reportes
     path("fiscal/", include("app.fiscal.urls")),
+]
+
+# Stock Alerts API (Componente 0: Stock Automático)
+from app.views import stock_alert_api
+
+urlpatterns += [
+    path("api/stock/alertas-pendientes/", stock_alert_api.get_pending_stock_alerts, name="stock_alerts_pending"),
+    path("api/stock/alertas/<int:alerta_id>/revisar/", stock_alert_api.mark_alert_as_reviewed, name="stock_alert_review"),
+    path("api/stock/alertas/<int:alerta_id>/resolver/", stock_alert_api.mark_alert_as_resolved, name="stock_alert_resolve"),
+    path("api/stock/alertas/", stock_alert_api.get_all_alerts, name="stock_alerts_all"),
+]
+
+# KPI Productos API (Componente 1: KPI de Productos)
+from app.views import kpi_api
+
+urlpatterns += [
+    path("api/kpi/productos/", kpi_api.get_kpi_productos, name="kpi_productos"),
+    path("api/kpi/productos/abc/", kpi_api.get_kpi_abc_detalle, name="kpi_abc_detalle"),
+    path("api/kpi/invalidar-cache/", kpi_api.invalidar_cache_kpis, name="kpi_invalidar_cache"),
+]
+
+# Core Infrastructure API (EventBus, DataAggregator, Health Check)
+urlpatterns += [
+    path("api/core/", include("core.urls")),
+]
+
+# Analytics ML API (Predicción, Optimización, Anomalías)
+urlpatterns += [
+    path("api/analytics/", include("analytics.urls")),
+]
+
+# IA API (Chatbot RAG, Recomendaciones)
+urlpatterns += [
+    path("api/ia/", include("ia.urls")),
 ]
 
 # Async Tasks URLs (Fase 4)

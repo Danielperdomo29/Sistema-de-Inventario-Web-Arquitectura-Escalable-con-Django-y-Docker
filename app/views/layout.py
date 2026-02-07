@@ -6,13 +6,16 @@ class Layout:
         """Carga los estilos CSS desde archivo externo"""
         return """
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
         <link rel="stylesheet" href="/static/css/main.css">
         <link rel="stylesheet" href="/static/css/forms.css">
         <link rel="stylesheet" href="/static/css/dashboard.css">
         <link rel="stylesheet" href="/static/css/swal.css">
         <link rel="stylesheet" href="/static/css/chatbot.css">
-        <link rel="stylesheet" href="/static/css/theme-professional-neutral.css?v=11.0">
+        <link rel="stylesheet" href="/static/css/stock_alerts.css">
+        <link rel="stylesheet" href="/static/css/theme-professional-neutral.css?v=12.0">
         <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
         """
 
     @staticmethod
@@ -189,6 +192,8 @@ class Layout:
             <script src="/static/js/form-validator.js?v=1"></script>
             <script src="/static/js/sidebar.js"></script>
             <script src="/static/js/sidebar-sections.js"></script>
+            <script src="/static/js/stock_alerts.js"></script>
+            <script src="/static/js/kpi_charts.js"></script>
             <script>
                 // Pasar estado del usuario y token CSRF al JavaScript
                 // activo=1 -> true (puede modificar), activo=0 -> false (no puede modificar)

@@ -9,17 +9,17 @@
    ============================================ */
 :root {
     /* === COLORES BASE === */
-    --bg-general: #F3F4F6;                    /* Gris azulado pálido */
+    --bg-general: #F3F4F6;                    /* Gris azulado pÃÂ¡lido */
     --bg-white: #FFFFFF;
     
     /* === SIDEBAR CON DEGRADADO === */
     --sidebar-bg-start: #1e293b;              /* Azul oscuro */
     --sidebar-bg-end: #0f172a;                /* Azul muy oscuro */
-    --sidebar-hover: rgba(255, 255, 255, 0.1); /* Blanco translúcido */
+    --sidebar-hover: rgba(255, 255, 255, 0.1); /* Blanco translÃÂºcido */
     --sidebar-active: rgba(255, 255, 255, 0.15);
     --sidebar-accent: #06b6d4;                /* Cyan acento */
     
-    /* === TIPOGRAFÍA === */
+    /* === TIPOGRAFÃÂA === */
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --text-tertiary: #94a3b8;
@@ -93,7 +93,7 @@ body {
 }
 
 /* ============================================
-   SIDEBAR - MENÚ LATERAL PREMIUM MODERNO
+   SIDEBAR - MENÃÂ LATERAL PREMIUM MODERNO
    ============================================ */
 .sidebar {
     width: 300px;
@@ -156,7 +156,7 @@ body {
     letter-spacing: -0.02em;
 }
 
-/* Botón de Toggle Mejorado - Área de clic 44x44px */
+/* BotÃÂ³n de Toggle Mejorado - ÃÂrea de clic 44x44px */
 .sidebar-toggle {
     width: 44px !important;
     height: 44px !important;
@@ -191,12 +191,12 @@ body {
     display: block;
 }
 
-/* Rotación suave del ícono */
+/* RotaciÃÂ³n suave del ÃÂ­cono */
 .sidebar.collapsed .sidebar-toggle i {
     transform: rotate(180deg);
 }
 
-/* Indicador visual para área de clic */
+/* Indicador visual para ÃÂ¡rea de clic */
 .sidebar-toggle::after {
     content: '';
     position: absolute;
@@ -222,7 +222,7 @@ body {
     border-color: rgba(255, 255, 255, 0.8) !important;
 }
 
-/* Menú del Sidebar */
+/* MenÃÂº del Sidebar */
 .sidebar-menu {
     list-style: none;
     padding: 20px 0 !important;
@@ -256,7 +256,7 @@ body {
     display: flex !important;
 }
 
-/* Iconos del menú */
+/* Iconos del menÃÂº */
 .sidebar-menu a i {
     margin-right: 16px !important;
     font-size: 20px !important;
@@ -271,7 +271,7 @@ body {
     font-size: 22px !important;
 }
 
-/* Ocultar texto cuando está colapsado */
+/* Ocultar texto cuando estÃÂ¡ colapsado */
 .sidebar.collapsed .sidebar-menu a {
     color: transparent !important;
 }
@@ -443,7 +443,7 @@ body {
 
 /* Emoji de saludo */
 .navbar-menu span::before {
-    content: '👋';
+    content: 'Ã°ÂÂÂ';
     position: absolute;
     left: 0;
     top: 50%;
@@ -540,7 +540,7 @@ body {
     padding: 1.5rem;
 }
 
-/* Cards de Estadísticas */
+/* Cards de EstadÃÂ­sticas */
 .stats-primary-grid,
 .stats-secondary-grid {
     display: grid;
@@ -1129,282 +1129,14 @@ label {
     color: var(--text-secondary);
     font-style: italic;
 }
- 
- 
-/* ============================================
-   DASHBOARD METRICS MEJORADAS
-   ============================================ */
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
 
-.metric-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-.metric-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3498db, #2ecc71);
-}
-
-.metric-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-}
-
-.metric-card .metric-title {
-    color: #7f8c8d;
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.metric-card .metric-value {
-    color: #2c3e50;
-    font-size: 2.2rem;
-    font-weight: 700;
-    line-height: 1;
-    margin-bottom: 0.5rem;
-}
-
-.metric-card .metric-change {
-    font-size: 0.85rem;
-    color: #95a5a6;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-/* Colores espec�ficos para cada m�trica */
-.metric-card.products::before { background: #3498db; }
-.metric-card.sales::before { background: #2ecc71; }
-.metric-card.purchases::before { background: #e74c3c; }
-.metric-card.clients::before { background: #f39c12; }
-
-/* Dashboard Header */
-.dashboard-container {
-    padding: 0;
-}
-
-.dashboard-header {
-    margin-bottom: 2rem;
-}
-
-.dashboard-header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-}
-
-.dashboard-header p {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-}
 
 /* ============================================
-   DETALLES DE PULIDO FINAL
+   SIDEBAR STYLES - LIMPIO
    ============================================ */
-.sidebar-logo {
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
 
-.sidebar.collapsed .sidebar-logo {\r
-    justify-content: center;\r
-}\r
-\r
-.sidebar.collapsed .sidebar-logo i {\r
-    font-size: 1.5rem;\r
-    margin-right: 0;\r
-}\r
-\r
-.sidebar.collapsed .sidebar-logo h3 {\r
-    display: none;\r
-}\r
-\r
-/* Separador visual en navbar */\r
-.navbar-divider {\r
-    width: 1px;\r
-    height: 24px;\r
-    background: rgba(0, 0, 0, 0.1);\r
-    margin: 0 1rem;\r
-}\r
-\r
-/* Tooltips mejorados */\r
-[data-bs-toggle="tooltip"] {\r
-    cursor: pointer;\r
-}\r
-\r
-/* Mejoras de accesibilidad */\r
-.me-1 { margin-right: 0.25rem; }\r
-.me-2 { margin-right: 0.5rem; }\r
-.w-100 { width: 100%; }\r
-.d-flex { display: flex; }\r
-.align-items-center { align-items: center; }\r
-.mb-0 { margin-bottom: 0; }\r
-.mb-4 { margin-bottom: 1.5rem; }\r
-.text-muted { color: var(--text-secondary); }
-
-/* ============================================
-   SECCIONES COLAPSABLES DEL SIDEBAR
-   ============================================ */
-.sidebar-section {
-    margin-bottom: 0.5rem;
-}
-
-.sidebar-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.sidebar-section-header:hover {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.section-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: white;
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.section-title i {
-    font-size: 1.1rem;
-    color: var(--sidebar-accent);
-}
-
-/* Bot�n Toggle Est�tico por Secci�n */
-.section-toggle {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.section-toggle:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
-}
-
-.section-toggle i {
-    font-size: 0.9rem;
-    transition: transform 0.3s ease;
-}
-
-/* Rotaci�n del �cono cuando est� colapsado */
-.sidebar-section.collapsed .section-toggle i {
-    transform: rotate(-90deg);
-}
-
-/* Estados de Colapso */
-.sidebar-section.collapsed .sidebar-menu {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar-section:not(.collapsed) .sidebar-menu {
-    max-height: 1000px;
-    opacity: 1;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Indicador visual de secci�n colapsada */
-.sidebar-section.collapsed .sidebar-section-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Colores de acento por secci�n */
-.sidebar-section[data-section="inventario"] .section-title i {
-    color: #3498db; /* Azul */
-}
-
-.sidebar-section[data-section="facturacion"] .section-title i {
-    color: #2ecc71; /* Verde */
-}
-
-.sidebar-section[data-section="sistema"] .section-title i {
-    color: #f39c12; /* Naranja */
-}
-
-/* Sidebar Colapsado (Desktop) - Ocultar t�tulos de secci�n */
-.sidebar.collapsed .section-title span {
-    display: none;
-}
-
-.sidebar.collapsed .section-toggle {
-    display: none;
-}
-
-.sidebar.collapsed .sidebar-section-header {
-    justify-content: center;
-    padding: 1rem 0;
-}
-
-.sidebar.collapsed .section-title {
-    justify-content: center;
-}
-
-/* Animaci�n de entrada */
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.sidebar-section:not(.collapsed) .sidebar-menu {
-    animation: slideDown 0.3s ease-out;
-}
-
-/* Ajustar padding del sidebar-menu dentro de secciones */
-.sidebar-section .sidebar-menu {
-    padding: 0 0 0.5rem 0 !important;
-}
+/* Mejoras de accesibilidad */
+.me-1 { margin-right: 0.25rem; }
+.me-2 { margin-right: 0.5rem; }
+.w-100 { width: 100%; }
+.d-flex { display: flex; }

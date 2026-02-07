@@ -17,8 +17,8 @@ ARG MY_GROUP
 ## ---------------------------------------------------------
 
 RUN set -eux && \
-apt-get update && \
-apt-get install -y \
+    apt-get update && \
+    apt-get install -y \
     git \
     curl \
     nano \
@@ -29,17 +29,17 @@ apt-get install -y \
     default-libmysqlclient-dev \
     pkg-config \
     sudo && \
-ln -fs /usr/share/zoneinfo/Europe/Madrid /etc/localtime && \
-dpkg-reconfigure -f noninteractive tzdata && \
-apt-get clean && \
-rm -rf /var/lib/apt/lists/*
+    ln -fs /usr/share/zoneinfo/Europe/Madrid /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 ## ---------------------------------------------------------
 ## Crear usuario y grupo
 ## ---------------------------------------------------------
 
 RUN groupadd -g ${NEW_GID} -r ${MY_GROUP} && \
-useradd -u ${NEW_UID} -m -s /bin/bash -g ${MY_GROUP} ${MY_USER}
+    useradd -u ${NEW_UID} -m -s /bin/bash -g ${MY_GROUP} ${MY_USER}
 
 ## ---------------------------------------------------------
 ## Actualizar herramientas de gestión de paquetes Python

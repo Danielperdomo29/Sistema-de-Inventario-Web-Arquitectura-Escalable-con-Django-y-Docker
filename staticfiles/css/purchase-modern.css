@@ -1,0 +1,420 @@
+/* =================================================================
+   PURCHASE MODULE - OPTIMIZED STYLES
+   Enhanced UI/UX for purchase creation
+   ================================================================= */
+
+/* --- Modern Card Sections --- */
+.purchase-section-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.05),
+        0 4px 16px rgba(0, 0, 0, 0.03);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.purchase-section-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #0d6efd 0%, #0a58ca 100%);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.purchase-section-card:hover {
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 8px 24px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+.purchase-section-card:hover::before {
+    transform: scaleY(1);
+}
+
+/* --- Section Headers --- */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.section-header i {
+    font-size: 1.4rem;
+    color: #0d6efd;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e7f1ff 0%, #d0e7ff 100%);
+    border-radius: 8px;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212529;
+}
+
+/* --- Receipt Upload Section --- */
+.receipt-upload-zone {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
+    border: 2px dashed #adb5bd;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.receipt-upload-zone:hover {
+    background: linear-gradient(135deg, #e7f1ff 0%, #d0e7ff 50%, #e7f1ff 100%);
+    border-color: #0d6efd;
+    transform: scale(1.02);
+}
+
+.receipt-upload-zone input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.receipt-upload-zone:hover .upload-icon {
+    color: #0d6efd;
+    transform: scale(1.1);
+}
+
+.upload-text {
+    color: #495057;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.upload-hint {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* --- Preview Container --- */
+#receipt-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.preview-filename {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.preview-filename i {
+    color: #0d6efd;
+    font-size: 1.2rem;
+}
+
+.preview-filename span {
+    flex: 1;
+    font-weight: 500;
+    color: #212529;
+}
+
+.preview-size {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* --- No Products Mode Toggle --- */
+.no-products-toggle {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffc107 100%);
+    border: 2px solid #ffb300;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.no-products-toggle.active {
+    background: linear-gradient(135deg, #d1e7dd 0%, #28a745 100%);
+    border-color: #1e7e34;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-icon {
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.no-products-toggle .toggle-icon {
+    color: #856404;
+}
+
+.no-products-toggle.active .toggle-icon {
+    color: #155724;
+}
+
+.toggle-text {
+    flex: 1;
+}
+
+.toggle-text strong {
+    font-size: 1.05rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.toggle-text small {
+    opacity: 0.9;
+}
+
+/* --- Manual Total Input --- */
+.manual-total-container {
+    margin-top: 1rem;
+    animation: slideDown 0.3s ease;
+}
+
+.input-with-prefix {
+    position: relative;
+}
+
+.input-prefix {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    padding: 0.375rem 0.75rem;
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    border-right: none;
+    border-radius: 0.25rem 0 0 0.25rem;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #495057;
+}
+
+.input-with-prefix input {
+    padding-left: 3rem;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* --- Buttons --- */
+.btn-modern {
+    padding: 0.625rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-modern:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4);
+}
+
+.btn-success-modern {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-success-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+.btn-outline-modern {
+    border: 2px solid currentColor;
+    background: transparent;
+    font-weight: 600;
+}
+
+.btn-outline-modern:hover {
+    transform: translateY(-1px);
+}
+
+/* --- Form Controls --- */
+.form-control-modern {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.625rem 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    transform: translateY(-1px);
+}
+
+/* --- Product Table --- */
+.products-table-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.products-table {
+    margin: 0;
+}
+
+.products-table thead {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+}
+
+.products-table thead th {
+    padding: 1rem;
+    font-weight: 600;
+    border: none;
+}
+
+.products-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.products-table tbody tr:hover {
+    background: #f8f9fa;
+    transform: scale(1.01);
+}
+
+/* --- Loading States --- */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .purchase-section-card {
+        padding: 1rem;
+    }
+    
+    .section-header h3 {
+        font-size: 1rem;
+    }
+    
+    .receipt-upload-zone {
+        padding: 1.5rem 1rem;
+    }
+    
+    .upload-icon {
+        font-size: 2rem;
+    }
+}
+
+/* --- Accessibility --- */
+.visually-hidden-focusable:focus {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+}
+
+/* --- Dark Mode Support (Optional) --- */
+@media (prefers-color-scheme: dark) {
+    .purchase-section-card {
+        background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+        color: #f8f9fa;
+        border-color: #495057;
+    }
+    
+    .section-header {
+        border-bottom-color: #495057;
+    }
+    
+    .section-header h3 {
+        color: #f8f9fa;
+    }
+}

@@ -1,0 +1,1 @@
+[{"model": "app.purchase", "pk": 8, "fields": {"numero_factura": "0001", "proveedor": 2, "usuario": 1, "fecha": "2026-01-06T05:00:00Z", "total": "100000.00", "estado": "pendiente", "notas": "Hola"}}]

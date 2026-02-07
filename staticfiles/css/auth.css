@@ -1,318 +1,400 @@
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
+/* ===================================================================
+   MINIMALIST NEUTRAL LOGIN - Diseño Cómodo y Profesional
+   =================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    background: #f5f5f5; 
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
 }
 
-/* Login/Register Container */
-.auth-container { 
-    min-height: 100vh; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+/* Container - Centrado y Limpio */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #f8f9fa;
 }
 
-.auth-card { 
-    background: white; 
-    padding: 40px; 
-    border-radius: 12px; 
-    width: 100%; 
-    max-width: 450px; 
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+/* Card Principal - Minimalista */
+.auth-card {
+    background: white;
+    padding: 48px 40px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
 }
 
-.auth-card h2 { 
-    text-align: center; 
-    margin-bottom: 10px; 
-    color: #333; 
+/* Título - Simple y Elegante */
+.auth-card h2 {
+    text-align: center;
+    margin-bottom: 8px;
+    color: #1f2937;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
 }
 
-.auth-card p { 
-    text-align: center; 
-    margin-bottom: 30px; 
-    color: #666; 
-    font-size: 14px; 
+.auth-card h2 i {
+    color: #6b7280;
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
 }
 
-/* Forms */
-.form-group { 
-    margin-bottom: 20px; 
+.auth-card > p {
+    text-align: center;
+    margin-bottom: 32px;
+    color: #6b7280;
+    font-size: 0.9375rem;
+    font-weight: 400;
 }
 
-.form-group label { 
-    display: block; 
-    margin-bottom: 8px; 
-    font-weight: 500; 
-    color: #374151; 
+/* Form Groups - Espaciado Generoso */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
 }
 
 .form-hint {
-    color: #666;
-    font-size: 12px;
-    margin-top: 4px;
+    display: block;
+    color: #9ca3af;
+    font-size: 0.8125rem;
+    margin-top: 6px;
 }
 
-.form-control { 
-    width: 100%; 
-    padding: 12px; 
-    border: 1px solid #e5e7eb; 
-    border-radius: 8px; 
-    font-size: 14px; 
+/* Inputs - Minimalistas y Cómodos */
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    color: #1f2937;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    font-family: inherit;
 }
 
-.form-control:focus { 
-    outline: none; 
-    border-color: #667eea; 
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); 
+.form-control::placeholder {
+    color: #9ca3af;
 }
 
-/* Buttons */
-.btn { 
-    display: inline-block; 
-    padding: 12px 20px; 
-    border-radius: 8px; 
-    text-decoration: none; 
-    cursor: pointer; 
-    border: none; 
-    font-size: 14px; 
-    transition: all 0.3s; 
-    font-weight: 500; 
+.form-control:hover {
+    border-color: #d1d5db;
 }
 
-.btn-primary { 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-    color: white; 
-    width: 100%; 
+.form-control:focus {
+    outline: none;
+    border-color: #6b7280;
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.08);
+    background: #ffffff;
 }
 
-.btn-primary:hover { 
-    transform: translateY(-2px); 
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); 
+/* Botón Principal - Neutral y Sutil */
+.btn {
+    display: inline-block;
+    padding: 13px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-family: inherit;
 }
 
-.btn-secondary { 
-    background: #6b7280; 
-    color: white; 
-    width: 100%; 
-    margin-top: 10px; 
+.btn-primary {
+    background: #374151;
+    color: white;
+    width: 100%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.btn-secondary:hover { 
-    background: #4b5563; 
+.btn-primary:hover {
+    background: #1f2937;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Alerts */
-.alert { 
-    padding: 12px 15px; 
-    border-radius: 8px; 
-    margin-bottom: 20px; 
-    font-size: 14px; 
+.btn-primary:active {
+    transform: translateY(0);
 }
 
-.alert-error { 
-    background: #fee2e2; 
-    color: #991b1b; 
-    border-left: 4px solid #dc2626; 
+.btn-primary i {
+    margin-right: 8px;
 }
 
-.alert-error ul { 
-    margin: 5px 0 0 20px; 
+.btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    width: 100%;
+    margin-top: 12px;
+    border: 1px solid #e5e7eb;
 }
 
-/* Links */
-.auth-footer { 
-    text-align: center; 
-    margin-top: 20px; 
+.btn-secondary:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
 }
 
-.auth-footer a { 
-    color: #667eea; 
-    text-decoration: none; 
-    font-weight: 500; 
+/* Alerts - Discretos */
+.alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 0.875rem;
+    border: 1px solid transparent;
 }
 
-.auth-footer a:hover { 
-    text-decoration: underline; 
+.alert-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border-color: #fecaca;
 }
 
-/* Spinner */
-.spinner {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border: 8px solid #5a5d5e;
-    border-top: 8px solid #3498db;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 2s linear infinite;
-    display: none;
-    z-index: 9999;
+.alert-error ul {
+    margin: 8px 0 0 20px;
+    padding: 0;
 }
 
-@keyframes spin {
-    0% { 
-        transform: translate(-50%, -50%) rotate(0deg); 
-    }
-    100% { 
-        transform: translate(-50%, -50%) rotate(360deg); 
-    }
+/* Footer Links - Minimalistas */
+.auth-footer {
+    text-align: center;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid #f3f4f6;
 }
 
-/* Test Users Section */
-.test-users-section { 
-    margin-bottom: 30px; 
-    padding-bottom: 30px; 
-    border-bottom: 1px solid #e5e7eb; 
+.auth-footer p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
 }
 
-.test-users-title { 
-    text-align: center; 
-    color: #667eea; 
-    font-size: 16px; 
-    font-weight: 600; 
-    margin-bottom: 8px; 
+.auth-footer a {
+    color: #374151;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
 }
 
-.test-users-subtitle { 
-    text-align: center; 
-    color: #6b7280; 
-    font-size: 13px; 
-    margin-bottom: 20px; 
+.auth-footer a:hover {
+    color: #1f2937;
+    text-decoration: underline;
 }
 
-.test-users-grid { 
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr); 
-    gap: 15px; 
-    margin-bottom: 10px; 
-}
-
-.user-card { 
-    background: #f9fafb; 
-    border: 2px solid #e5e7eb; 
-    border-radius: 8px; 
-    padding: 18px 12px; 
-    text-align: center; 
-    cursor: pointer; 
-    transition: all 0.3s; 
-}
-
-.user-card:hover { 
-    border-color: #667eea; 
-    background: #f3f4f6; 
-    transform: translateY(-2px); 
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15); 
-}
-
-.user-card-role { 
-    font-weight: 600; 
-    color: #374151; 
-    margin-bottom: 8px; 
-    font-size: 14px; 
-}
-
-.user-card-username { 
-    color: #667eea; 
-    font-size: 13px; 
-    margin-bottom: 10px; 
-    font-family: monospace; 
-}
-
-.user-card-action { 
-    color: #667eea; 
-    font-size: 12px; 
-    font-weight: 500; 
-    text-decoration: none; 
-    display: inline-block; 
-}
-
-.user-card-action:hover { 
-    text-decoration: underline; 
-}
-
-/* Auth Copyright */
+/* Copyright - Discreto */
 .auth-copyright {
     margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+    border-top: 1px solid #f3f4f6;
     text-align: center;
 }
 
 .auth-copyright p {
     margin: 0;
-    color: #6b7280;
-    font-size: 13px;
+    color: #9ca3af;
+    font-size: 0.8125rem;
 }
 
-/* Responsive Styles */
+/* Spinner - Minimalista */
+.spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 3px solid #f3f4f6;
+    border-top: 3px solid #6b7280;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    display: none;
+    z-index: 9999;
+}
+
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Test Users Section */
+.test-users-section {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.test-users-title {
+    text-align: center;
+    color: #1f2937;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.test-users-subtitle {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 0.8125rem;
+    margin-bottom: 20px;
+}
+
+.test-users-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.user-card {
+    background: #f9fafb;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-card:hover {
+    border-color: #6b7280;
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.user-card-role {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+}
+
+.user-card-username {
+    color: #6b7280;
+    font-size: 0.8125rem;
+    margin-bottom: 8px;
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+}
+
+.user-card-action {
+    color: #374151;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.user-card-action:hover {
+    text-decoration: underline;
+}
+
+/* Responsive - Mobile First */
 @media (max-width: 768px) {
     .auth-container {
-        padding: 20px;
+        padding: 16px;
     }
-    
+
     .auth-card {
-        padding: 30px 20px;
+        padding: 36px 28px;
         max-width: 100%;
+        border-radius: 12px;
     }
-    
+
     .auth-card h2 {
         font-size: 1.5rem;
     }
-    
+
     .test-users-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 10px;
     }
-    
+
     .user-card {
-        padding: 15px 10px;
+        padding: 14px 10px;
     }
-    
+
     .form-control {
         font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    .btn {
+        padding: 14px 20px;
+        font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
     .auth-card {
-        padding: 25px 15px;
+        padding: 32px 24px;
     }
-    
+
     .auth-card h2 {
-        font-size: 1.3rem;
+        font-size: 1.375rem;
     }
-    
+
     .test-users-section {
-        margin-bottom: 25px;
-        padding-bottom: 25px;
+        margin-bottom: 28px;
+        padding-bottom: 28px;
     }
-    
+
     .test-users-title {
-        font-size: 14px;
+        font-size: 0.9375rem;
     }
-    
+
     .test-users-subtitle {
-        font-size: 12px;
+        font-size: 0.75rem;
     }
-    
+
     .user-card-role {
-        font-size: 13px;
+        font-size: 0.8125rem;
     }
-    
+
     .user-card-username {
-        font-size: 12px;
+        font-size: 0.75rem;
     }
-    
-    .btn {
-        padding: 14px 20px;
-        font-size: 16px;
-    }
+}
+
+/* Focus visible para accesibilidad */
+.btn:focus-visible,
+.form-control:focus-visible,
+.user-card:focus-visible {
+    outline: 2px solid #6b7280;
+    outline-offset: 2px;
+}
+
+/* Disabled states */
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.form-control:disabled {
+    background: #f9fafb;
+    cursor: not-allowed;
 }

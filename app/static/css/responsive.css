@@ -1,0 +1,277 @@
+/* ===========================================
+   RESPONSIVE CSS - Simple Version
+   Sin hamburguesa, diseño fluido simple
+   =========================================== */
+
+/* ========================================
+   GLOBAL
+   ======================================== */
+html, body {
+    overflow-x: hidden;
+}
+
+/* ========================================
+   NAVBAR BRAND
+   ======================================== */
+.navbar-brand {
+    text-align: left;
+}
+
+.navbar-brand h1 {
+    color: white;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin: 0;
+    font-size: 1.3em;
+}
+
+.navbar-brand p,
+.navbar-subtitle {
+    font-size: 0.65em;
+    color: #ddd;
+    margin: 0;
+    font-weight: 300;
+}
+
+/* Ocultar hamburguesa por defecto */
+.hamburger-menu {
+    display: none;
+}
+
+/* ========================================
+   MOBILE (max-width: 768px)
+   ======================================== */
+@media (max-width: 768px) {
+    
+    /* NAVBAR - Compacto */
+    .navbar {
+        padding: 0.4rem 0.5rem;
+    }
+    
+    .navbar-content {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .navbar-brand {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .navbar-brand h1 {
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .navbar-brand p,
+    .navbar-subtitle {
+        display: none;
+    }
+    
+    .navbar-menu {
+        gap: 5px;
+    }
+    
+    .navbar-menu a {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+    
+    .navbar-menu span {
+        display: none;
+    }
+    
+    /* SIDEBAR - Compacto con iconos */
+    .sidebar {
+        width: 50px;
+        min-width: 50px;
+        padding: 5px 2px;
+    }
+    
+    .sidebar .section-title span,
+    .sidebar .sidebar-menu span,
+    .sidebar-section-header span {
+        display: none;
+    }
+    
+    .sidebar .sidebar-section-header {
+        padding: 8px 2px;
+        justify-content: center;
+    }
+    
+    .sidebar .sidebar-menu {
+        padding: 0;
+    }
+    
+    .sidebar .sidebar-menu a {
+        padding: 10px 2px;
+        justify-content: center;
+    }
+    
+    .sidebar .sidebar-menu i,
+    .sidebar .section-title i {
+        margin: 0;
+        font-size: 1rem;
+    }
+    
+    /* MAIN CONTENT */
+    .main-content {
+        padding: 8px;
+    }
+    
+    /* CARDS */
+    .card {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .card-header h2 {
+        font-size: 0.95rem;
+    }
+    
+    /* STAT CARDS */
+    .stat-card,
+    .stat-card-primary,
+    .stat-card-secondary {
+        padding: 10px;
+    }
+    
+    .stat-card h3,
+    .stat-card-info h2 {
+        font-size: 1.1rem;
+    }
+    
+    .stat-card-icon {
+        font-size: 1.3rem;
+    }
+    
+    /* WELCOME BANNER */
+    .welcome-banner,
+    .dashboard-welcome {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .welcome-banner h1,
+    .dashboard-welcome h1 {
+        font-size: 1rem;
+    }
+    
+    /* CHARTS */
+    .chart-card canvas,
+    canvas {
+        max-height: 180px;
+    }
+    
+    /* TABLES */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    th, td {
+        padding: 6px 4px;
+        font-size: 0.75rem;
+    }
+    
+    /* FORMS */
+    input, select, textarea {
+        font-size: 16px;
+    }
+}
+
+/* ========================================
+   EXTRA SMALL (max-width: 480px)
+   ======================================== */
+@media (max-width: 480px) {
+    
+    .navbar-brand h1 {
+        font-size: 0.8rem;
+    }
+    
+    .navbar-menu a {
+        padding: 3px 5px;
+        font-size: 0.65rem;
+    }
+    
+    .sidebar {
+        width: 40px;
+        min-width: 40px;
+    }
+    
+    .sidebar .sidebar-menu a {
+        padding: 8px 2px;
+    }
+    
+    .sidebar .sidebar-menu i,
+    .sidebar .section-title i {
+        font-size: 0.9rem;
+    }
+    
+    .main-content {
+        padding: 6px;
+    }
+    
+    .card {
+        padding: 8px;
+    }
+    
+    .stat-card h3,
+    .stat-card-info h2 {
+        font-size: 1rem;
+    }
+    
+    .chart-card canvas,
+    canvas {
+        max-height: 150px;
+    }
+}
+
+/* ========================================
+   VERY SMALL (max-width: 360px)
+   ======================================== */
+@media (max-width: 360px) {
+    
+    .navbar {
+        padding: 0.3rem;
+    }
+    
+    .navbar-brand h1 {
+        font-size: 0.7rem;
+    }
+    
+    .navbar-menu a {
+        padding: 2px 4px;
+        font-size: 0.6rem;
+    }
+    
+    .sidebar {
+        width: 35px;
+        min-width: 35px;
+    }
+    
+    .sidebar .sidebar-menu i,
+    .sidebar .section-title i {
+        font-size: 0.8rem;
+    }
+    
+    .main-content {
+        padding: 4px;
+    }
+    
+    .card {
+        padding: 6px;
+    }
+    
+    .stat-card h3,
+    .stat-card-info h2 {
+        font-size: 0.9rem;
+    }
+    
+    .chart-card canvas,
+    canvas {
+        max-height: 120px;
+    }
+}

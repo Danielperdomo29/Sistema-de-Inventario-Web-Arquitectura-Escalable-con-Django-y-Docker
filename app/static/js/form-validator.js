@@ -360,16 +360,19 @@ document.addEventListener('DOMContentLoaded', function() {
     window.formValidator = new FormValidator();
 });
 
-// CSS para campos con error
-const style = document.createElement('style');
-style.textContent = `
-    .input-error {
-        border-color: #e11d48 !important;
-        box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.2) !important;
-    }
-    .input-error:focus {
-        border-color: #e11d48 !important;
-        box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.3) !important;
-    }
-`;
-document.head.appendChild(style);
+// CSS para campos con error (solo si no existe)
+if (!document.getElementById('form-validator-styles')) {
+    const style = document.createElement('style');
+    style.id = 'form-validator-styles';
+    style.textContent = `
+        .input-error {
+            border-color: #e11d48 !important;
+            box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.2) !important;
+        }
+        .input-error:focus {
+            border-color: #e11d48 !important;
+            box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.3) !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
