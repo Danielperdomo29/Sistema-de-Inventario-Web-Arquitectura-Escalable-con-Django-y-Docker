@@ -12,21 +12,21 @@ def run_command(cmd, description):
     print(f"\n{'='*70}")
     print(f"🔍 {description}")
     print(f"{'='*70}")
-    
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    
+
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)  # nosec B602
+
     if result.stdout:
         print(result.stdout)
     if result.stderr:
         print(result.stderr)
-    
+
     return result.returncode == 0
 
 
 def main():
     """Ejecuta todas las verificaciones pre-commit"""
     print("\n" + "🚀 PRE-COMMIT CHECKS".center(70))
-    
+
     checks = [
         ("black --check app/ config/", "Verificando formato de código (Black)"),
         ("isort --check-only app/ config/", "Verificando orden de imports (isort)"),
@@ -34,15 +34,15 @@ def main():
         ("bandit -r app/fiscal/ -ll", "Escaneando seguridad (Bandit)"),
         ("pytest tests/fiscal/ -m unit --tb=short -q", "Ejecutando tests unitarios"),
     ]
-    
+
     failed_checks = []
-    
+
     for cmd, description in checks:
         if not run_command(cmd, description):
             failed_checks.append(description)
-    
-    print("\n" + "="*70)
-    
+
+    print("\n" + "=" * 70)
+
     if failed_checks:
         print("❌ PRE-COMMIT FAILED")
         print("\nChecks que fallaron:")
