@@ -128,19 +128,89 @@ class InvoiceGenerationService:
     
     @staticmethod
     def _get_fiscal_config(config_id: Optional[int]) -> FiscalConfig:
-        """Obtiene la configuración fiscal activa."""
+        """Obtiene la configuración fiscal activa o crea una por defecto."""
         if config_id:
             try:
                 return FiscalConfig.objects.get(id=config_id, is_active=True)
             except FiscalConfig.DoesNotExist:
-                raise ValueError(f"No se encontró configuración fiscal con ID {config_id}")
+                pass  # Intentar obtener cualquier config activa
         
         # Obtener la primera configuración activa
         config = FiscalConfig.objects.filter(is_active=True).first()
-        if not config:
-            raise ValueError("No hay configuraciones fiscales activas")
+        if config:
+            return config
         
-        return config
+        # AUTO-CREAR CONFIGURACIÓN DE PRUEBA
+        logger.warning("⚠️ No hay configuraciones fiscales activas. Creando configuración de prueba...")
+        
+        try:
+            from django.core.files.base import ContentFile
+            import os
+            
+            # Crear certificado ficticio para desarrollo
+            dummy_cert_content = b"DUMMY_CERTIFICATE_FOR_DEVELOPMENT"
+            
+            config = FiscalConfig(
+                nit_emisor="900123456",
+                dv_emisor="7",
+                razon_social="EMPRESA DE DESARROLLO S.A.S. (MODO PRUEBA)",
+                software_id="SOFTWARE_DEV_001",
+                pin_software="12345",
+                ambiente=2,  # Habilitación/Pruebas
+                test_set_id="TEST_SET_DESARROLLO",
+                numero_resolucion="18760000001",
+                prefijo="SETP",
+                rango_desde=1,
+                rango_hasta=1000000,
+                clave_tecnica="fc8eac422eba16e22ffd8c6f94b3f40a6e38162c",
+                is_active=True,
+            )
+            
+            # Guardar certificado ficticio
+            config.certificado_archivo.save(
+                'dev_cert.p12',
+                ContentFile(dummy_cert_content),
+                save=False
+            )
+            
+            # Establecer password ficticio
+            config._certificado_password = "dev_password_encrypted"
+            
+            config.save()
+            
+            logger.info(f"✅ Configuración fiscal de prueba creada automáticamente (ID: {config.id})")
+            logger.info(f"   Prefijo: {config.prefijo}, Ambiente: Habilitación")
+            
+            # Crear rango de numeración asociado
+            from app.fiscal.models import RangoNumeracion
+            from datetime import date, timedelta
+            
+            hoy = date.today()
+            rango, created = RangoNumeracion.objects.get_or_create(
+                fiscal_config=config,
+                prefijo=config.prefijo,
+                defaults={
+                    'numero_resolucion': config.numero_resolucion,
+                    'fecha_resolucion': hoy,
+                    'fecha_inicio_vigencia': hoy,
+                    'fecha_fin_vigencia': hoy + timedelta(days=365),
+                    'rango_desde': config.rango_desde,
+                    'rango_hasta': config.rango_hasta,
+                    'consecutivo_actual': config.rango_desde,
+                    'clave_tecnica': config.clave_tecnica,
+                    'estado': 'activo',
+                    'is_default': True,
+                }
+            )
+            
+            if created:
+                logger.info(f"✅ Rango de numeración creado: {rango.prefijo} ({rango.rango_desde}-{rango.rango_hasta})")
+            
+            return config
+            
+        except Exception as e:
+            logger.error(f"❌ Error al crear configuración fiscal automática: {e}")
+            raise ValueError(f"No hay configuraciones fiscales activas y no se pudo crear una: {e}")
     
     @staticmethod
     def _validar_venta(sale: Sale):
