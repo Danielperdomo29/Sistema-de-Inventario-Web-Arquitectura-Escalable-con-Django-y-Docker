@@ -1,7 +1,8 @@
 from django.db import models
+from core.mixins import SoftDeleteMixin
 
 
-class Supplier(models.Model):
+class Supplier(SoftDeleteMixin, models.Model):
     """Modelo de Proveedor - Adaptado para Colombia"""
 
     nombre = models.CharField(max_length=200, verbose_name="Nombre/Razón Social")
@@ -75,6 +76,9 @@ class Supplier(models.Model):
         help_text="Lista de conceptos de retención que aplican a este proveedor"
     )
 
+    # Configuración del mixin CRUD
+    crud_order_by = 'nombre'
+
     class Meta:
         db_table = "proveedores"
         verbose_name = "Proveedor"
@@ -92,59 +96,6 @@ class Supplier(models.Model):
             return f"{self.nit}-{self.digito_verificacion or '?'}"
         return None
 
-    @staticmethod
-    def get_all():
-        """Obtener todos los proveedores activos"""
-        return list(Supplier.objects.filter(activo=True).values().order_by("nombre"))
-
-    @staticmethod
-    def get_by_id(supplier_id):
-        """Obtener un proveedor por ID"""
-        try:
-            return Supplier.objects.filter(id=supplier_id, activo=True).values().first()
-        except Exception:
-            return None
-
-    @staticmethod
-    def count():
-        """Contar total de proveedores activos"""
-        return Supplier.objects.filter(activo=True).count()
-
-    @staticmethod
-    def create(data):
-        """Crear un nuevo proveedor"""
-        supplier = Supplier.objects.create(
-            nombre=data["nombre"],
-            nit=data.get("nit", ""),
-            digito_verificacion=data.get("digito_verificacion", ""),
-            rut=data.get("rut", ""),
-            telefono=data.get("telefono", ""),
-            email=data.get("email", ""),
-            direccion=data.get("direccion", ""),
-            ciudad=data.get("ciudad", ""),
-            activo=True,
-        )
-        return supplier.id
-
-    @staticmethod
-    def update(supplier_id, data):
-        """Actualizar un proveedor"""
-        return Supplier.objects.filter(id=supplier_id).update(
-            nombre=data["nombre"],
-            nit=data.get("nit", ""),
-            digito_verificacion=data.get("digito_verificacion", ""),
-            rut=data.get("rut", ""),
-            telefono=data.get("telefono", ""),
-            email=data.get("email", ""),
-            direccion=data.get("direccion", ""),
-            ciudad=data.get("ciudad", ""),
-        )
-
-    @staticmethod
-    def delete(supplier_id):
-        """Eliminar lógicamente un proveedor"""
-        return Supplier.objects.filter(id=supplier_id).update(activo=False)
-
     def get_applicable_retention_rate(self, concept_key):
         """
         Obtiene la tarifa de retención aplicable para este proveedor
@@ -160,4 +111,3 @@ class Supplier(models.Model):
             return concept['declarant_rate']
         else:
             return concept['non_declarant_rate']
-
