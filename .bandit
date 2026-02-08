@@ -1,0 +1,3 @@
+[bandit]
+exclude: /venv,/migrations,/.git,/node_modules,/__pycache__,/.tox
+skips: B101

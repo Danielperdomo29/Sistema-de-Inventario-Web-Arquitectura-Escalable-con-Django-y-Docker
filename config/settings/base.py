@@ -34,7 +34,7 @@ INSTALLED_APPS = [
 ]
 
 # Feature flag: Activar django-allauth
-ENABLE_ALLAUTH = True # Force enabled for Phase 5
+ENABLE_ALLAUTH = True  # Force enabled for Phase 5
 
 if ENABLE_ALLAUTH:
     INSTALLED_APPS += [
@@ -61,11 +61,12 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",  # Debe ser primero
     "csp.middleware.CSPMiddleware",  # Content Security Policy
     "django.middleware.security.SecurityMiddleware",
+    "core.middleware.PermissionsPolicyMiddleware",  # Permissions-Policy header
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django_otp.middleware.OTPMiddleware", # 2FA Middleware
+    "django_otp.middleware.OTPMiddleware",  # 2FA Middleware
     "app.middleware.auth_sync.AuthSyncMiddleware",  # Sincronización de permisos
     "app.fiscal.middleware.FiscalAuditMiddleware",  # Auditoría Fiscal
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -102,16 +103,44 @@ CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_NAME = "__Host-csrftoken" if not DEBUG else "csrftoken"
 
 # X-Frame-Options (Clickjacking protection)
-X_FRAME_OPTIONS = "DENY"
+# Using SAMEORIGIN to allow PDF preview in iframes
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # X-Content-Type-Options (MIME sniffing protection)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# X-XSS-Protection (XSS filter)
-SECURE_BROWSER_XSS_FILTER = True
+# X-XSS-Protection - DEPRECATED: Modern browsers have removed this feature
+# SECURE_BROWSER_XSS_FILTER is no longer needed
 
 # Referrer Policy
 SECURE_REFERRER_POLICY = "same-origin"
+
+# Permissions-Policy (formerly Feature-Policy)
+# Restricts browser features for enhanced security
+PERMISSIONS_POLICY = {
+    "accelerometer": [],
+    "ambient-light-sensor": [],
+    "autoplay": [],
+    "camera": [],
+    "display-capture": [],
+    "document-domain": [],
+    "encrypted-media": [],
+    "fullscreen": [],
+    "geolocation": [],
+    "gyroscope": [],
+    "interest-cohort": [],  # Disable FLoC tracking
+    "magnetometer": [],
+    "microphone": [],
+    "midi": [],
+    "payment": [],
+    "picture-in-picture": [],
+    "publickey-credentials-get": [],
+    "screen-wake-lock": [],
+    "sync-xhr": [],
+    "usb": [],
+    "web-share": [],
+    "xr-spatial-tracking": [],
+}
 
 ROOT_URLCONF = "config.urls"
 
@@ -137,7 +166,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv()
 
@@ -209,17 +238,16 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 FILE_UPLOAD_PERMISSIONS = 0o644
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 
-# Security settings for file serving
-X_FRAME_OPTIONS = 'SAMEORIGIN'  # Allow iframe for PDF preview
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# Note: Security headers (X_FRAME_OPTIONS, SECURE_CONTENT_TYPE_NOSNIFF)
+# are configured in the SECURITY HEADERS section above (lines 104-140)
 
 # ===== CONFIGURACIÓN TESSERACT OCR =====
 # Ruta de Tesseract (ajustar según instalación)
-TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Windows
+TESSERACT_CMD = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Windows
 # TESSERACT_CMD = '/usr/bin/tesseract'  # Linux/Mac
 
 # Idiomas para OCR (español + inglés)
-OCR_LANGUAGES = 'spa+eng'
+OCR_LANGUAGES = "spa+eng"
 
 # Confianza mínima para considerar válido
 OCR_MIN_CONFIDENCE = 0.3
@@ -242,9 +270,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # ============================================================================
 # CORS CONFIGURATION (Restrictivo por defecto)
 # ============================================================================
-CORS_ALLOWED_ORIGINS = os.getenv(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000"
-).split(",")
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -378,7 +404,7 @@ if ENABLE_ALLAUTH:
     ACCOUNT_PASSWORD_MIN_LENGTH = 8
 
     # Formato de display del usuario
-    ACCOUNT_USER_DISPLAY = lambda user: user.email
+    ACCOUNT_USER_DISPLAY = lambda user: user.email  # noqa: E731
 
     # ========================================================================
     # Login/Logout URLs
@@ -410,9 +436,7 @@ if ENABLE_ALLAUTH:
     EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
     EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-    DEFAULT_FROM_EMAIL = os.getenv(
-        "DEFAULT_FROM_EMAIL", "Sistema de Inventario <noreply@inventario.com>"
-    )
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Sistema de Inventario <noreply@inventario.com>")
     SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 
     # Timeout para conexiones SMTP
@@ -425,11 +449,11 @@ if ENABLE_ALLAUTH:
     # Prevenir ataques de timing en login
     # Rate limiting configuration (Allauth 0.50+)
     ACCOUNT_RATE_LIMITS = {
-        'login_failed': '5/5m',      # 5 intentos en 5 minutos
-        'signup': '10/1h',           # 10 registros por hora
-        'password_reset': '5/1h',    # 5 restablecimientos de contraseña por hora
+        "login_failed": "5/5m",  # 5 intentos en 5 minutos
+        "signup": "10/1h",  # 10 registros por hora
+        "password_reset": "5/1h",  # 5 restablecimientos de contraseña por hora
     }
-    
+
     # Desactivar en entorno de desarrollo
     if DEBUG:
         ACCOUNT_RATE_LIMITS = {}
@@ -451,18 +475,17 @@ if ENABLE_ALLAUTH:
 # ============================================================================
 
 # Token secreto para autenticación de API (debe estar en .env)
-API_SECRET_TOKEN = os.getenv('API_SECRET_TOKEN', None)
+API_SECRET_TOKEN = os.getenv("API_SECRET_TOKEN", None)
 
 # OpenRouter/LLM API Key (para IA Chatbot)
-OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', None)
-OPENROUTER_API_URL = os.getenv('OPENROUTER_API_URL', 'https://openrouter.ai/api/v1/chat/completions')
-LLM_MODEL = os.getenv('LLM_MODEL', 'deepseek/deepseek-chat')
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", None)
+OPENROUTER_API_URL = os.getenv("OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions")
+LLM_MODEL = os.getenv("LLM_MODEL", "deepseek/deepseek-chat")
 
 # Rate limiting para APIs
-API_RATE_LIMIT_REQUESTS = int(os.getenv('API_RATE_LIMIT_REQUESTS', '100'))
-API_RATE_LIMIT_WINDOW = int(os.getenv('API_RATE_LIMIT_WINDOW', '60'))  # segundos
+API_RATE_LIMIT_REQUESTS = int(os.getenv("API_RATE_LIMIT_REQUESTS", "100"))
+API_RATE_LIMIT_WINDOW = int(os.getenv("API_RATE_LIMIT_WINDOW", "60"))  # segundos
 
 # Redis URL (para EventBus y Cache)
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-EVENT_BUS_ENABLED = os.getenv('EVENT_BUS_ENABLED', 'true').lower() == 'true'
-
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+EVENT_BUS_ENABLED = os.getenv("EVENT_BUS_ENABLED", "true").lower() == "true"
