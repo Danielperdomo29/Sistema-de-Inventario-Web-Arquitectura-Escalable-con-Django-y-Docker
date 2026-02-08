@@ -49,7 +49,7 @@ class Command(BaseCommand):
                 # Verificar que el usuario tenga email
                 if not user.email:
                     self.stdout.write(
-                        self.style.WARNING(f"⚠️  Usuario {user.username} no tiene email, omitiendo")
+                        self.style.WARNING(f"[!] Usuario {user.username} no tiene email, omitiendo")
                     )
                     continue
 
@@ -81,18 +81,17 @@ class Command(BaseCommand):
                 user.save()
 
                 migrated += 1
-                status = "✓" if email_address.verified else "○"
+                status = "[OK]" if email_address.verified else "[--]"
                 self.stdout.write(f"{status} Migrado: {user.email} (ID: {user.id})")
 
             except Exception as e:
                 errors += 1
-                self.stdout.write(self.style.ERROR(f"✗ Error migrando {user.email}: {str(e)}"))
+                self.stdout.write(self.style.ERROR(f"[X] Error migrando {user.email}: {str(e)}"))
 
-        # Resumen
         self.stdout.write("\n" + "=" * 60)
-        self.stdout.write(self.style.SUCCESS(f"✅ {migrated} usuarios migrados exitosamente"))
+        self.stdout.write(self.style.SUCCESS(f"[OK] {migrated} usuarios migrados exitosamente"))
         if errors > 0:
-            self.stdout.write(self.style.ERROR(f"❌ {errors} errores durante la migración"))
+            self.stdout.write(self.style.ERROR(f"[X] {errors} errores durante la migracion"))
         self.stdout.write("=" * 60 + "\n")
 
         # Instrucciones

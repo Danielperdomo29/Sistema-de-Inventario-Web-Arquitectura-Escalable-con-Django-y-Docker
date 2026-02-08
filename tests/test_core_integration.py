@@ -23,6 +23,8 @@ class EventBusTestCase(TestCase):
         self.EventBus = EventBus
         self.EventTypes = EventTypes
         self.event_bus = EventBus()
+        # Reiniciar el singleton para cada test
+        self.event_bus._reset_for_testing(use_memory=True)
     
     def test_event_bus_singleton(self):
         """Verifica que EventBus es singleton"""
@@ -36,9 +38,6 @@ class EventBusTestCase(TestCase):
         
         def callback(event_data):
             received_events.append(event_data)
-        
-        # Forzar modo memoria
-        self.event_bus.redis_client = None
         
         # Suscribir callback
         self.event_bus.subscribe(self.EventTypes.SISTEMA_INICIADO, callback)
@@ -54,9 +53,6 @@ class EventBusTestCase(TestCase):
     
     def test_publish_returns_success_flag(self):
         """Verifica que publish retorna True/False"""
-        # Forzar modo memoria
-        self.event_bus.redis_client = None
-        
         result = self.event_bus.publish('TEST_EVENT', {'key': 'value'})
         self.assertTrue(result)
     
@@ -67,7 +63,6 @@ class EventBusTestCase(TestCase):
         def callback(event_data):
             received_events.append(event_data)
         
-        self.event_bus.redis_client = None
         self.event_bus.subscribe('TEST_EVENT', callback)
         self.event_bus.publish('TEST_EVENT', {'key': 'value'})
         
@@ -293,10 +288,9 @@ class IntegrationWithExistingCodeTestCase(TestCase):
         """Verifica que Core funciona sin Redis (fallback)"""
         from core.event_bus import EventBus
         
-        # Crear nueva instancia con Redis deshabilitado
+        # Usar la instancia global y resetear para prueba en memoria
         event_bus = EventBus()
-        event_bus.redis_client = None  # Simular Redis no disponible
-        event_bus._enabled = True
+        event_bus._reset_for_testing(use_memory=True)
         
         # Debe poder publicar y recibir eventos en memoria
         received = []

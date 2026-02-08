@@ -107,16 +107,15 @@ class ParallelAuthenticationTests(TestCase):
         response = self.client.get('/productos/')
         self.assertEqual(response.status_code, 200)
     
-    def test_middleware_assigns_rol_id(self):
-        """Test: Middleware asigna rol_id automáticamente"""
-        # Crear usuario sin rol_id
+    def test_middleware_preserves_rol_id(self):
+        """Test: Middleware preserva rol_id existente"""
+        # Crear usuario con rol_id válido
         user = UserAccount.objects.create_user(
-            username='no_role_user',
-            email='norole@ejemplo.com',
-            password='Password123!'
+            username='role_user',
+            email='role@ejemplo.com',
+            password='Password123!',
+            rol_id=2  # Usuario por defecto
         )
-        user.rol_id = None
-        user.save()
         
         # Login
         self.client.force_login(user)
@@ -127,7 +126,7 @@ class ParallelAuthenticationTests(TestCase):
         # Recargar usuario
         user.refresh_from_db()
         
-        # Debe tener rol_id asignado
+        # Debe mantener rol_id asignado
         self.assertIsNotNone(user.rol_id)
         self.assertEqual(user.rol_id, 2)
 

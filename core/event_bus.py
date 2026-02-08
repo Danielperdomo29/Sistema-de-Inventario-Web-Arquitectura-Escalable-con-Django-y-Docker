@@ -131,6 +131,10 @@ class EventBus:
         """Verifica y restablece conexión si es necesario"""
         if not self._enabled:
             return
+        
+        # Si está forzado a memoria (para testing), no intentar reconectar
+        if getattr(self, '_force_memory', False):
+            return
             
         if self.redis_client is None:
             self._connect()
@@ -284,6 +288,21 @@ class EventBus:
             'total_event_types': len(self.subscribers),
             'total_subscribers': sum(len(c) for c in self.subscribers.values())
         }
+    
+    def _reset_for_testing(self, use_memory: bool = True):
+        """
+        Reinicia el estado del EventBus para testing.
+        
+        Args:
+            use_memory: Si True, usa modo memoria (sin Redis)
+        """
+        self.subscribers = {}
+        self._listening = False
+        self._force_memory = use_memory  # Prevenir reconexión automática
+        if use_memory:
+            self.redis_client = None
+            self.pubsub = None
+        self._enabled = True
     
     def health_check(self) -> dict:
         """Verifica estado de salud del EventBus"""
