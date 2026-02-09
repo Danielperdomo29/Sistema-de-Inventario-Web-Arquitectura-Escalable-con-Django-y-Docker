@@ -58,11 +58,11 @@
     .welcome-banner {
         padding: 20px;
     }
-    
+
     .welcome-banner h1 {
         font-size: 22px;
     }
-    
+
     .welcome-banner p {
         font-size: 14px;
     }
@@ -72,17 +72,43 @@
     .welcome-banner {
         padding: 15px;
     }
-    
+
     .welcome-banner h1 {
         font-size: 18px;
     }
-    
+
     .welcome-banner p {
         font-size: 13px;
     }
-    
+
     .stock-badge {
         font-size: 11px;
         padding: 4px 10px;
+    }
+}
+
+/* ===== TABLE RESPONSIVENESS FIX ===== */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: block;
+    width: 100%;
+}
+
+.table-responsive table {
+    min-width: 500px;
+}
+
+/* Ensure table container scrolls on mobile */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    .table-responsive,
+    .table-container {
+        margin: 0 -15px;
+        padding: 0 15px;
     }
 }
