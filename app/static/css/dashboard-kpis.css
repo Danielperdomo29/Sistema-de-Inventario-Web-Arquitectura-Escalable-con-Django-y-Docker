@@ -661,6 +661,69 @@
         white-space: nowrap;
         flex-shrink: 0;
     }
+
+    /* ===== CHART CARDS - Scroll horizontal en móviles ===== */
+
+    /* Charts container - 1 columna */
+    .charts-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    /* Chart cards - scrollable horizontalmente */
+    .chart-card,
+    .chart-card-large {
+        padding: 15px;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Contenido mínimo para que el scroll funcione */
+    .chart-card > h3,
+    .chart-card-large > h3 {
+        font-size: 0.95rem;
+        min-width: 350px;
+        white-space: nowrap;
+    }
+
+    .chart-card > p,
+    .chart-card-large > p,
+    .chart-description {
+        font-size: 0.8rem;
+        min-width: 350px;
+    }
+
+    /* Canvas wrapper - ancho mínimo para legibilidad */
+    .chart-card div[style*="height"],
+    .chart-card-large div[style*="height"] {
+        min-width: 350px;
+    }
+
+    /* Section titles */
+    .section-title-advanced {
+        font-size: 1.1rem;
+    }
+
+    /* ABC table */
+    #abcTableContainer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #abcTableContainer h4 {
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    /* Pareto alert */
+    .pareto-alert {
+        flex-direction: column;
+    }
+
+    .alert-content p {
+        font-size: 0.85rem;
+    }
 }
 
 @media (max-width: 480px) {
