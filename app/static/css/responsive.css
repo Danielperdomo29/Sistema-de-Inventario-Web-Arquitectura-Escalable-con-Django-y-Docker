@@ -137,6 +137,16 @@ html, body {
     .sidebar.active .sidebar-section-header span {
         display: inline;
     }
+
+    /* Ocultar toggle cuando sidebar está cerrado */
+    .sidebar .section-toggle {
+        display: none;
+    }
+
+    /* Mostrar toggle cuando sidebar está abierto */
+    .sidebar.active .section-toggle {
+        display: flex;
+    }
     
     .sidebar .sidebar-section-header {
         padding: 12px 15px;
@@ -259,46 +269,47 @@ html, body {
    EXTRA SMALL (max-width: 480px)
    ======================================== */
 @media (max-width: 480px) {
-    
+
     .navbar-brand h1 {
         font-size: 0.8rem;
     }
-    
+
     .navbar-menu a {
         padding: 3px 5px;
         font-size: 0.65rem;
     }
-    
+
+    /* Sidebar desplegable - ancho completo en pantallas pequeñas */
     .sidebar {
-        width: 40px;
-        min-width: 40px;
+        width: 100%;
+        left: -100%;
     }
-    
-    .sidebar .sidebar-menu a {
-        padding: 8px 2px;
+
+    .sidebar.active {
+        left: 0;
     }
-    
-    .sidebar .sidebar-menu i,
-    .sidebar .section-title i {
-        font-size: 0.9rem;
-    }
-    
+
     .main-content {
-        padding: 6px;
+        padding: 8px;
     }
-    
+
     .card {
         padding: 8px;
     }
-    
+
     .stat-card h3,
     .stat-card-info h2 {
         font-size: 1rem;
     }
-    
+
+    .stats-primary-grid,
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
     .chart-card canvas,
     canvas {
-        max-height: 150px;
+        max-height: 180px;
     }
 }
 
@@ -306,45 +317,35 @@ html, body {
    VERY SMALL (max-width: 360px)
    ======================================== */
 @media (max-width: 360px) {
-    
+
     .navbar {
-        padding: 0.3rem;
+        padding: 0.3rem 0.5rem;
     }
-    
+
     .navbar-brand h1 {
         font-size: 0.7rem;
     }
-    
+
     .navbar-menu a {
         padding: 2px 4px;
         font-size: 0.6rem;
     }
-    
-    .sidebar {
-        width: 35px;
-        min-width: 35px;
-    }
-    
-    .sidebar .sidebar-menu i,
-    .sidebar .section-title i {
-        font-size: 0.8rem;
-    }
-    
+
     .main-content {
         padding: 4px;
     }
-    
+
     .card {
         padding: 6px;
     }
-    
+
     .stat-card h3,
     .stat-card-info h2 {
         font-size: 0.9rem;
     }
-    
+
     .chart-card canvas,
     canvas {
-        max-height: 120px;
+        max-height: 150px;
     }
 }
