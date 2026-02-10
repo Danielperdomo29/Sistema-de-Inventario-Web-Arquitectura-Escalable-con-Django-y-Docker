@@ -1,15 +1,16 @@
 /**
- * Sidebar Mobile Toggle
+ * Sidebar Mobile Toggle - Premium UX
  * Maneja el despliegue del sidebar en dispositivos móviles
- * @version 1.0
+ * @version 2.0
  */
 
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const navbarBrand = document.querySelector('.navbar-brand');
+    const closeBtn = document.getElementById('sidebarCloseBtn');
     
-    // Función para abrir sidebar
+    // Función para abrir sidebar con animación
     function openSidebar() {
         if (sidebar && sidebarOverlay) {
             sidebar.classList.add('active');
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Función para cerrar sidebar
+    // Función para cerrar sidebar con animación
     function closeSidebar() {
         if (sidebar && sidebarOverlay) {
             sidebar.classList.remove('active');
@@ -39,9 +40,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        
-        // Cambiar cursor en móviles
-        navbarBrand.style.cursor = 'pointer';
+    }
+    
+    // Cerrar sidebar con botón X
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeSidebar();
+        });
     }
     
     // Cerrar sidebar al tocar overlay
@@ -51,12 +58,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Cerrar sidebar al seleccionar un enlace
+    // Cerrar sidebar al seleccionar un enlace (navegación)
     const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
     sidebarLinks.forEach(link => {
         link.addEventListener('click', function() {
             if (window.innerWidth <= 768) {
-                closeSidebar();
+                // Pequeño delay para feedback visual antes de navegar
+                setTimeout(closeSidebar, 150);
             }
         });
     });

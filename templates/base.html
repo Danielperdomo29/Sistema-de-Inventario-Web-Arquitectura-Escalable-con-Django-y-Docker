@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-professional-neutral.css' %}?v=14.0">
     <link rel="stylesheet" href="{% static 'css/stock_alerts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=5.0">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=6.0">
     <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
 
     {% block extra_css %}{% endblock %}
@@ -41,6 +41,16 @@
     <div class="layout">
         <!-- Sidebar Simple -->
         <div class="sidebar" id="sidebar">
+            <!-- Header del Sidebar (visible en mobile) -->
+            <div class="sidebar-mobile-header">
+                <div class="sidebar-brand">
+                    <i class="fas fa-cube"></i>
+                    <span>Menú Principal</span>
+                </div>
+                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Cerrar menú">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             <!-- Sección Inventario -->
             <div class="sidebar-section">
                 <div class="sidebar-section-header">
