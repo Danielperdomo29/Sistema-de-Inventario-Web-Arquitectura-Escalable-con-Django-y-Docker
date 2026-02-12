@@ -27,7 +27,7 @@ class ClientView:
                         <a href="/clientes/{client['id']}/editar/" class="btn btn-warning btn-sm no-underline">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        <a href="/clientes/{client['id']}/eliminar/" class="btn btn-danger btn-sm no-underline" 
+                        <a href="/clientes/{client['id']}/eliminar/" class="btn btn-danger btn-sm no-underline"
                            onclick="event.preventDefault(); confirmDeleteAction('/clientes/{client['id']}/eliminar/', window.csrfToken, '{client['nombre']}');">
                             <i class="fas fa-trash"></i> Eliminar
                         </a>
@@ -37,7 +37,7 @@ class ClientView:
 
             table_content = f"""
             <div class="table-container">
-                <table>
+                <table class="table-clients">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -105,7 +105,7 @@ class ClientView:
             </div>
             <form method="POST" action="/clientes/crear/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre Completo *</label>
@@ -114,14 +114,14 @@ class ClientView:
                                data-label="Nombre Completo"
                                placeholder="Nombre del cliente">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Documento (NIT/C.C)</label>
                         <input type="text" name="documento" class="form-input"
                                data-label="Documento"
                                placeholder="Ej: 123456789">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Teléfono</label>
                         <input type="text" name="telefono" class="form-input"
@@ -129,7 +129,7 @@ class ClientView:
                                data-label="Teléfono"
                                placeholder="Ej: 3001234567">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Email</label>
                         <input type="email" name="email" class="form-input"
@@ -138,13 +138,13 @@ class ClientView:
                                placeholder="correo@ejemplo.com">
                     </div>
                 </div>
-                
+
                 <div class="mt-20">
                     <label class="form-label">Dirección</label>
                     <textarea name="direccion" rows="3" class="form-textarea"
                               placeholder="Dirección completa"></textarea>
                 </div>
-                
+
                 <div class="form-actions mt-30">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cliente</button>
                     <a href="/clientes/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
@@ -186,7 +186,7 @@ class ClientView:
             </div>
             <form method="POST" action="/clientes/{client['id']}/editar/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre Completo *</label>
@@ -194,20 +194,20 @@ class ClientView:
                                data-rules="required|minLength:3"
                                data-label="Nombre Completo">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Documento (NIT/C.C)</label>
                         <input type="text" name="documento" value="{client.get('documento', '') or ''}" class="form-input"
                                data-label="Documento">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Teléfono</label>
                         <input type="text" name="telefono" value="{client.get('telefono', '') or ''}" class="form-input"
                                data-rules="phone"
                                data-label="Teléfono">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Email</label>
                         <input type="email" name="email" value="{client.get('email', '') or ''}" class="form-input"
@@ -215,12 +215,12 @@ class ClientView:
                                data-label="Email">
                     </div>
                 </div>
-                
+
                 <div class="mt-20">
                     <label class="form-label">Dirección</label>
                     <textarea name="direccion" rows="3" class="form-textarea">{client.get('direccion', '') or ''}</textarea>
                 </div>
-                
+
                 <div class="form-actions mt-30">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Cliente</button>
                     <a href="/clientes/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
@@ -231,4 +231,3 @@ class ClientView:
         """
 
         return HttpResponse(Layout.render("Editar Cliente", user, "clientes", content))
-

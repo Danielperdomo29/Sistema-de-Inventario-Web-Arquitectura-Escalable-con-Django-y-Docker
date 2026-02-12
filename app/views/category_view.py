@@ -25,7 +25,7 @@ class CategoryView:
                         <a href="/categorias/{category['id']}/editar/" class="btn btn-warning btn-sm no-underline">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        <button type="button" class="btn btn-danger btn-sm no-underline" 
+                        <button type="button" class="btn btn-danger btn-sm no-underline"
                                 onclick="confirmDeleteAction('/categorias/{category['id']}/eliminar/', '{csrf_token}', '{category['nombre']}');">
                             <i class="fas fa-trash"></i> Eliminar
                         </button>
@@ -35,7 +35,7 @@ class CategoryView:
 
             table_content = f"""
             <div class="table-container">
-                <table>
+                <table class="table-categories">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -71,7 +71,6 @@ class CategoryView:
 
         return HttpResponse(Layout.render("Categorías", user, "categorias", content))
 
-
     @staticmethod
     def create(user, request, error=None):
         """Vista del formulario de crear categoría"""
@@ -102,7 +101,7 @@ class CategoryView:
             </div>
             <form method="POST" action="/categorias/crear/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                
+
                 <div class="mb-20">
                     <label class="form-label">Nombre *</label>
                     <input type="text" name="nombre" class="form-input"
@@ -110,13 +109,13 @@ class CategoryView:
                            data-label="Nombre"
                            placeholder="Nombre de la categoría">
                 </div>
-                
+
                 <div class="mb-20">
                     <label class="form-label">Descripción</label>
                     <textarea name="descripcion" rows="4" class="form-textarea"
                               placeholder="Descripción opcional"></textarea>
                 </div>
-                
+
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Categoría</button>
                     <a href="/categorias/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
@@ -158,19 +157,19 @@ class CategoryView:
             </div>
             <form method="POST" action="/categorias/{category['id']}/editar/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                
+
                 <div class="mb-20">
                     <label class="form-label">Nombre *</label>
                     <input type="text" name="nombre" value="{category['nombre']}" class="form-input"
                            data-rules="required|minLength:2"
                            data-label="Nombre">
                 </div>
-                
+
                 <div class="mb-20">
                     <label class="form-label">Descripción</label>
                     <textarea name="descripcion" rows="4" class="form-textarea">{category.get('descripcion', '') or ''}</textarea>
                 </div>
-                
+
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Categoría</button>
                     <a href="/categorias/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>

@@ -27,8 +27,10 @@ class ProductView:
                         <a href="/productos/{product['id']}/editar/" class="btn btn-warning btn-sm no-underline">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        <button type="button" class="btn btn-danger btn-sm no-underline" 
-                                onclick="confirmDeleteAction('/productos/{product['id']}/eliminar/', '{csrf_token}', '{product['nombre']}');">
+                        <button type="button" class="btn btn-danger btn-sm no-underline"
+                                onclick="confirmDeleteAction('/productos/{product['id']}/eliminar/',
+                                                           '{csrf_token}',
+                                                           '{product['nombre']}');">
                             <i class="fas fa-trash"></i> Eliminar
                         </button>
                     </td>
@@ -37,7 +39,7 @@ class ProductView:
 
             table_content = f"""
             <div class="table-container">
-                <table>
+                <table class="table-products">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -118,7 +120,7 @@ class ProductView:
                                data-label="Código"
                                placeholder="Ej: PROD001">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Nombre *</label>
                         <input type="text" name="nombre" class="form-input"
@@ -126,7 +128,7 @@ class ProductView:
                                data-label="Nombre"
                                placeholder="Nombre del producto">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Categoría *</label>
                         <select name="categoria_id" class="form-select"
@@ -136,7 +138,7 @@ class ProductView:
                             {category_options}
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Precio Compra *</label>
                         <input type="number" name="precio_compra" step="0.01" class="form-input"
@@ -144,7 +146,7 @@ class ProductView:
                                data-label="Precio Compra"
                                placeholder="0.00">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Precio Venta *</label>
                         <input type="number" name="precio_venta" step="0.01" class="form-input"
@@ -152,14 +154,14 @@ class ProductView:
                                data-label="Precio Venta"
                                placeholder="0.00">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Stock Actual</label>
                         <input type="number" name="stock_actual" value="0" class="form-input"
                                data-rules="numeric|min:0"
                                data-label="Stock Actual">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Stock Mínimo</label>
                         <input type="number" name="stock_minimo" value="10" class="form-input"
@@ -167,13 +169,13 @@ class ProductView:
                                data-label="Stock Mínimo">
                     </div>
                 </div>
-                
+
                 <div class="mt-20">
                     <label class="form-label">Descripción</label>
                     <textarea name="descripcion" rows="4" class="form-textarea"
                               placeholder="Descripción del producto"></textarea>
                 </div>
-                
+
                 <div class="form-actions mt-30">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Producto</button>
                     <a href="/productos/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
@@ -195,9 +197,7 @@ class ProductView:
         category_options = ""
         for category in categories:
             selected = "selected" if category["id"] == product.get("categoria_id") else ""
-            category_options += (
-                f'<option value="{category["id"]}" {selected}>{category["nombre"]}</option>'
-            )
+            category_options += f'<option value="{category["id"]}" {selected}>{category["nombre"]}</option>'
 
         # SweetAlert2 for server-side errors
         error_script = ""
@@ -230,14 +230,14 @@ class ProductView:
                                data-rules="required|minLength:2"
                                data-label="Código">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Nombre *</label>
                         <input type="text" name="nombre" value="{product['nombre']}" class="form-input"
                                data-rules="required|minLength:2"
                                data-label="Nombre">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Categoría *</label>
                         <select name="categoria_id" class="form-select"
@@ -247,44 +247,52 @@ class ProductView:
                             {category_options}
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Precio Compra *</label>
-                        <input type="number" name="precio_compra" value="{product['precio_compra']}" step="0.01" class="form-input"
+                        <input type="number" name="precio_compra" value="{product['precio_compra']}"
+                               step="0.01" class="form-input"
                                data-rules="required|min:0"
                                data-label="Precio Compra">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Precio Venta *</label>
-                        <input type="number" name="precio_venta" value="{product['precio_venta']}" step="0.01" class="form-input"
+                        <input type="number" name="precio_venta" value="{product['precio_venta']}"
+                               step="0.01" class="form-input"
                                data-rules="required|min:0"
                                data-label="Precio Venta">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Stock Actual</label>
-                        <input type="number" name="stock_actual" value="{product['stock_actual']}" class="form-input"
+                        <input type="number" name="stock_actual" value="{product['stock_actual']}"
+                               class="form-input"
                                data-rules="numeric|min:0"
                                data-label="Stock Actual">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Stock Mínimo</label>
-                        <input type="number" name="stock_minimo" value="{product.get('stock_minimo', 10)}" class="form-input"
+                        <input type="number" name="stock_minimo" value="{product.get('stock_minimo', 10)}"
+                               class="form-input"
                                data-rules="numeric|min:0"
                                data-label="Stock Mínimo">
                     </div>
                 </div>
-                
+
                 <div class="mt-20">
                     <label class="form-label">Descripción</label>
                     <textarea name="descripcion" rows="4" class="form-textarea">{product.get('descripcion', '') or ''}</textarea>
                 </div>
-                
+
                 <div class="form-actions mt-30">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Producto</button>
-                    <a href="/productos/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Actualizar Producto
+                    </button>
+                    <a href="/productos/" class="btn btn-secondary no-underline">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
                 </div>
             </form>
         </div>

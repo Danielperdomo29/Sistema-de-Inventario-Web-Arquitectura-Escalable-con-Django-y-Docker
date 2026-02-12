@@ -26,8 +26,10 @@ class WarehouseView:
                         <a href="/almacenes/{warehouse['id']}/editar/" class="btn btn-warning btn-sm no-underline">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        <button type="button" class="btn btn-danger btn-sm no-underline" 
-                                onclick="confirmDeleteAction('/almacenes/{warehouse['id']}/eliminar/', '{csrf_token}', '{warehouse['nombre']}');">
+                        <button type="button" class="btn btn-danger btn-sm no-underline"
+                                onclick="confirmDeleteAction('/almacenes/{warehouse['id']}/eliminar/',
+                                                           '{csrf_token}',
+                                                           '{warehouse['nombre']}');">
                             <i class="fas fa-trash"></i> Eliminar
                         </button>
                     </td>
@@ -36,7 +38,7 @@ class WarehouseView:
 
             table_content = f"""
             <div class="table-container">
-                <table>
+                <table class="table-warehouses">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -103,7 +105,7 @@ class WarehouseView:
             </div>
             <form method="POST" action="/almacenes/crear/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre *</label>
@@ -112,14 +114,14 @@ class WarehouseView:
                                data-label="Nombre"
                                placeholder="Nombre del almacén">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Ubicación</label>
                         <input type="text" name="ubicacion" class="form-input"
                                data-label="Ubicación"
                                placeholder="Ej: Bodega Principal">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Capacidad</label>
                         <input type="number" name="capacidad" value="0" min="0" class="form-input"
@@ -127,10 +129,14 @@ class WarehouseView:
                                data-label="Capacidad">
                     </div>
                 </div>
-                
+
                 <div class="form-actions mt-30">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Almacén</button>
-                    <a href="/almacenes/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Almacén
+                    </button>
+                    <a href="/almacenes/" class="btn btn-secondary no-underline">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
                 </div>
             </form>
         </div>
@@ -169,7 +175,7 @@ class WarehouseView:
             </div>
             <form method="POST" action="/almacenes/{warehouse['id']}/editar/" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre *</label>
@@ -177,24 +183,30 @@ class WarehouseView:
                                data-rules="required|minLength:2"
                                data-label="Nombre">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Ubicación</label>
-                        <input type="text" name="ubicacion" value="{warehouse.get('ubicacion', '') or ''}" class="form-input"
+                        <input type="text" name="ubicacion" value="{warehouse.get('ubicacion', '') or ''}"
+                               class="form-input"
                                data-label="Ubicación">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Capacidad</label>
-                        <input type="number" name="capacidad" value="{warehouse.get('capacidad', 0)}" min="0" class="form-input"
+                        <input type="number" name="capacidad" value="{warehouse.get('capacidad', 0)}"
+                               min="0" class="form-input"
                                data-rules="numeric|min:0"
                                data-label="Capacidad">
                     </div>
                 </div>
-                
+
                 <div class="form-actions mt-30">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Almacén</button>
-                    <a href="/almacenes/" class="btn btn-secondary no-underline"><i class="fas fa-times"></i> Cancelar</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Actualizar Almacén
+                    </button>
+                    <a href="/almacenes/" class="btn btn-secondary no-underline">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
                 </div>
             </form>
         </div>

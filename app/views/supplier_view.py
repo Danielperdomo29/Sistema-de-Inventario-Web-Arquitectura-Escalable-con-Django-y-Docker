@@ -16,10 +16,10 @@ class SupplierView:
             for idx, supplier in enumerate(suppliers, 1):
                 # Formatear NIT completo
                 nit_display = "N/A"
-                if supplier.get('nit'):
-                    dv = supplier.get('digito_verificacion', '?')
+                if supplier.get("nit"):
+                    dv = supplier.get("digito_verificacion", "?")
                     nit_display = f"{supplier['nit']}-{dv}"
-                
+
                 rows += f"""
                 <tr>
                     <td>{idx}</td>
@@ -33,7 +33,7 @@ class SupplierView:
                         <a href="/proveedores/{supplier['id']}/editar/" class="btn btn-warning btn-sm">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        <button type="button" class="btn btn-danger btn-sm btn-delete-supplier" 
+                        <button type="button" class="btn btn-danger btn-sm btn-delete-supplier"
                                 data-id="{supplier['id']}"
                                 data-name="{supplier['nombre']}"
                                 data-csrf="{csrf_token}">
@@ -45,7 +45,7 @@ class SupplierView:
 
             table_content = f"""
             <div class="table-container">
-                <table>
+                <table class="table-suppliers">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -83,7 +83,7 @@ class SupplierView:
                     const supplierId = this.getAttribute('data-id');
                     const supplierName = this.getAttribute('data-name');
                     const csrfToken = this.getAttribute('data-csrf');
-                    
+
                     Swal.fire({
                         title: '¿Estás seguro?',
                         html: `¿Deseas eliminar el proveedor <strong>${supplierName}</strong>?<br><small class="text-muted">Esta acción no se puede revertir.</small>`,
@@ -100,12 +100,12 @@ class SupplierView:
                             const form = document.createElement('form');
                             form.method = 'POST';
                             form.action = `/proveedores/${supplierId}/eliminar/`;
-                            
+
                             const csrfInput = document.createElement('input');
                             csrfInput.type = 'hidden';
                             csrfInput.name = 'csrfmiddlewaretoken';
                             csrfInput.value = csrfToken;
-                            
+
                             form.appendChild(csrfInput);
                             document.body.appendChild(form);
                             form.submit();
@@ -128,7 +128,7 @@ class SupplierView:
         {delete_script}
         """
 
-        return Layout.render("Proveedores", user, "proveedores", content)
+        return HttpResponse(Layout.render("Proveedores", user, "proveedores", content))
 
     @staticmethod
     def create(user, request, error=None):
@@ -160,43 +160,45 @@ class SupplierView:
             </div>
             <form method="POST" action="/proveedores/crear/" class="p-20" id="supplierForm">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                
+
                 <h4 class="form-section-title"><i class="fas fa-building"></i> Información General</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre/Razón Social *</label>
-                        <input type="text" name="nombre" id="nombre" class="form-input" 
+                        <input type="text" name="nombre" id="nombre" class="form-input"
                                placeholder="Ej: Distribuidora Nacional S.A.S">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Ciudad</label>
                         <input type="text" name="ciudad" maxlength="100" class="form-input"
                                placeholder="Ej: Bogotá">
                     </div>
                 </div>
-                
+
                 <h4 class="form-section-title mt-20"><i class="fas fa-id-card"></i> Identificación Tributaria</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">NIT</label>
                         <div style="display: flex; gap: 10px;">
-                            <input type="text" name="nit" id="nit" maxlength="15" class="form-input" style="flex: 3;"
+                            <input type="text" name="nit" id="nit" maxlength="15"
+                                   class="form-input" style="flex: 3;"
                                    placeholder="Ej: 900123456">
                             <span style="align-self: center; font-weight: bold;">-</span>
-                            <input type="text" name="digito_verificacion" id="dv" maxlength="1" class="form-input" style="flex: 1; max-width: 60px; text-align: center;"
+                            <input type="text" name="digito_verificacion" id="dv" maxlength="1"
+                                   class="form-input" style="flex: 1; max-width: 60px; text-align: center;"
                                    placeholder="DV" title="Dígito de Verificación">
                         </div>
                         <small class="form-help-text">Número de Identificación Tributaria con dígito de verificación</small>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">RUT</label>
                         <input type="text" name="rut" maxlength="50" class="form-input"
                                placeholder="Registro Único Tributario">
                     </div>
                 </div>
-                
+
                 <h4 class="form-section-title mt-20"><i class="fas fa-address-book"></i> Información de Contacto</h4>
                 <div class="form-grid">
                     <div class="form-group">
@@ -204,85 +206,89 @@ class SupplierView:
                         <input type="text" name="telefono" maxlength="20" class="form-input"
                                placeholder="Ej: 601 1234567">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Email</label>
                         <input type="email" name="email" id="email" maxlength="100" class="form-input"
                                placeholder="correo@empresa.com">
                     </div>
                 </div>
-                
+
                 <div class="mt-20">
                     <label class="form-label">Dirección</label>
                     <textarea name="direccion" rows="3" class="form-textarea"
                               placeholder="Dirección completa del proveedor"></textarea>
                 </div>
-                
+
                 <div class="form-actions-end mt-30">
                     <a href="/proveedores/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Proveedor</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Proveedor
+                    </button>
                 </div>
             </form>
         </div>
-        
+
         {error_script}
-        
+
         <script>
         document.addEventListener('DOMContentLoaded', function() {{
             const form = document.getElementById('supplierForm');
-            
+
             form.addEventListener('submit', function(e) {{
                 const nombre = document.getElementById('nombre').value.trim();
                 const email = document.getElementById('email').value.trim();
                 const nit = document.getElementById('nit').value.trim();
                 const dv = document.getElementById('dv').value.trim();
-                
+
                 let errors = [];
-                
+
                 // Validación nombre requerido
                 if (!nombre) {{
                     errors.push('El Nombre/Razón Social es requerido');
                 }}
-                
+
                 // Validación email formato
                 if (email && !isValidEmail(email)) {{
                     errors.push('El formato del email no es válido');
                 }}
-                
+
                 // Validación NIT solo números
                 if (nit && !/^[0-9]+$/.test(nit)) {{
                     errors.push('El NIT debe contener solo números');
                 }}
-                
+
                 // Validación DV solo un dígito
                 if (dv && !/^[0-9]$/.test(dv)) {{
                     errors.push('El dígito de verificación debe ser un solo número');
                 }}
-                
+
                 // Si hay NIT pero no DV, advertir
                 if (nit && !dv) {{
                     errors.push('Si ingresa NIT, también debe ingresar el dígito de verificación');
                 }}
-                
+
                 if (errors.length > 0) {{
                     e.preventDefault();
                     Swal.fire({{
                         icon: 'warning',
                         title: 'Campos Inválidos',
-                        html: '<ul style="text-align:left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                        html: '<ul style="text-align:left;">' +
+                              errors.map(err => '<li>' + err + '</li>').join('') +
+                              '</ul>',
                         confirmButtonColor: '#3085d6',
                         confirmButtonText: 'Corregir'
                     }});
                     return false;
                 }}
             }});
-            
+
             function isValidEmail(email) {{
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);
             }}
         }});
         </script>
-        
+
         <style>
             .form-section-title {{
                 font-size: 1rem;
@@ -299,7 +305,7 @@ class SupplierView:
         </style>
         """
 
-        return Layout.render("Nuevo Proveedor", user, "proveedores", content)
+        return HttpResponse(Layout.render("Nuevo Proveedor", user, "proveedores", content))
 
     @staticmethod
     def edit(user, supplier, request, error=None):
@@ -331,121 +337,132 @@ class SupplierView:
             </div>
             <form method="POST" action="/proveedores/{supplier['id']}/editar/" class="p-20" id="supplierForm">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                
+
                 <h4 class="form-section-title"><i class="fas fa-building"></i> Información General</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre/Razón Social *</label>
                         <input type="text" name="nombre" id="nombre" value="{supplier['nombre']}" class="form-input">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Ciudad</label>
-                        <input type="text" name="ciudad" value="{supplier.get('ciudad', '') or ''}" maxlength="100" class="form-input">
+                        <input type="text" name="ciudad" value="{supplier.get('ciudad', '') or ''}"
+                               maxlength="100" class="form-input">
                     </div>
                 </div>
-                
+
                 <h4 class="form-section-title mt-20"><i class="fas fa-id-card"></i> Identificación Tributaria</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">NIT</label>
                         <div style="display: flex; gap: 10px;">
-                            <input type="text" name="nit" id="nit" value="{supplier.get('nit', '') or ''}" maxlength="15" class="form-input" style="flex: 3;">
+                            <input type="text" name="nit" id="nit" value="{supplier.get('nit', '') or ''}"
+                                   maxlength="15" class="form-input" style="flex: 3;">
                             <span style="align-self: center; font-weight: bold;">-</span>
-                            <input type="text" name="digito_verificacion" id="dv" value="{supplier.get('digito_verificacion', '') or ''}" maxlength="1" class="form-input" style="flex: 1; max-width: 60px; text-align: center;">
+                            <input type="text" name="digito_verificacion" id="dv"
+                                   value="{supplier.get('digito_verificacion', '') or ''}" maxlength="1"
+                                   class="form-input" style="flex: 1; max-width: 60px; text-align: center;">
                         </div>
                         <small class="form-help-text">Número de Identificación Tributaria con dígito de verificación</small>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">RUT</label>
-                        <input type="text" name="rut" value="{supplier.get('rut', '') or ''}" maxlength="50" class="form-input">
+                        <input type="text" name="rut" value="{supplier.get('rut', '') or ''}"
+                               maxlength="50" class="form-input">
                     </div>
                 </div>
-                
+
                 <h4 class="form-section-title mt-20"><i class="fas fa-address-book"></i> Información de Contacto</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Teléfono</label>
-                        <input type="text" name="telefono" value="{supplier.get('telefono', '') or ''}" maxlength="20" class="form-input">
+                        <input type="text" name="telefono" value="{supplier.get('telefono', '') or ''}"
+                               maxlength="20" class="form-input">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" id="email" value="{supplier.get('email', '') or ''}" maxlength="100" class="form-input">
+                        <input type="email" name="email" id="email" value="{supplier.get('email', '') or ''}"
+                               maxlength="100" class="form-input">
                     </div>
                 </div>
-                
+
                 <div class="mt-20">
                     <label class="form-label">Dirección</label>
                     <textarea name="direccion" rows="3" class="form-textarea">{supplier.get('direccion', '') or ''}</textarea>
                 </div>
-                
+
                 <div class="form-actions-end mt-30">
                     <a href="/proveedores/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Proveedor</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Actualizar Proveedor
+                    </button>
                 </div>
             </form>
         </div>
-        
+
         {error_script}
-        
+
         <script>
         document.addEventListener('DOMContentLoaded', function() {{
             const form = document.getElementById('supplierForm');
-            
+
             form.addEventListener('submit', function(e) {{
                 const nombre = document.getElementById('nombre').value.trim();
                 const email = document.getElementById('email').value.trim();
                 const nit = document.getElementById('nit').value.trim();
                 const dv = document.getElementById('dv').value.trim();
-                
+
                 let errors = [];
-                
+
                 // Validación nombre requerido
                 if (!nombre) {{
                     errors.push('El Nombre/Razón Social es requerido');
                 }}
-                
+
                 // Validación email formato
                 if (email && !isValidEmail(email)) {{
                     errors.push('El formato del email no es válido');
                 }}
-                
+
                 // Validación NIT solo números
                 if (nit && !/^[0-9]+$/.test(nit)) {{
                     errors.push('El NIT debe contener solo números');
                 }}
-                
+
                 // Validación DV solo un dígito
                 if (dv && !/^[0-9]$/.test(dv)) {{
                     errors.push('El dígito de verificación debe ser un solo número');
                 }}
-                
+
                 // Si hay NIT pero no DV, advertir
                 if (nit && !dv) {{
                     errors.push('Si ingresa NIT, también debe ingresar el dígito de verificación');
                 }}
-                
+
                 if (errors.length > 0) {{
                     e.preventDefault();
                     Swal.fire({{
                         icon: 'warning',
                         title: 'Campos Inválidos',
-                        html: '<ul style="text-align:left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                        html: '<ul style="text-align:left;">' +
+                              errors.map(err => '<li>' + err + '</li>').join('') +
+                              '</ul>',
                         confirmButtonColor: '#3085d6',
                         confirmButtonText: 'Corregir'
                     }});
                     return false;
                 }}
             }});
-            
+
             function isValidEmail(email) {{
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);
             }}
         }});
         </script>
-        
+
         <style>
             .form-section-title {{
                 font-size: 1rem;
@@ -462,5 +479,4 @@ class SupplierView:
         </style>
         """
 
-        return Layout.render("Editar Proveedor", user, "proveedores", content)
-
+        return HttpResponse(Layout.render("Editar Proveedor", user, "proveedores", content))
