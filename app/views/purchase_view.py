@@ -11,9 +11,7 @@ class PurchaseView:
 
         from django.middleware.csrf import get_token
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
+        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
 
         # Tabla de compras
         rows = ""
@@ -24,14 +22,17 @@ class PurchaseView:
                     "completada": '<span class="badge badge-success">Completada</span>',
                     "cancelada": '<span class="badge badge-cancelada">Cancelada</span>',
                 }.get(purchase["estado"], purchase["estado"])
-                
+
                 # Columna de factura
-                receipt_column = '-'
+                receipt_column = "-"
                 try:
                     from app.models.purchase import Purchase as PurchaseModel
-                    purchase_obj = PurchaseModel.objects.get(id=purchase['id'])
+
+                    purchase_obj = PurchaseModel.objects.get(id=purchase["id"])
                     if purchase_obj.has_receipt():
-                        icon_class = 'fa-file-pdf text-danger' if purchase_obj.receipt_type == 'pdf' else 'fa-image text-primary'
+                        icon_class = (
+                            "fa-file-pdf text-danger" if purchase_obj.receipt_type == "pdf" else "fa-image text-primary"
+                        )
                         receipt_url = f"/media/{purchase_obj.receipt_file}"
                         receipt_column = f'<a href="{receipt_url}" target="_blank" title="Ver factura"><i class="fas {icon_class} fa-lg"></i></a>'
                         if purchase_obj.auto_extracted:
@@ -41,14 +42,14 @@ class PurchaseView:
 
                 rows += f"""
                 <tr>
-                    <td>{idx}</td>
+                    <td class="d-none d-md-table-cell">{idx}</td>
                     <td>{purchase.get('numero_factura', 'N/A')}</td>
                     <td>{purchase['proveedor_nombre']}</td>
-                    <td>{purchase['fecha']}</td>
+                    <td class="d-none d-md-table-cell">{purchase['fecha']}</td>
                     <td>S/ {purchase['total']:.2f}</td>
                     <td>{estado_badge}</td>
-                    <td>{purchase['usuario_nombre']}</td>
-                    <td class="text-center">{receipt_column}</td>
+                    <td class="d-none d-md-table-cell">{purchase['usuario_nombre']}</td>
+                    <td class="text-center d-none d-md-table-cell">{receipt_column}</td>
                     <td>
                         <a href="/compras/{purchase['id']}/ver/" class="btn btn-info btn-sm">Ver</a>
                         <a href="/compras/{purchase['id']}/editar/" class="btn btn-warning">Editar</a>
@@ -68,14 +69,14 @@ class PurchaseView:
                 <table>
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th class="d-none d-md-table-cell">#</th>
                         <th>N° Factura</th>
                         <th>Proveedor</th>
-                        <th>Fecha</th>
+                        <th class="d-none d-md-table-cell">Fecha</th>
                         <th>Total</th>
                         <th>Estado</th>
-                        <th>Usuario</th>
-                        <th width="80">Factura</th>
+                        <th class="d-none d-md-table-cell">Usuario</th>
+                        <th width="80" class="d-none d-md-table-cell">Factura</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -112,9 +113,7 @@ class PurchaseView:
 
         from django.middleware.csrf import get_token
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
+        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
 
         error_html = ""
         if error:
@@ -135,9 +134,9 @@ class PurchaseView:
             products_options += f'<option value="{product["id"]}" data-price="{product["precio_venta"]}">{product["nombre"]} - S/ {product["precio_venta"]:.2f}</option>'
 
         # JavaScript para OCR
-        receipt_js = '''
+        receipt_js = """
 <script src="/static/js/purchase_receipt.js"></script>
-'''
+"""
 
         content = f"""
         <div class="card">
@@ -276,6 +275,7 @@ class PurchaseView:
                     </div>
                 </div>
                 
+                <div class="table-container">
                 <table class="mt-20">
                     <thead>
                         <tr>
@@ -301,6 +301,7 @@ class PurchaseView:
                         </tr>
                     </tfoot>
                 </table>
+                </div>
                 
                 <input type="hidden" name="total" id="totalInput" value="0">
                 </div> <!-- Cierre de products_section_wrapper -->
@@ -443,9 +444,7 @@ class PurchaseView:
 
         from django.middleware.csrf import get_token
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
+        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
 
         error_html = ""
         if error:
@@ -459,9 +458,7 @@ class PurchaseView:
         suppliers_options = '<option value="">-- Seleccione un proveedor --</option>'
         for supplier in suppliers:
             selected = "selected" if supplier["id"] == purchase["proveedor_id"] else ""
-            suppliers_options += (
-                f'<option value="{supplier["id"]}" {selected}>{supplier["nombre"]}</option>'
-            )
+            suppliers_options += f'<option value="{supplier["id"]}" {selected}>{supplier["nombre"]}</option>'
 
         # Select de productos
         products_options = '<option value="">Seleccione un producto</option>'
@@ -642,9 +639,7 @@ class PurchaseView:
                 </tr>
                 """
         else:
-            details_rows = (
-                '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'
-            )
+            details_rows = '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'
 
         content = f"""
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -728,26 +723,29 @@ class PurchaseView:
             </div>
         </div>
         """
-        
+
         # ===== SECCIÓN DE FACTURA ADJUNTA =====
-        receipt_section = ''
+        receipt_section = ""
         try:
             from app.models.purchase import Purchase as PurchaseModel
-            purchase_obj = PurchaseModel.objects.get(id=purchase['id'])
-            
+
+            purchase_obj = PurchaseModel.objects.get(id=purchase["id"])
+
             if purchase_obj.has_receipt():
                 # Badge de OCR
-                ocr_badge = ''
+                ocr_badge = ""
                 if purchase_obj.auto_extracted:
                     ocr_badge = '<span class="badge bg-success ms-2" style="font-size: 14px;"><i class="fas fa-robot"></i> Extraído con OCR</span>'
-                
+
                 # Info de extracción OCR
-                ocr_info = ''
+                ocr_info = ""
                 if purchase_obj.auto_extracted:
                     confidence_pct = purchase_obj.get_confidence_percentage()
-                    confidence_class = 'success' if confidence_pct >= 80 else 'warning' if confidence_pct >= 50 else 'danger'
-                    
-                    ocr_info = f'''
+                    confidence_class = (
+                        "success" if confidence_pct >= 80 else "warning" if confidence_pct >= 50 else "danger"
+                    )
+
+                    ocr_info = f"""
                     <div class="alert alert-{confidence_class} mb-4">
                         <div class="row">
                             <div class="col-md-6">
@@ -764,29 +762,29 @@ class PurchaseView:
                             </div>
                         </div>
                     </div>
-                    '''
-                
+                    """
+
                 # Preview según tipo
-                preview_content = ''
+                preview_content = ""
                 receipt_url = f"/media/{purchase_obj.receipt_file}"
-                
-                if purchase_obj.receipt_type == 'pdf':
-                    preview_content = f'''
+
+                if purchase_obj.receipt_type == "pdf":
+                    preview_content = f"""
                     <div class="text-center mb-3" style="background: #f5f5f5; padding: 20px; border-radius: 8px;">
                         <iframe src="{receipt_url}" width="100%" height="600" style="border: 2px solid #ddd; border-radius: 4px;">
                             Tu navegador no soporta la visualización de PDF.
                         </iframe>
                     </div>
-                    '''
+                    """
                 else:
-                    preview_content = f'''
+                    preview_content = f"""
                     <div class="text-center mb-3" style="background: #f5f5f5; padding: 20px; border-radius: 8px;">
                         <img src="{receipt_url}" class="img-fluid" style="max-height: 600px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="Factura">
                     </div>
-                    '''
-                
+                    """
+
                 # Construir sección completa
-                receipt_section = f'''
+                receipt_section = f"""
                 <div class="card shadow-sm mt-4">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
@@ -813,10 +811,10 @@ class PurchaseView:
                         </div>
                     </div>
                 </div>
-                '''
+                """
         except Exception as e:
-            receipt_section = ''
-        
+            receipt_section = ""
+
         content += receipt_section
 
         return Layout.render("Detalle de Compra", user, "compras", content)

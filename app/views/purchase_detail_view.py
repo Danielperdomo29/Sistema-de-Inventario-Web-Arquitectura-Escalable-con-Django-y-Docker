@@ -10,9 +10,7 @@ class PurchaseDetailView:
 
         from django.middleware.csrf import get_token
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
+        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
 
         # Tabla de detalles
         rows = ""
@@ -20,10 +18,10 @@ class PurchaseDetailView:
             for idx, detail in enumerate(details, 1):
                 rows += f"""
                 <tr>
-                    <td>{idx}</td>
-                    <td>{detail.get('numero_factura', 'N/A')}</td>
-                    <td>{detail['proveedor_nombre']}</td>
-                    <td>{detail['fecha_compra']}</td>
+                    <td class="d-none d-md-table-cell">{idx}</td>
+                    <td class="d-none d-md-table-cell">{detail.get('numero_factura', 'N/A')}</td>
+                    <td class="d-none d-md-table-cell">{detail['proveedor_nombre']}</td>
+                    <td class="d-none d-md-table-cell">{detail['fecha_compra']}</td>
                     <td>{detail['producto_nombre']}</td>
                     <td>{detail['cantidad']}</td>
                     <td>S/ {detail['precio_unitario']:.2f}</td>
@@ -47,10 +45,10 @@ class PurchaseDetailView:
                 <table>
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>N° Factura</th>
-                        <th>Proveedor</th>
-                        <th>Fecha</th>
+                        <th class="d-none d-md-table-cell">#</th>
+                        <th class="d-none d-md-table-cell">N° Factura</th>
+                        <th class="d-none d-md-table-cell">Proveedor</th>
+                        <th class="d-none d-md-table-cell">Fecha</th>
                         <th>Producto</th>
                         <th>Cantidad</th>
                         <th>Precio Unit.</th>
@@ -91,9 +89,7 @@ class PurchaseDetailView:
 
         from django.middleware.csrf import get_token
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
+        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
 
         error_html = ""
         if error:
@@ -176,9 +172,7 @@ class PurchaseDetailView:
 
         from django.middleware.csrf import get_token
 
-        csrf_token = (
-            f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
-        )
+        csrf_token = f'<input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">'
 
         error_html = ""
         if error:

@@ -79,8 +79,8 @@ class ProductManager {
                 <td>$${p.precio_unitario.toFixed(2)}</td>
                 <td>${p.cantidad}</td>
                 <td>$${(p.subtotal_sin_iva || 0).toFixed(2)}</td>
-                <td>${(p.iva_tasa || this.defaultIvaTasa).toFixed(0)}%</td>
-                <td>$${(p.iva_valor || 0).toFixed(2)}</td>
+                <td class="d-none d-md-table-cell">${(p.iva_tasa || this.defaultIvaTasa).toFixed(0)}%</td>
+                <td class="d-none d-md-table-cell">$${(p.iva_valor || 0).toFixed(2)}</td>
                 <td><b>$${p.subtotal.toFixed(2)}</b></td>
                 <td><button type="button" class="btn btn-danger" onclick="manager.removeProduct(${i})">X</button></td>
             </tr>

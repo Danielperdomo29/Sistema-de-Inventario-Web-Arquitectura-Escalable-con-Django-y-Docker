@@ -241,7 +241,37 @@ class Layout:
                 window.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
             </script>
             <script src="/static/js/protection.js"></script>
+            <script src="/static/js/protection.js"></script>
             {chatbot_script}
+            {'<script src="/static/js/chatbot.js"></script>' if active_page != "chatbot" else ""}
+            
+            <!-- Chatbot Widget (Only if not on Chatbot Page) -->
+            {"""
+            <div id="chatbot-widget-container" style="z-index: 9999;">
+                <button id="chatbot-fab" class="chatbot-fab" title="Asistente IA">
+                    <i class="fas fa-robot"></i>
+                </button>
+                <div id="chatbot-widget-window" class="chatbot-widget-window">
+                    <div class="chatbot-header chatbot-widget-header">
+                        <h3><i class="fas fa-robot"></i> Asistente IA</h3>
+                        <button id="chatbot-minimize" class="chatbot-widget-close"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="chat-messages" class="chat-messages">
+                        <!-- Messages go here -->
+                        <div class="message bot-message">
+                            <div class="message-content">
+                                <div class="message-text">Hola, soy tu asistente virtual. ¿En qué puedo ayudarte hoy?</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <textarea id="message-input" class="form-control" placeholder="Escribe tu consulta..." rows="1" style="resize: none;"></textarea>
+                        <button id="voice-input-btn" class="btn btn-secondary" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 5px;"><i class="fas fa-microphone"></i></button>
+                        <button id="send-btn" class="btn btn-primary" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+            """ if active_page != "chatbot" else ""}
         </body>
         </html>
         """

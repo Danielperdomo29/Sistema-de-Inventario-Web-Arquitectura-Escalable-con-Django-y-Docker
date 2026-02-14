@@ -3,7 +3,9 @@ Vistas HTML para el Módulo Fiscal - Fase A.
 
 Genera el HTML para las diferentes secciones del módulo fiscal.
 """
+
 from django.http import HttpResponse
+
 from app.views.layout import Layout
 
 
@@ -84,10 +86,10 @@ class FiscalView:
                 perfiles_rows += f"""
                 <tr>
                     <td>{perfil['nombre']}</td>
-                    <td>{perfil['tipo_documento']}</td>
+                    <td class="d-none d-md-table-cell">{perfil['tipo_documento']}</td>
                     <td>{perfil['numero_documento']}-{perfil['dv']}</td>
-                    <td>{perfil['regimen']}</td>
-                    <td>{perfil['fecha_creacion']}</td>
+                    <td class="d-none d-md-table-cell">{perfil['regimen']}</td>
+                    <td class="d-none d-md-table-cell">{perfil['fecha_creacion']}</td>
                     <td>
                         <a href="/fiscal/perfiles/{perfil['id']}/editar/" class="btn btn-info btn-sm">
                             Ver
@@ -109,10 +111,10 @@ class FiscalView:
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Tipo Documento</th>
+                            <th class="d-none d-md-table-cell">Tipo Documento</th>
                             <th>Número</th>
-                            <th>Régimen</th>
-                            <th>Fecha Creación</th>
+                            <th class="d-none d-md-table-cell">Régimen</th>
+                            <th class="d-none d-md-table-cell">Fecha Creación</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -132,12 +134,7 @@ class FiscalView:
         </div>
         """
 
-        content = (
-            welcome_banner
-            + stats_cards
-            + quick_access
-            + ultimos_perfiles_section
-        )
+        content = welcome_banner + stats_cards + quick_access + ultimos_perfiles_section
 
         return HttpResponse(Layout.render("Módulo Fiscal", user, "fiscal", content))
 
@@ -149,15 +146,19 @@ class FiscalView:
         perfiles_rows = ""
         if perfiles:
             for perfil in perfiles:
-                estado_badge = '<span class="badge badge-success">Activo</span>' if perfil['activo'] else '<span class="badge badge-danger">Inactivo</span>'
+                estado_badge = (
+                    '<span class="badge badge-success">Activo</span>'
+                    if perfil["activo"]
+                    else '<span class="badge badge-danger">Inactivo</span>'
+                )
                 perfiles_rows += f"""
                 <tr>
                     <td>{perfil['nombre']}</td>
-                    <td>{perfil['tipo_documento']}</td>
+                    <td class="d-none d-md-table-cell">{perfil['tipo_documento']}</td>
                     <td>{perfil['numero_documento']}-{perfil['dv']}</td>
-                    <td>{perfil['tipo_persona']}</td>
-                    <td>{perfil['regimen']}</td>
-                    <td>{perfil['email']}</td>
+                    <td class="d-none d-md-table-cell">{perfil['tipo_persona']}</td>
+                    <td class="d-none d-md-table-cell">{perfil['regimen']}</td>
+                    <td class="d-none d-md-table-cell">{perfil['email']}</td>
                     <td>{estado_badge}</td>
                     <td>
                         <a href="/fiscal/perfiles/{perfil['id']}/editar/" class="btn btn-info btn-sm">
@@ -182,11 +183,11 @@ class FiscalView:
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Tipo Doc.</th>
+                            <th class="d-none d-md-table-cell">Tipo Doc.</th>
                             <th>Número</th>
-                            <th>Tipo Persona</th>
-                            <th>Régimen</th>
-                            <th>Email</th>
+                            <th class="d-none d-md-table-cell">Tipo Persona</th>
+                            <th class="d-none d-md-table-cell">Régimen</th>
+                            <th class="d-none d-md-table-cell">Email</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -222,17 +223,17 @@ class FiscalView:
         # Valores por defecto
         if not perfil_data:
             perfil_data = {
-                'nombre': '',
-                'tipo_documento': '31',
-                'numero_documento': '',
-                'tipo_persona': 'J',
-                'regimen': '48',
-                'nombre_comercial': '',
-                'email_facturacion': '',
-                'telefono': '',
-                'direccion': '',
-                'departamento_codigo': '',
-                'municipio_codigo': '',
+                "nombre": "",
+                "tipo_documento": "31",
+                "numero_documento": "",
+                "tipo_persona": "J",
+                "regimen": "48",
+                "nombre_comercial": "",
+                "email_facturacion": "",
+                "telefono": "",
+                "direccion": "",
+                "departamento_codigo": "",
+                "municipio_codigo": "",
             }
 
         form_html = f"""
@@ -281,8 +282,16 @@ class FiscalView:
         # Construir árbol HTML
         tree_html = ""
         for cuenta_clase in cuentas_tree:
-            naturaleza_badge = '<span class="badge badge-success">Débito</span>' if cuenta_clase['naturaleza'] == 'D' else '<span class="badge badge-info">Crédito</span>'
-            estado_badge = '<span class="badge badge-success">Activa</span>' if cuenta_clase['activa'] else '<span class="badge badge-secondary">Inactiva</span>'
+            naturaleza_badge = (
+                '<span class="badge badge-success">Débito</span>'
+                if cuenta_clase["naturaleza"] == "D"
+                else '<span class="badge badge-info">Crédito</span>'
+            )
+            estado_badge = (
+                '<span class="badge badge-success">Activa</span>'
+                if cuenta_clase["activa"]
+                else '<span class="badge badge-secondary">Inactiva</span>'
+            )
 
             tree_html += f"""
             <div class="puc-nivel-1">
@@ -293,9 +302,17 @@ class FiscalView:
             """
 
             # Nivel 2
-            for cuenta_nivel_2 in cuenta_clase['subcuentas']:
-                naturaleza_badge_2 = '<span class="badge badge-success">Débito</span>' if cuenta_nivel_2['naturaleza'] == 'D' else '<span class="badge badge-info">Crédito</span>'
-                estado_badge_2 = '<span class="badge badge-success">Activa</span>' if cuenta_nivel_2['activa'] else '<span class="badge badge-secondary">Inactiva</span>'
+            for cuenta_nivel_2 in cuenta_clase["subcuentas"]:
+                naturaleza_badge_2 = (
+                    '<span class="badge badge-success">Débito</span>'
+                    if cuenta_nivel_2["naturaleza"] == "D"
+                    else '<span class="badge badge-info">Crédito</span>'
+                )
+                estado_badge_2 = (
+                    '<span class="badge badge-success">Activa</span>'
+                    if cuenta_nivel_2["activa"]
+                    else '<span class="badge badge-secondary">Inactiva</span>'
+                )
 
                 tree_html += f"""
                 <div class="puc-nivel-2">
@@ -306,9 +323,17 @@ class FiscalView:
                 """
 
                 # Nivel 3
-                for cuenta_nivel_3 in cuenta_nivel_2['subcuentas']:
-                    naturaleza_badge_3 = '<span class="badge badge-success">Débito</span>' if cuenta_nivel_3['naturaleza'] == 'D' else '<span class="badge badge-info">Crédito</span>'
-                    estado_badge_3 = '<span class="badge badge-success">Activa</span>' if cuenta_nivel_3['activa'] else '<span class="badge badge-secondary">Inactiva</span>'
+                for cuenta_nivel_3 in cuenta_nivel_2["subcuentas"]:
+                    naturaleza_badge_3 = (
+                        '<span class="badge badge-success">Débito</span>'
+                        if cuenta_nivel_3["naturaleza"] == "D"
+                        else '<span class="badge badge-info">Crédito</span>'
+                    )
+                    estado_badge_3 = (
+                        '<span class="badge badge-success">Activa</span>'
+                        if cuenta_nivel_3["activa"]
+                        else '<span class="badge badge-secondary">Inactiva</span>'
+                    )
 
                     tree_html += f"""
                     <div class="puc-nivel-3">
@@ -395,21 +420,33 @@ class FiscalView:
         impuestos_rows = ""
         if impuestos:
             for impuesto in impuestos:
-                estado_badge = '<span class="badge badge-success">Activo</span>' if impuesto['activo'] else '<span class="badge badge-danger">Inactivo</span>'
-                aplica_ventas = '<i class="fas fa-check text-success"></i>' if impuesto['aplica_ventas'] else '<i class="fas fa-times text-danger"></i>'
-                aplica_compras = '<i class="fas fa-check text-success"></i>' if impuesto['aplica_compras'] else '<i class="fas fa-times text-danger"></i>'
-                base_minima = f"${impuesto['base_minima']:,.2f}" if impuesto['base_minima'] else "N/A"
+                estado_badge = (
+                    '<span class="badge badge-success">Activo</span>'
+                    if impuesto["activo"]
+                    else '<span class="badge badge-danger">Inactivo</span>'
+                )
+                aplica_ventas = (
+                    '<i class="fas fa-check text-success"></i>'
+                    if impuesto["aplica_ventas"]
+                    else '<i class="fas fa-times text-danger"></i>'
+                )
+                aplica_compras = (
+                    '<i class="fas fa-check text-success"></i>'
+                    if impuesto["aplica_compras"]
+                    else '<i class="fas fa-times text-danger"></i>'
+                )
+                base_minima = f"${impuesto['base_minima']:,.2f}" if impuesto["base_minima"] else "N/A"
 
                 impuestos_rows += f"""
                 <tr>
                     <td><strong>{impuesto['codigo']}</strong></td>
                     <td>{impuesto['nombre']}</td>
-                    <td>{impuesto['tipo']}</td>
+                    <td class="d-none d-md-table-cell">{impuesto['tipo']}</td>
                     <td class="text-right"><strong>{impuesto['porcentaje']}%</strong></td>
-                    <td class="text-right">{base_minima}</td>
-                    <td>{impuesto['cuenta_por_pagar']}</td>
-                    <td class="text-center">{aplica_ventas}</td>
-                    <td class="text-center">{aplica_compras}</td>
+                    <td class="text-right d-none d-md-table-cell">{base_minima}</td>
+                    <td class="d-none d-md-table-cell">{impuesto['cuenta_por_pagar']}</td>
+                    <td class="text-center d-none d-md-table-cell">{aplica_ventas}</td>
+                    <td class="text-center d-none d-md-table-cell">{aplica_compras}</td>
                     <td>{estado_badge}</td>
                 </tr>
                 """
@@ -430,12 +467,12 @@ class FiscalView:
                         <tr>
                             <th>Código</th>
                             <th>Nombre</th>
-                            <th>Tipo</th>
+                            <th class="d-none d-md-table-cell">Tipo</th>
                             <th class="text-right">Porcentaje</th>
-                            <th class="text-right">Base Mínima</th>
-                            <th>Cuenta por Pagar</th>
-                            <th class="text-center">Ventas</th>
-                            <th class="text-center">Compras</th>
+                            <th class="text-right d-none d-md-table-cell">Base Mínima</th>
+                            <th class="d-none d-md-table-cell">Cuenta por Pagar</th>
+                            <th class="text-center d-none d-md-table-cell">Ventas</th>
+                            <th class="text-center d-none d-md-table-cell">Compras</th>
                             <th>Estado</th>
                         </tr>
                     </thead>

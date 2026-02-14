@@ -51,6 +51,7 @@ celery==5.3.4
 
 # DevSecOps Tools
 black==24.1.1
+flake8==7.0.0
 pylint==3.0.3
 isort==5.13.2
 bandit==1.7.6

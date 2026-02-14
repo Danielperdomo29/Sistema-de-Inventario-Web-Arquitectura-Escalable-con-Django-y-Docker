@@ -483,6 +483,187 @@
     transform: scale(1.1);
 }
 
-.scroll-to-bottom.visible {
+
+/* =========================================
+   Chatbot Widget / FAB Styles
+   ========================================= */
+
+/* Floating Action Button */
+.chatbot-fab {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    z-index: 10000;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: none;
+    outline: none;
 }
+
+.chatbot-fab:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* Chatbot Widget Window */
+.chatbot-widget-window {
+    position: fixed;
+    bottom: 95px;
+    right: 25px;
+    width: 380px;
+    height: 600px;
+    max-height: 70vh;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.chatbot-widget-window.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+}
+
+.chatbot-widget-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.chatbot-widget-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chatbot-widget-close {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.8);
+    cursor: pointer;
+    font-size: 18px;
+    transition: color 0.2s;
+    padding: 4px;
+}
+
+.chatbot-widget-close:hover {
+    color: white;
+}
+
+.chatbot-widget-window .chatbot-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0;
+    background-color: #f8f9fa;
+}
+
+.chatbot-widget-window .chat-messages {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    height: 0; /* Important for flex growth */
+}
+
+/* Adjustments for input area in widget */
+.chatbot-widget-window .chat-input-container {
+    padding: 15px;
+    background-color: white;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+@media (max-width: 480px) {
+    .chatbot-widget-window {
+        width: 100%;
+        height: 100%;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+        max-height: 100vh;
+        z-index: 10001;
+    }
+    .chatbot-fab {
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+/* =========================================
+   Response Formatting (Tables, Lists)
+   ========================================= */
+.message-text table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.message-text table th,
+.message-text table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.message-text table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+.message-text ul, .message-text ol {
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.message-text pre {
+    background-color: #f1f3f5;
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+}
+
+.message-text code {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 87.5%;
+    color: #e83e8c;
+    word-break: break-word;
+}
+

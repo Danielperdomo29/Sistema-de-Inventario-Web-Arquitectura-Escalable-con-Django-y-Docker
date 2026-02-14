@@ -19,26 +19,26 @@ class SaleView:
     @staticmethod
     def _get_delete_button(sale, csrf_token):
         csrf_input = f'<input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">'
-        
+
         if hasattr(sale, "factura_dian") or sale.get("numero_factura", "").startswith("FE"):
             # Simple check for dictionary or object
-             is_factura = sale.get("factura_dian") if isinstance(sale, dict) else getattr(sale, "factura_dian", None)
-             if is_factura:
-                return f'''
+            is_factura = sale.get("factura_dian") if isinstance(sale, dict) else getattr(sale, "factura_dian", None)
+            if is_factura:
+                return f"""
                 <form action="/ventas/{sale['id']}/eliminar/" method="POST" style="display:inline;">
                     {csrf_input}
                     <button type="submit" class="btn btn-danger no-underline" 
                         data-confirm-message="La venta tiene Factura DIAN. Se procederá a ANULARLA en lugar de eliminarla. ¿Continuar?"
                         onclick="return confirmDelete(event, this);">Anular</button>
                 </form>
-                '''
-        
-        return f'''
+                """
+
+        return f"""
         <form action="/ventas/{sale['id']}/eliminar/" method="POST" style="display:inline;">
             {csrf_input}
             <button type="submit" class="btn btn-danger no-underline" onclick="return confirmDelete(event, this);">Eliminar</button>
         </form>
-        '''
+        """
 
     @staticmethod
     def index(user, sales, request):
@@ -53,6 +53,7 @@ class SaleView:
 
         # Generar las filas de la tabla
         from django.middleware.csrf import get_token
+
         csrf_token = get_token(request)
 
         if sales:
@@ -62,15 +63,15 @@ class SaleView:
                 rows += f"""
                 <tr>
                     <td>{sale['numero_factura']}</td>
-                    <td>{sale['fecha']}</td>
+                    <td class="d-none d-md-table-cell">{sale['fecha']}</td>
                     <td>{sale['cliente_nombre']}</td>
-                    <td>{sale['cliente_documento'] or 'N/A'}</td>
+                    <td class="d-none d-md-table-cell">{sale['cliente_documento'] or 'N/A'}</td>
                     <td>
                         <div class="font-bold">${sale['total']:.2f}</div>
                         <div style="font-size: 0.8rem; color: #6c757d;">IVA: ${sale['iva']:.2f}</div>
                     </td>
                     <td>{badge}</td>
-                    <td>{sale['tipo_pago'].capitalize()}</td>
+                    <td class="d-none d-md-table-cell">{sale['tipo_pago'].capitalize()}</td>
                     <td>
                         {SaleView._get_dian_button(sale)}
                     </td>
@@ -87,13 +88,13 @@ class SaleView:
                     <thead>
                         <tr>
                             <th>Factura</th>
-                            <th>Fecha</th>
+                            <th class="d-none d-md-table-cell">Fecha</th>
                             <th>Cliente</th>
-                            <th>Documento</th>
+                            <th class="d-none d-md-table-cell">Documento</th>
                             <th>Total</th>
                             <th>Estado</th>
-                            <th>Tipo Pago</th>
-                        <th>Factura</th>
+                            <th class="d-none d-md-table-cell">Tipo Pago</th>
+                            <th>Factura</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -136,22 +137,26 @@ class SaleView:
         # Generar opciones de clientes
         client_options = '<option value="">Seleccione un cliente</option>'
         for client in clients:
-            client_options += f'<option value="{client["id"]}">{client["nombre"]} - {client.get("documento", "S/N")}</option>'
+            client_options += (
+                f'<option value="{client["id"]}">{client["nombre"]} - {client.get("documento", "S/N")}</option>'
+            )
 
         import json
-        
+
         # Generar opciones de productos para el selector
         product_options = '<option value="">Seleccione un producto</option>'
         products_list = []
         for product in products:
-            product_options += f'<option value="{product["id"]}">{product["nombre"]} - ${product["precio_venta"]}</option>'
+            product_options += (
+                f'<option value="{product["id"]}">{product["nombre"]} - ${product["precio_venta"]}</option>'
+            )
             products_list.append(
                 {
                     "id": product["id"],
                     "nombre": product["nombre"],
                     "precio": float(product["precio_venta"]),
                     "stock": product["stock_actual"],
-                    "iva_tasa": float(product.get("tax_percentage", 19.00)) if "tax_percentage" in product else 19.00
+                    "iva_tasa": float(product.get("tax_percentage", 19.00)) if "tax_percentage" in product else 19.00,
                 }
             )
         products_json = json.dumps(products_list)
@@ -238,31 +243,33 @@ class SaleView:
                     <button type="button" onclick="addProduct()" class="btn btn-primary">Agregar</button>
                 </div>
                 
-                <table id="productsTable" class="d-none mb-20">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Precio Unit</th>
-                            <th>Cantidad</th>
-                            <th>Subtotal</th>
-                            <th>IVA%</th>
-                            <th>IVA Valor</th>
-                            <th>Total</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsBody"></tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" class="text-right font-bold">Totales:</td>
-                            <td id="footer-subtotal">$0.00</td>
-                            <td></td>
-                            <td id="footer-iva">$0.00</td>
-                            <td id="footer-total" class="font-bold text-success">$0.00</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
+                <div class="table-container">
+                    <table id="productsTable" class="d-none mb-20" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio Unit</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th class="d-none d-md-table-cell">IVA%</th>
+                                <th class="d-none d-md-table-cell">IVA Valor</th>
+                                <th>Total</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-right font-bold">Totales:</td>
+                                <td id="footer-subtotal">$0.00</td>
+                                <td class="d-none d-md-table-cell"></td>
+                                <td id="footer-iva" class="d-none d-md-table-cell">$0.00</td>
+                                <td id="footer-total" class="font-bold text-success">$0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
                 
                 <div class="form-actions mt-30">
                     <button type="submit" class="btn btn-primary" data-original-text="Guardar Venta"><i class="fas fa-save"></i> Guardar Venta</button>
@@ -298,19 +305,21 @@ class SaleView:
             client_options += f'<option value="{client["id"]}" {selected}>{client["nombre"]} - {client.get("documento", "S/N")}</option>'
 
         import json
-        
+
         # Generar opciones de productos
         product_options = '<option value="">Seleccione un producto</option>'
         products_list = []
         for product in products:
-            product_options += f'<option value="{product["id"]}">{product["nombre"]} - ${product["precio_venta"]}</option>'
+            product_options += (
+                f'<option value="{product["id"]}">{product["nombre"]} - ${product["precio_venta"]}</option>'
+            )
             products_list.append(
                 {
                     "id": product["id"],
                     "nombre": product["nombre"],
                     "precio": float(product["precio_venta"]),
                     "stock": product["stock_actual"],
-                     "iva_tasa": float(product.get("tax_percentage", 19.00)) if "tax_percentage" in product else 19.00
+                    "iva_tasa": float(product.get("tax_percentage", 19.00)) if "tax_percentage" in product else 19.00,
                 }
             )
         products_json = json.dumps(products_list)
@@ -411,31 +420,33 @@ class SaleView:
                     <button type="button" onclick="addProduct()" class="btn btn-primary">Agregar</button>
                 </div>
                 
-                <table id="productsTable">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Precio Unit</th>
-                            <th>Cantidad</th>
-                            <th>Subtotal</th>
-                            <th>IVA%</th>
-                            <th>IVA Valor</th>
-                            <th>Total</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsBody"></tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" class="text-right font-bold">Totales:</td>
-                            <td id="footer-subtotal">$0.00</td>
-                            <td></td>
-                            <td id="footer-iva">$0.00</td>
-                            <td id="footer-total" class="font-bold text-success">$0.00</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
+                <div class="table-container">
+                    <table id="productsTable" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio Unit</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th class="d-none d-md-table-cell">IVA%</th>
+                                <th class="d-none d-md-table-cell">IVA Valor</th>
+                                <th>Total</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-right font-bold">Totales:</td>
+                                <td id="footer-subtotal">$0.00</td>
+                                <td class="d-none d-md-table-cell"></td>
+                                <td id="footer-iva" class="d-none d-md-table-cell">$0.00</td>
+                                <td id="footer-total" class="font-bold text-success">$0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
                 
                 <div class="form-actions mt-30">
                     <button type="submit" class="btn btn-primary" data-original-text="Actualizar Venta"><i class="fas fa-save"></i> Actualizar Venta</button>
@@ -480,9 +491,7 @@ class SaleView:
                 </tr>
                 """
         else:
-            details_rows = (
-                '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'
-            )
+            details_rows = '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'
 
         content = f"""
         <div class="d-flex justify-content-between align-items-center mb-4">

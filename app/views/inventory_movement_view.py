@@ -23,14 +23,14 @@ class InventoryMovementView:
 
                 rows += f"""
                 <tr>
-                    <td>{idx}</td>
+                    <td class="d-none d-md-table-cell">{idx}</td>
                     <td>{movement['producto_nombre']}</td>
                     <td>{movement['almacen_nombre']}</td>
                     <td>{tipo_badge}</td>
                     <td>{movement['cantidad']}</td>
-                    <td>{movement.get('referencia', 'N/A') or 'N/A'}</td>
-                    <td>{movement['fecha']}</td>
-                    <td>{movement['usuario_nombre']}</td>
+                    <td class="d-none d-md-table-cell">{movement.get('referencia', 'N/A') or 'N/A'}</td>
+                    <td class="d-none d-md-table-cell">{movement['fecha']}</td>
+                    <td class="d-none d-md-table-cell">{movement['usuario_nombre']}</td>
                     <td>
                         <a href="/movimientos-inventario/{movement['id']}/ver/" class="btn btn-info btn-sm">
                             <i class="fas fa-eye"></i> Ver
@@ -51,14 +51,14 @@ class InventoryMovementView:
                 <table>
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th class="d-none d-md-table-cell">#</th>
                         <th>Producto</th>
                         <th>Almacén</th>
                         <th>Tipo</th>
                         <th>Cantidad</th>
-                        <th>Referencia</th>
-                        <th>Fecha</th>
-                        <th>Usuario</th>
+                        <th class="d-none d-md-table-cell">Referencia</th>
+                        <th class="d-none d-md-table-cell">Fecha</th>
+                        <th class="d-none d-md-table-cell">Usuario</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -216,17 +216,13 @@ class InventoryMovementView:
         product_options = ""
         for product in products:
             selected = "selected" if product["id"] == movement["producto_id"] else ""
-            product_options += (
-                f'<option value="{product["id"]}" {selected}>{product["nombre"]}</option>'
-            )
+            product_options += f'<option value="{product["id"]}" {selected}>{product["nombre"]}</option>'
 
         # Select de almacenes
         warehouse_options = ""
         for warehouse in warehouses:
             selected = "selected" if warehouse["id"] == movement["almacen_id"] else ""
-            warehouse_options += (
-                f'<option value="{warehouse["id"]}" {selected}>{warehouse["nombre"]}</option>'
-            )
+            warehouse_options += f'<option value="{warehouse["id"]}" {selected}>{warehouse["nombre"]}</option>'
 
         # Select de tipo de movimiento
         tipos = [

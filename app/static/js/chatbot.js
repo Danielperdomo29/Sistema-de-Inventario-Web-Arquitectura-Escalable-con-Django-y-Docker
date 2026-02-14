@@ -379,7 +379,8 @@ document.addEventListener('DOMContentLoaded', function() {
     scrollToBottom();
 
     // Focus en el input
-    messageInput.focus();
+    // Solo si no estamos en modo widget (o si el widget está abierto por defecto)
+    // messageInput.focus(); // Comentado para evitar teclado en móviles al cargar
 
     // Toast de bienvenida (opcional, solo si no hay historial)
     const hasHistory = chatMessages.querySelector('.message');
@@ -387,5 +388,87 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             Notifications.toast('¡Hola! Soy tu asistente de inventario 🤖', 'info', 4000);
         }, 500);
+    }
+
+    // ============================================================================
+    // WIDGET TOGGLE LOGIC
+    // ============================================================================
+    const chatbotFab = document.getElementById('chatbot-fab');
+    const chatbotWindow = document.getElementById('chatbot-widget-window');
+    const chatbotClose = document.getElementById('chatbot-minimize');
+
+    if (chatbotFab && chatbotWindow) {
+        chatbotFab.addEventListener('click', function() {
+            chatbotWindow.classList.toggle('active');
+            chatbotFab.style.display = chatbotWindow.classList.contains('active') ? 'none' : 'flex';
+            
+            if (chatbotWindow.classList.contains('active')) {
+                scrollToBottom();
+                if (window.innerWidth > 768) {
+                     messageInput.focus();
+                }
+            }
+        });
+
+        if (chatbotClose) {
+            chatbotClose.addEventListener('click', function() {
+                chatbotWindow.classList.remove('active');
+                chatbotFab.style.display = 'flex';
+            });
+        }
+    }
+
+    // ============================================================================
+    // VOICE INPUT (SPEECH-TO-TEXT)
+    // ============================================================================
+    const voiceBtn = document.getElementById('voice-input-btn');
+    
+    if (voiceBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.continuous = false;
+        recognition.lang = 'es-ES';
+        recognition.interimResults = false;
+        
+        voiceBtn.addEventListener('click', function() {
+            if (voiceBtn.classList.contains('listening')) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+        
+        recognition.onstart = function() {
+            voiceBtn.classList.add('listening');
+            voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+            voiceBtn.style.backgroundColor = '#ff4757';
+            voiceBtn.style.color = 'white';
+            Notifications.toast('Escuchando...', 'info', 2000);
+        };
+        
+        recognition.onend = function() {
+            voiceBtn.classList.remove('listening');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            voiceBtn.style.backgroundColor = ''; // Reset
+            voiceBtn.style.color = '';
+        };
+        
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            messageInput.value = transcript;
+            messageInput.focus();
+            // Opcional: Enviar automáticamente
+            // sendMessage();
+        };
+        
+        recognition.onerror = function(event) {
+            console.error('Error de reconocimiento de voz:', event.error);
+            Notifications.toast('Error al escuchar. Intenta de nuevo.', 'error');
+            voiceBtn.classList.remove('listening');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        };
+    } else if (voiceBtn) {
+        voiceBtn.style.display = 'none'; // Ocultar si no es compatible
     }
 });
