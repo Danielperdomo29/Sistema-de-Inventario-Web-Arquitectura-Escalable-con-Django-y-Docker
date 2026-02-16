@@ -103,6 +103,7 @@ urlpatterns = [
     path(
         "items-venta/<int:detail_id>/ver/", SaleDetailController.view, name="sale_details_view"
     ),
+    path("items-venta/exportar/", SaleDetailController.export_csv, name="sale_details_export"),
     path("compras/", PurchaseController.index, name="purchases"),
     path("compras/crear/", PurchaseController.create, name="purchases_create"),
     path("compras/<int:purchase_id>/editar/", PurchaseController.edit, name="purchases_edit"),
