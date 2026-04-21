@@ -42,7 +42,7 @@ class SaleView:
 
     @staticmethod
     def _get_filter_form(params):
-        """Genera el formulario de filtros"""
+        """Genera la barra de filtros estilo iOS unificada"""
         fecha_desde = params.get("fecha_desde", "")
         fecha_hasta = params.get("fecha_hasta", "")
         cliente = params.get("cliente", "")
@@ -50,33 +50,163 @@ class SaleView:
         factura = params.get("factura", "")
 
         return f"""
-        <form id="filter-form" method="GET" class="mb-4 p-3 bg-light rounded">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label btn-sm fw-bold">Fecha Desde</label>
-                    <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{fecha_desde}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label btn-sm fw-bold">Fecha Hasta</label>
-                    <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{fecha_hasta}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label btn-sm fw-bold">Cliente</label>
-                    <input type="text" name="cliente" class="form-control form-control-sm" placeholder="Nombre o documento" value="{cliente}">
-                </div>
-                <div class="col-md-3">
-                     <label class="form-label btn-sm fw-bold">Producto</label>
-                    <input type="text" name="producto" class="form-control form-control-sm" placeholder="Nombre o código" value="{producto}">
-                </div>
-                <div class="col-md-3">
-                     <label class="form-label btn-sm fw-bold">Factura</label>
-                    <input type="text" name="factura" class="form-control form-control-sm" placeholder="Número" value="{factura}">
-                </div>
-                <div class="col-md-12 d-flex gap-2 justify-content-end align-items-end">
-                     <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Filtrar</button>
-                     <a href="/ventas/" class="btn btn-secondary btn-sm"><i class="fas fa-undo"></i> Limpiar</a>
-                </div>
+        <style>
+            .sales-filter-bar {{
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 12px;
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-radius: 36px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.05);
+                margin-bottom: 24px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            }}
+            .sales-filter-bar .filter-icon {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                background: #007AFF;
+                border-radius: 50%;
+                color: white;
+                font-size: 14px;
+                margin-right: 4px;
+                flex-shrink: 0;
+            }}
+            .sales-filter-bar .filter-item {{
+                display: flex;
+                align-items: center;
+                background: rgba(242, 242, 247, 0.8);
+                border-radius: 20px;
+                padding: 0 12px;
+                height: 36px;
+                border: 1px solid transparent;
+                transition: all 0.15s ease;
+                flex: 1 1 140px;
+                min-width: 120px;
+            }}
+            .sales-filter-bar .filter-item:focus-within {{
+                background: white;
+                border-color: #007AFF;
+                box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+            }}
+            .sales-filter-bar .filter-item i {{
+                color: #8E8E93;
+                font-size: 14px;
+                margin-right: 8px;
+                width: 16px;
+                text-align: center;
+            }}
+            .sales-filter-bar .filter-input {{
+                width: 100%;
+                border: none;
+                background: transparent;
+                font-size: 14px;
+                color: #1C1C1E;
+                outline: none;
+                font-family: inherit;
+                padding: 0;
+                line-height: 1.4;
+            }}
+            .sales-filter-bar .filter-input::placeholder {{
+                color: #8E8E93;
+                font-weight: 400;
+            }}
+            .sales-filter-bar .filter-btn {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                height: 36px;
+                padding: 0 16px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 500;
+                border: none;
+                cursor: pointer;
+                transition: all 0.15s ease;
+                white-space: nowrap;
+                text-decoration: none;
+                flex-shrink: 0;
+            }}
+            .sales-filter-bar .filter-btn-primary {{
+                background: #007AFF;
+                color: white;
+                box-shadow: 0 4px 8px rgba(0, 122, 255, 0.15);
+            }}
+            .sales-filter-bar .filter-btn-primary:hover {{
+                background: #005BBF;
+                transform: scale(0.98);
+            }}
+            .sales-filter-bar .filter-btn-clear {{
+                background: transparent;
+                color: #8E8E93;
+                border: 1px solid rgba(142, 142, 147, 0.2);
+            }}
+            .sales-filter-bar .filter-btn-clear:hover {{
+                background: rgba(142, 142, 147, 0.1);
+                color: #1C1C1E;
+            }}
+            @media (max-width: 900px) {{
+                .sales-filter-bar {{
+                    border-radius: 24px;
+                }}
+                .sales-filter-bar .filter-item {{
+                    flex-basis: calc(50% - 12px);
+                    min-width: auto;
+                }}
+            }}
+            @media (max-width: 600px) {{
+                .sales-filter-bar .filter-item {{
+                    flex-basis: 100%;
+                }}
+                .sales-filter-bar .filter-btn {{
+                    width: 100%;
+                    justify-content: center;
+                }}
+                .sales-filter-bar .filter-icon {{
+                    display: none;
+                }}
+            }}
+        </style>
+        <form id="filter-form" method="GET" action="/ventas/" class="sales-filter-bar">
+            <div class="filter-icon">
+                <i class="fas fa-sliders-h"></i>
             </div>
+            <div class="filter-item">
+                <i class="far fa-calendar-alt"></i>
+                <input type="date" name="fecha_desde" placeholder="Desde" class="filter-input" value="{fecha_desde}" autocomplete="off">
+            </div>
+            <div class="filter-item">
+                <i class="far fa-calendar-alt"></i>
+                <input type="date" name="fecha_hasta" placeholder="Hasta" class="filter-input" value="{fecha_hasta}" autocomplete="off">
+            </div>
+            <div class="filter-item">
+                <i class="far fa-user"></i>
+                <input type="text" name="cliente" class="filter-input" placeholder="Cliente" value="{cliente}" autocomplete="off">
+            </div>
+            <div class="filter-item">
+                <i class="fas fa-box-open"></i>
+                <input type="text" name="producto" class="filter-input" placeholder="Producto" value="{producto}" autocomplete="off">
+            </div>
+            <div class="filter-item">
+                <i class="fas fa-file-invoice"></i>
+                <input type="text" name="factura" class="filter-input" placeholder="# Factura" value="{factura}" autocomplete="off">
+            </div>
+            <button type="submit" class="filter-btn filter-btn-primary">
+                <i class="fas fa-search"></i>
+                <span>Filtrar</span>
+            </button>
+            <a href="/ventas/" class="filter-btn filter-btn-clear">
+                <i class="fas fa-times"></i>
+                <span>Limpiar</span>
+            </a>
         </form>
         """
 

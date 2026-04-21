@@ -93,6 +93,9 @@ class SafeLoginForm(SafeBaseFormMixin, LoginForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        if cleaned_data is None:
+            cleaned_data = getattr(self, "cleaned_data", {})
+            
         # Aplicar saneamiento a login (puede ser username o email)
         if "login" in cleaned_data:
             self.cleaned_data["login"] = self.clean_field("login")
@@ -116,6 +119,9 @@ class SafeSignupForm(SafeBaseFormMixin, SignupForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        if cleaned_data is None:
+            cleaned_data = getattr(self, "cleaned_data", {})
+            
         # Saneamiento de campos de texto adicionales
         for field in ["username", "email", "first_name", "last_name"]:
             if field in cleaned_data:

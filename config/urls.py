@@ -4,9 +4,10 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
-from app.api.views import CustomTokenObtainPairView
+from app.api.views import CustomTokenObtainPairView, ProductoViewSet
 from app.controllers.auth_controller import AuthController
 from app.controllers.category_controller import CategoryController
 from app.controllers.chatbot_controller import ChatbotController
@@ -32,10 +33,18 @@ from app.controllers.sale_detail_controller import SaleDetailController
 from app.controllers.supplier_controller import SupplierController
 from app.controllers.warehouse_controller import WarehouseController
 
+# ============================================================================
+# DRF Router (Headless API - Fase 1)
+# ============================================================================
+router = DefaultRouter()
+router.register(r"productos", ProductoViewSet, basename="producto")
+
 # URLs del sistema de inventario (existentes - sin cambios)
 urlpatterns = [
     # Django Admin
     path("admin/", admin.site.urls),
+    # API REST v1 (Headless - DRF Router)
+    path("api/v1/", include(router.urls)),
     # API Auth endpoints (JWT + Anti-Tamper)
     path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
