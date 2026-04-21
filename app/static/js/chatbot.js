@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatMessages = document.getElementById('chat-messages');
     const messageInput = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
+    const typingIndicator = document.getElementById('typing-indicator'); // Ensure this ID exists in HTML
     const clearHistoryBtn = document.getElementById('clear-history-btn');
-    const typingIndicator = document.getElementById('typing-indicator');
 
     // ============================================================================
     // SISTEMA DE NOTIFICACIONES CON SWEETALERT2
@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 didOpen: (toast) => {
                     toast.addEventListener('mouseenter', Swal.stopTimer);
                     toast.addEventListener('mouseleave', Swal.resumeTimer);
-                }
+                },
+                backdrop: false
             });
 
             Toast.fire({
@@ -146,13 +147,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return value;
             }
         }
-        
+
         // Fallback a input hidden
         const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
         if (csrfInput) {
             return csrfInput.value;
         }
-        
+
         return '';
     }
 
@@ -183,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-        
+
         const time = timestamp || new Date().toLocaleTimeString('es-CO', {
             hour: '2-digit',
             minute: '2-digit'
@@ -205,8 +206,10 @@ document.addEventListener('DOMContentLoaded', function() {
      * Mostrar/ocultar indicador de escritura
      */
     function showTyping(show) {
-        typingIndicator.style.display = show ? 'flex' : 'none';
-        if (show) scrollToBottom();
+        if (typingIndicator) {
+            typingIndicator.style.display = show ? 'flex' : 'none';
+            if (show) scrollToBottom();
+        }
     }
 
     // ============================================================================
@@ -234,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const csrfToken = getCsrfToken();
-            
+
             if (!csrfToken) {
                 throw new Error('Token de seguridad no encontrado. Recarga la página.');
             }
@@ -270,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const data = await response.json();
-            
+
             if (data.success) {
                 addMessage(data.response, false);
                 Notifications.toast('Respuesta recibida', 'success', 1500);
@@ -280,10 +283,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error al enviar mensaje:', error);
-            
+
             // Mensaje amigable en el chat
             addMessage('⚠️ No se pudo conectar con el asistente. Verifica tu conexión.', false);
-            
+
             // Notificación de error
             Notifications.error(
                 'Error de Conexión',
@@ -314,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const csrfToken = getCsrfToken();
-            
+
             const response = await fetch('/chatbot/clear-history/', {
                 method: 'POST',
                 headers: {
@@ -334,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <p>Puedes comenzar una nueva conversación.</p>
                         </div>
                     `;
-                    
+
                     Notifications.close();
                     Notifications.success('¡Listo!', 'Historial eliminado correctamente');
                 } else {
@@ -401,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatbotFab.addEventListener('click', function() {
             chatbotWindow.classList.toggle('active');
             chatbotFab.style.display = chatbotWindow.classList.contains('active') ? 'none' : 'flex';
-            
+
             if (chatbotWindow.classList.contains('active')) {
                 scrollToBottom();
                 if (window.innerWidth > 768) {
@@ -422,15 +425,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // VOICE INPUT (SPEECH-TO-TEXT)
     // ============================================================================
     const voiceBtn = document.getElementById('voice-input-btn');
-    
+
     if (voiceBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
-        
+
         recognition.continuous = false;
         recognition.lang = 'es-ES';
         recognition.interimResults = false;
-        
+
         voiceBtn.addEventListener('click', function() {
             if (voiceBtn.classList.contains('listening')) {
                 recognition.stop();
@@ -438,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 recognition.start();
             }
         });
-        
+
         recognition.onstart = function() {
             voiceBtn.classList.add('listening');
             voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
@@ -446,14 +449,14 @@ document.addEventListener('DOMContentLoaded', function() {
             voiceBtn.style.color = 'white';
             Notifications.toast('Escuchando...', 'info', 2000);
         };
-        
+
         recognition.onend = function() {
             voiceBtn.classList.remove('listening');
             voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
             voiceBtn.style.backgroundColor = ''; // Reset
             voiceBtn.style.color = '';
         };
-        
+
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
             messageInput.value = transcript;
@@ -461,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Opcional: Enviar automáticamente
             // sendMessage();
         };
-        
+
         recognition.onerror = function(event) {
             console.error('Error de reconocimiento de voz:', event.error);
             Notifications.toast('Error al escuchar. Intenta de nuevo.', 'error');

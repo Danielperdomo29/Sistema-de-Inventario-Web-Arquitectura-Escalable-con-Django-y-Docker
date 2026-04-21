@@ -12,7 +12,8 @@ load_dotenv()
 
 # Suprimir FutureWarnings (incluyendo Google AI) - debe ejecutarse ANTES de imports
 import warnings
-warnings.simplefilter('ignore', FutureWarning)
+
+warnings.simplefilter("ignore", FutureWarning)
 
 # Imports que no dependen de Django
 try:
@@ -30,7 +31,7 @@ class AIService:
         self.use_openrouter = False
         self.openrouter = None
         self.model = None
-        
+
         # Intentar configurar Gemini primero
         api_key = os.getenv("GEMINI_API_KEY")
         if genai is not None and api_key and api_key != "tu-api-key-aqui":
@@ -39,11 +40,12 @@ class AIService:
                 self.model = genai.GenerativeModel("gemini-2.0-flash")
             except Exception:
                 self.model = None
-        
+
         # Si Gemini no está disponible, usar OpenRouter
         if self.model is None:
             try:
                 from app.services.openrouter_service import get_ai_service
+
                 self.openrouter = get_ai_service()
                 self.use_openrouter = True
             except Exception as e:
@@ -89,22 +91,20 @@ class AIService:
 
             context = f"""
             INFORMACIÓN DEL SISTEMA DE INVENTARIO:
-            
+
             Estadísticas Generales:
             - Total de productos: {len(products)}
             - Total de categorías: {len(categories)}
             - Total de almacenes: {len(warehouses)}
             - Productos con stock bajo (menos de 10 unidades): {len(low_stock_products)}
-            
+
             """
 
             # Agregar productos con stock bajo si existen
             if low_stock_products:
                 context += "\nProductos con Stock Bajo:\n"
                 for product in low_stock_products[:5]:  # Solo los primeros 5
-                    context += (
-                        f"- {product.get('name', 'N/A')}: {product.get('stock', 0)} unidades\n"
-                    )
+                    context += f"- {product.get('name', 'N/A')}: {product.get('stock', 0)} unidades\n"
 
             return context
         except Exception as e:
@@ -122,8 +122,7 @@ class AIService:
             results = [
                 p
                 for p in products
-                if query_lower in p.get("name", "").lower()
-                or query_lower in p.get("description", "").lower()
+                if query_lower in p.get("name", "").lower() or query_lower in p.get("description", "").lower()
             ]
 
             if not results:
@@ -161,7 +160,9 @@ class AIService:
             # Últimas 3 ventas
             response += f"\nÚltimas 3 ventas:\n"
             for sale in sales[-3:]:
-                response += f"• Venta #{sale.get('id', 'N/A')} - ${sale.get('total', 0):.2f} - {sale.get('date', 'N/A')}\n"
+                response += (
+                    f"• Venta #{sale.get('id', 'N/A')} - ${sale.get('total', 0):.2f} - {sale.get('date', 'N/A')}\n"
+                )
 
             return response
         except Exception as e:
@@ -206,24 +207,37 @@ BizFlow Pro tiene:
 
 Responde SIEMPRE de forma útil y amigable. NO digas "comando no reconocido"."""
 
+            # Obtener contexto de ventas de hoy
+            from datetime import date
+
+            from django.db.models import Sum
+
+            from app.models.sale import Sale
+
+            today = date.today()
+            todays_sales = Sale.objects.filter(fecha__date=today)
+            sales_count = todays_sales.count()
+            sales_total = todays_sales.aggregate(Sum("total"))["total__sum"] or 0
+
+            sales_context = f"\n\nCONTEXTO DE VENTAS DE HOY ({today}):\n- Ventas realizadas: {sales_count}\n- Total vendido: ${sales_total:,.2f}"
+
             if self.use_openrouter:
+                # Inyectar contexto en system prompt
+                full_system_prompt = system_context + sales_context
+
                 response = self.openrouter.chat(
-                    user_message,
-                    system_prompt=system_context,
-                    max_tokens=250,
-                    temperature=0.7
+                    user_message, system_prompt=full_system_prompt, max_tokens=250, temperature=0.7
                 )
             else:
                 # Gemini
-                full_prompt = f"{system_context}\n\nUsuario: {user_message}\n\nRespuesta:"
+                full_prompt = f"{system_context}{sales_context}\n\nUsuario: {user_message}\n\nRespuesta:"
                 response_obj = self.model.generate_content(full_prompt)
                 response = response_obj.text
-            
+
             return response.strip()
-            
+
         except Exception as e:
             return "¡Hola! 😊 Estoy aquí para ayudarte. ¿En qué te puedo asistir?"
-
 
     def get_help_message(self):
         """Retorna mensaje de ayuda con los comandos básicos"""

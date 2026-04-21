@@ -34,9 +34,7 @@ class AuthController:
                 return redirect("/")
             else:
                 csrf_token = get_token(request)
-                return HttpResponse(
-                    AuthView.login(error="Usuario o contraseña incorrectos", csrf_token=csrf_token)
-                )
+                return HttpResponse(AuthView.login(error="Usuario o contraseña incorrectos", csrf_token=csrf_token))
 
         csrf_token = get_token(request)
         return HttpResponse(AuthView.login(csrf_token=csrf_token))
@@ -67,9 +65,7 @@ class AuthController:
 
             if errors:
                 csrf_token = get_token(request)
-                return HttpResponse(
-                    AuthView.register(errors=errors, csrf_token=csrf_token, form_data=request.POST)
-                )
+                return HttpResponse(AuthView.register(errors=errors, csrf_token=csrf_token, form_data=request.POST))
 
             # Crear usuario usando el modelo (que usa UserAccount.objects.create_user)
             user_id = User.create(username, email, password, nombre_completo)
@@ -84,9 +80,7 @@ class AuthController:
                 return redirect("/")
             else:
                 csrf_token = get_token(request)
-                return HttpResponse(
-                    AuthView.register(errors=["Error al crear el usuario"], csrf_token=csrf_token)
-                )
+                return HttpResponse(AuthView.register(errors=["Error al crear el usuario"], csrf_token=csrf_token))
 
         csrf_token = get_token(request)
         return HttpResponse(AuthView.register(csrf_token=csrf_token))
@@ -94,15 +88,5 @@ class AuthController:
     @staticmethod
     def logout(request):
         """Cierra sesión"""
-        # Verificar si el usuario usa allauth
-        uses_allauth = False
-        if request.user.is_authenticated and hasattr(request.user, "use_allauth"):
-            uses_allauth = request.user.use_allauth
-
         auth_logout(request)  # Limpia la sesión de Django
-
-        # Redirigir según el sistema usado
-        if uses_allauth:
-            return redirect("/accounts/login/")
-        else:
-            return redirect("/login/")
+        return redirect("/accounts/google/login/" if "google" in request.GET else "/accounts/login/")

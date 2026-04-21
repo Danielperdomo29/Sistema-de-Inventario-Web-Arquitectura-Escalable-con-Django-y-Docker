@@ -1,4 +1,5 @@
 import html as html_module
+
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 
@@ -12,25 +13,25 @@ class SaleDetailView:
 
         csrf_token = get_token(request)
         ctx = context or {}
-        q = html_module.escape(ctx.get('q', ''))
-        ordering = ctx.get('ordering', '-fecha')
-        total_count = ctx.get('total_count', len(details))
-        total_subtotal = ctx.get('total_subtotal', 0)
-        page_obj = ctx.get('page_obj', None)
+        q = html_module.escape(ctx.get("q", ""))
+        ordering = ctx.get("ordering", "-fecha")
+        total_count = ctx.get("total_count", len(details))
+        total_subtotal = ctx.get("total_subtotal", 0)
+        page_obj = ctx.get("page_obj", None)
 
         # --- Helper: sort arrow ---
-        def sort_link(field, label, extra_classes=''):
+        def sort_link(field, label, extra_classes=""):
             current = ordering
             if current == field:
-                new_order = f'-{field}'
+                new_order = f"-{field}"
                 arrow = ' <i class="fas fa-sort-up"></i>'
-            elif current == f'-{field}':
+            elif current == f"-{field}":
                 new_order = field
                 arrow = ' <i class="fas fa-sort-down"></i>'
             else:
                 new_order = field
                 arrow = ' <i class="fas fa-sort text-muted" style="opacity:0.4;"></i>'
-            q_param = f'&q={q}' if q else ''
+            q_param = f"&q={q}" if q else ""
             return f'<th class="{extra_classes}"><a href="?order={new_order}{q_param}" style="color:inherit;text-decoration:none;">{label}{arrow}</a></th>'
 
         # --- Stats Banner ---
@@ -48,7 +49,7 @@ class SaleDetailView:
         """
 
         # --- Search Bar + Export ---
-        export_q = f'?q={q}' if q else ''
+        export_q = f"?q={q}" if q else ""
         search_html = f"""
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px;">
             <form method="GET" action="/items-venta/" style="display:flex; flex:1; min-width:200px; gap:8px;">
@@ -73,14 +74,17 @@ class SaleDetailView:
 
         # --- Estado badge helper ---
         def get_estado_badge(estado):
-            estado_low = (estado or 'completada').lower()
+            estado_low = (estado or "completada").lower()
             badges = {
-                'completada': '<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;"><i class="fas fa-check-circle"></i> Completada</span>',
-                'pendiente': '<span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;"><i class="fas fa-clock"></i> Pendiente</span>',
-                'cancelada': '<span style="background:#f8d7da;color:#721c24;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;"><i class="fas fa-ban"></i> Cancelada</span>',
-                'anulada': '<span style="background:#f8d7da;color:#721c24;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;"><i class="fas fa-times-circle"></i> Anulada</span>',
+                "completada": '<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;"><i class="fas fa-check-circle"></i> Completada</span>',
+                "pendiente": '<span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;"><i class="fas fa-clock"></i> Pendiente</span>',
+                "cancelada": '<span style="background:#f8d7da;color:#721c24;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;"><i class="fas fa-ban"></i> Cancelada</span>',
+                "anulada": '<span style="background:#f8d7da;color:#721c24;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;"><i class="fas fa-times-circle"></i> Anulada</span>',
             }
-            return badges.get(estado_low, f'<span style="background:#e2e3e5;color:#383d41;padding:3px 10px;border-radius:12px;font-size:0.8em;">{estado}</span>')
+            return badges.get(
+                estado_low,
+                f'<span style="background:#e2e3e5;color:#383d41;padding:3px 10px;border-radius:12px;font-size:0.8em;">{estado}</span>',
+            )
 
         # --- Table Rows ---
         rows = ""
@@ -90,10 +94,10 @@ class SaleDetailView:
                 start_idx = (page_obj.number - 1) * 20 + 1
 
             for idx, detail in enumerate(details, start_idx):
-                estado_badge = get_estado_badge(detail.get('venta_estado', 'completada'))
-                fecha = detail.get('fecha_venta', '')
-                if hasattr(fecha, 'strftime'):
-                    fecha = fecha.strftime('%d/%m/%Y')
+                estado_badge = get_estado_badge(detail.get("venta_estado", "completada"))
+                fecha = detail.get("fecha_venta", "")
+                if hasattr(fecha, "strftime"):
+                    fecha = fecha.strftime("%d/%m/%Y")
 
                 rows += f"""
                 <tr>
@@ -147,8 +151,14 @@ class SaleDetailView:
             </div>
             """
         else:
-            empty_msg = 'No se encontraron resultados para tu búsqueda.' if q else 'No hay detalles de ventas registrados.'
-            empty_sub = f'<p>Intenta con otro término o <a href="/items-venta/">ver todos</a></p>' if q else '<p>Comienza agregando el primer detalle</p>'
+            empty_msg = (
+                "No se encontraron resultados para tu búsqueda." if q else "No hay detalles de ventas registrados."
+            )
+            empty_sub = (
+                f'<p>Intenta con otro término o <a href="/items-venta/">ver todos</a></p>'
+                if q
+                else "<p>Comienza agregando el primer detalle</p>"
+            )
             table_content = f"""
             <div class="empty-state">
                 <i class="fas fa-{'search' if q else 'file-invoice'} icon-4xl"></i>
@@ -160,28 +170,36 @@ class SaleDetailView:
         # --- Pagination ---
         pagination_html = ""
         if page_obj and page_obj.paginator.num_pages > 1:
-            q_param = f'&q={q}' if q else ''
-            order_param = f'&order={ordering}' if ordering != '-fecha' else ''
+            q_param = f"&q={q}" if q else ""
+            order_param = f"&order={ordering}" if ordering != "-fecha" else ""
             pages = []
 
             # Previous
             if page_obj.has_previous():
-                pages.append(f'<a href="?page={page_obj.previous_page_number()}{q_param}{order_param}" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none;color:#667eea;">← Anterior</a>')
+                pages.append(
+                    f'<a href="?page={page_obj.previous_page_number()}{q_param}{order_param}" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none;color:#667eea;">← Anterior</a>'
+                )
 
             # Page numbers
             total_pages = page_obj.paginator.num_pages
             current = page_obj.number
             for p in range(1, total_pages + 1):
                 if p == current:
-                    pages.append(f'<span style="padding:6px 12px;background:#667eea;color:#fff;border-radius:6px;font-weight:600;">{p}</span>')
+                    pages.append(
+                        f'<span style="padding:6px 12px;background:#667eea;color:#fff;border-radius:6px;font-weight:600;">{p}</span>'
+                    )
                 elif abs(p - current) <= 2 or p == 1 or p == total_pages:
-                    pages.append(f'<a href="?page={p}{q_param}{order_param}" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none;color:#333;">{p}</a>')
+                    pages.append(
+                        f'<a href="?page={p}{q_param}{order_param}" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none;color:#333;">{p}</a>'
+                    )
                 elif abs(p - current) == 3:
                     pages.append('<span style="padding:6px 4px;color:#888;">...</span>')
 
             # Next
             if page_obj.has_next():
-                pages.append(f'<a href="?page={page_obj.next_page_number()}{q_param}{order_param}" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none;color:#667eea;">Siguiente →</a>')
+                pages.append(
+                    f'<a href="?page={page_obj.next_page_number()}{q_param}{order_param}" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none;color:#667eea;">Siguiente →</a>'
+                )
 
             pagination_html = f"""
             <div style="display:flex; justify-content:center; align-items:center; gap:6px; padding:16px 0; flex-wrap:wrap;">
@@ -193,7 +211,7 @@ class SaleDetailView:
             """
 
         # --- Filtered indicator ---
-        filter_indicator = ''
+        filter_indicator = ""
         if q:
             filter_indicator = f"""
             <div style="background:#e8f0fe; border-left:4px solid #667eea; padding:10px 16px; border-radius:6px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
@@ -269,7 +287,7 @@ class SaleDetailView:
                             {sale_options}
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Producto *</label>
                         <select name="producto_id" id="producto" class="form-select"
@@ -278,14 +296,14 @@ class SaleDetailView:
                             {product_options}
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Cantidad *</label>
                         <input type="number" name="cantidad" id="cantidad" value="1" min="1" class="form-input"
                                data-rules="required|numeric|min:1"
                                data-label="Cantidad">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Precio Unitario *</label>
                         <input type="number" name="precio_unitario" id="precio_unitario" step="0.01" min="0" class="form-input"
@@ -293,20 +311,20 @@ class SaleDetailView:
                                data-label="Precio Unitario">
                     </div>
                 </div>
-                
+
                 <div class="total-summary">
                     <p>
                         Subtotal: $ <span id="subtotal">0.00</span>
                     </p>
                 </div>
-                
+
                 <div class="form-actions-end mt-30">
                     <a href="/items-venta/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Detalle</button>
                 </div>
             </form>
         </div>
-        
+
         <script src="/static/js/detail-calculator.js"></script>
         {error_script}
         """
@@ -356,7 +374,7 @@ class SaleDetailView:
                                class="form-input-disabled">
                         <small class="form-hint">La venta no se puede cambiar</small>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Producto *</label>
                         <select name="producto_id" id="producto" class="form-select"
@@ -365,14 +383,14 @@ class SaleDetailView:
                             {product_options}
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Cantidad *</label>
                         <input type="number" name="cantidad" id="cantidad" value="{detail['cantidad']}" min="1" class="form-input"
                                data-rules="required|numeric|min:1"
                                data-label="Cantidad">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Precio Unitario *</label>
                         <input type="number" name="precio_unitario" id="precio_unitario" value="{detail['precio_unitario']}" step="0.01" min="0" class="form-input"
@@ -380,20 +398,20 @@ class SaleDetailView:
                                data-label="Precio Unitario">
                     </div>
                 </div>
-                
+
                 <div class="total-summary">
                     <p>
                         Subtotal: $ <span id="subtotal">{detail['subtotal']:.2f}</span>
                     </p>
                 </div>
-                
+
                 <div class="form-actions-end mt-30">
                     <a href="/items-venta/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Detalle</button>
                 </div>
             </form>
         </div>
-        
+
         <script src="/static/js/detail-calculator.js"></script>
         {error_script}
         """
@@ -405,30 +423,28 @@ class SaleDetailView:
         """Vista de detalle con vista previa de factura"""
 
         estado_map = {
-            "pendiente": ('<i class="fas fa-clock"></i> Pendiente', '#fff3cd', '#856404'),
-            "completada": ('<i class="fas fa-check-circle"></i> Completada', '#d4edda', '#155724'),
-            "cancelada": ('<i class="fas fa-ban"></i> Cancelada', '#f8d7da', '#721c24'),
-            "anulada": ('<i class="fas fa-times-circle"></i> Anulada', '#f8d7da', '#721c24'),
+            "pendiente": ('<i class="fas fa-clock"></i> Pendiente', "#fff3cd", "#856404"),
+            "completada": ('<i class="fas fa-check-circle"></i> Completada', "#d4edda", "#155724"),
+            "cancelada": ('<i class="fas fa-ban"></i> Cancelada', "#f8d7da", "#721c24"),
+            "anulada": ('<i class="fas fa-times-circle"></i> Anulada', "#f8d7da", "#721c24"),
         }
         estado_key = (detail.get("venta_estado", "completada") or "completada").lower()
-        badge_text, badge_bg, badge_color = estado_map.get(
-            estado_key, (estado_key.capitalize(), '#e2e3e5', '#383d41')
-        )
+        badge_text, badge_bg, badge_color = estado_map.get(estado_key, (estado_key.capitalize(), "#e2e3e5", "#383d41"))
         estado_badge = f'<span style="background:{badge_bg};color:{badge_color};padding:4px 12px;border-radius:12px;font-weight:600;font-size:0.85em;">{badge_text}</span>'
 
-        fecha = detail.get('fecha_venta', '')
-        if hasattr(fecha, 'strftime'):
-            fecha_display = fecha.strftime('%d/%m/%Y %H:%M')
-            fecha_short = fecha.strftime('%d/%m/%Y')
+        fecha = detail.get("fecha_venta", "")
+        if hasattr(fecha, "strftime"):
+            fecha_display = fecha.strftime("%d/%m/%Y %H:%M")
+            fecha_short = fecha.strftime("%d/%m/%Y")
         else:
             fecha_display = str(fecha)
             fecha_short = str(fecha)
 
         # --- Invoice Items Table ---
-        invoice_items = detail.get('venta_items', [])
+        invoice_items = detail.get("venta_items", [])
         invoice_rows = ""
         for i, item in enumerate(invoice_items, 1):
-            highlight = ' style="background:#f0f7ff;"' if item['producto_nombre'] == detail['producto_nombre'] else ''
+            highlight = ' style="background:#f0f7ff;"' if item["producto_nombre"] == detail["producto_nombre"] else ""
             invoice_rows += f"""
             <tr{highlight}>
                 <td style="padding:8px 12px; border-bottom:1px solid #eee;">{i}</td>
@@ -439,9 +455,9 @@ class SaleDetailView:
             </tr>
             """
 
-        venta_subtotal = detail.get('venta_subtotal', 0)
-        venta_iva = detail.get('venta_iva', 0)
-        venta_total = detail.get('venta_total', 0)
+        venta_subtotal = detail.get("venta_subtotal", 0)
+        venta_iva = detail.get("venta_iva", 0)
+        venta_total = detail.get("venta_total", 0)
 
         content = f"""
         <div class="card">
@@ -449,7 +465,7 @@ class SaleDetailView:
                 <span><i class="fas fa-file-invoice"></i> Detalle de Venta #{detail['id']}</span>
                 <a href="/items-venta/" class="btn btn-secondary">← Volver</a>
             </div>
-            
+
             <div class="p-20">
                 <!-- Sale Info Cards -->
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">

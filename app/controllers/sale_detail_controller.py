@@ -1,10 +1,11 @@
 import csv
+
+from django.core.paginator import Paginator
 from django.db import models
 from django.db.models import Q, Sum
-from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect
-from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from app.models.product import Product
 from app.models.sale import Sale, SaleDetail
@@ -13,16 +14,16 @@ from app.views.sale_detail_view import SaleDetailView
 
 # Ordering options allowed
 ALLOWED_ORDERINGS = {
-    'producto': 'producto__nombre',
-    '-producto': '-producto__nombre',
-    'cliente': 'venta__cliente__nombre',
-    '-cliente': '-venta__cliente__nombre',
-    'fecha': 'venta__fecha',
-    '-fecha': '-venta__fecha',
-    'subtotal': 'subtotal',
-    '-subtotal': '-subtotal',
-    'factura': 'venta__numero_factura',
-    '-factura': '-venta__numero_factura',
+    "producto": "producto__nombre",
+    "-producto": "-producto__nombre",
+    "cliente": "venta__cliente__nombre",
+    "-cliente": "-venta__cliente__nombre",
+    "fecha": "venta__fecha",
+    "-fecha": "-venta__fecha",
+    "subtotal": "subtotal",
+    "-subtotal": "-subtotal",
+    "factura": "venta__numero_factura",
+    "-factura": "-venta__numero_factura",
 }
 
 
@@ -30,12 +31,10 @@ class SaleDetailController:
     @staticmethod
     def _build_queryset(request):
         """Build filtered and ordered queryset from request params"""
-        qs = (
-            SaleDetail.objects.select_related('producto', 'venta', 'venta__cliente')
-        )
+        qs = SaleDetail.objects.select_related("producto", "venta", "venta__cliente")
 
         # Search filter
-        q = request.GET.get('q', '').strip()
+        q = request.GET.get("q", "").strip()
         if q:
             qs = qs.filter(
                 Q(producto__nombre__icontains=q)
@@ -44,56 +43,58 @@ class SaleDetailController:
             )
 
         # Ordering
-        ordering = request.GET.get('order', '-fecha')
-        order_field = ALLOWED_ORDERINGS.get(ordering, '-venta__fecha')
-        qs = qs.order_by(order_field, '-id')
+        ordering = request.GET.get("order", "-fecha")
+        order_field = ALLOWED_ORDERINGS.get(ordering, "-venta__fecha")
+        qs = qs.order_by(order_field, "-id")
 
         return qs, q, ordering
 
     @staticmethod
     def index(request):
         """Mostrar lista de todos los detalles de ventas con búsqueda y paginación"""
-        if 'user_id' not in request.session:
-            return HttpResponseRedirect('/login/')
+        if "user_id" not in request.session:
+            return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session['user_id'])
+        user = User.get_by_id(request.session["user_id"])
         if not user:
-            return HttpResponseRedirect('/login/')
+            return HttpResponseRedirect("/login/")
 
         qs, q, ordering = SaleDetailController._build_queryset(request)
 
         # Stats
         total_count = qs.count()
-        total_subtotal = qs.aggregate(total=Sum('subtotal'))['total'] or 0
+        total_subtotal = qs.aggregate(total=Sum("subtotal"))["total"] or 0
 
         # Pagination
         paginator = Paginator(qs, 20)
-        page_number = request.GET.get('page', 1)
+        page_number = request.GET.get("page", 1)
         page_obj = paginator.get_page(page_number)
 
         details = []
         for d in page_obj:
-            estado = d.venta.estado if d.venta.estado else 'completada'
-            details.append({
-                'id': d.id,
-                'venta_id': d.venta_id,
-                'producto_id': d.producto_id,
-                'cantidad': d.cantidad,
-                'precio_unitario': float(d.precio_unitario),
-                'subtotal': float(d.subtotal),
-                'producto_nombre': d.producto.nombre,
-                'numero_factura': d.venta.numero_factura,
-                'fecha_venta': d.venta.fecha,
-                'cliente_nombre': d.venta.cliente.nombre,
-                'venta_estado': estado,
-            })
+            estado = d.venta.estado if d.venta.estado else "completada"
+            details.append(
+                {
+                    "id": d.id,
+                    "venta_id": d.venta_id,
+                    "producto_id": d.producto_id,
+                    "cantidad": d.cantidad,
+                    "precio_unitario": float(d.precio_unitario),
+                    "subtotal": float(d.subtotal),
+                    "producto_nombre": d.producto.nombre,
+                    "numero_factura": d.venta.numero_factura,
+                    "fecha_venta": d.venta.fecha,
+                    "cliente_nombre": d.venta.cliente.nombre,
+                    "venta_estado": estado,
+                }
+            )
 
         context = {
-            'q': q,
-            'ordering': ordering,
-            'total_count': total_count,
-            'total_subtotal': float(total_subtotal),
-            'page_obj': page_obj,
+            "q": q,
+            "ordering": ordering,
+            "total_count": total_count,
+            "total_subtotal": float(total_subtotal),
+            "page_obj": page_obj,
         }
 
         return HttpResponse(SaleDetailView.index(user, details, request, context))
@@ -142,9 +143,7 @@ class SaleDetailController:
 
                     # 2. Recalcular Total Venta (ORM aggregation)
                     new_total = (
-                        SaleDetail.objects.filter(venta_id=venta_id).aggregate(
-                            total=models.Sum("subtotal")
-                        )["total"]
+                        SaleDetail.objects.filter(venta_id=venta_id).aggregate(total=models.Sum("subtotal"))["total"]
                         or 0
                     )
 
@@ -156,9 +155,7 @@ class SaleDetailController:
                 sales = Sale.get_all()
                 products = Product.get_all()
                 error_message = f"Error al crear el detalle: {str(e)}"
-                return HttpResponse(
-                    SaleDetailView.create(user, sales, products, request, error_message)
-                )
+                return HttpResponse(SaleDetailView.create(user, sales, products, request, error_message))
 
         # GET request
         sales = Sale.get_all()
@@ -218,9 +215,9 @@ class SaleDetailController:
 
                     # Actualizar total venta
                     new_total = (
-                        SaleDetail.objects.filter(venta_id=d_obj.venta_id).aggregate(
-                            total=models.Sum("subtotal")
-                        )["total"]
+                        SaleDetail.objects.filter(venta_id=d_obj.venta_id).aggregate(total=models.Sum("subtotal"))[
+                            "total"
+                        ]
                         or 0
                     )
 
@@ -231,9 +228,7 @@ class SaleDetailController:
             except Exception as e:
                 products = Product.get_all()
                 error_message = f"Error al actualizar el detalle: {str(e)}"
-                return HttpResponse(
-                    SaleDetailView.edit(user, detail_dict, products, request, error_message)
-                )
+                return HttpResponse(SaleDetailView.edit(user, detail_dict, products, request, error_message))
 
         # GET request
         products = Product.get_all()
@@ -263,9 +258,9 @@ class SaleDetailController:
 
                         # Actualizar total venta
                         new_total = (
-                            SaleDetail.objects.filter(venta_id=venta_id).aggregate(
-                                total=models.Sum("subtotal")
-                            )["total"]
+                            SaleDetail.objects.filter(venta_id=venta_id).aggregate(total=models.Sum("subtotal"))[
+                                "total"
+                            ]
                             or 0
                         )
 
@@ -282,88 +277,86 @@ class SaleDetailController:
     @staticmethod
     def view(request, detail_id):
         """Ver detalle de una venta específica con vista previa de factura"""
-        if 'user_id' not in request.session:
-            return HttpResponseRedirect('/login/')
+        if "user_id" not in request.session:
+            return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session['user_id'])
+        user = User.get_by_id(request.session["user_id"])
         if not user:
-            return HttpResponseRedirect('/login/')
+            return HttpResponseRedirect("/login/")
 
         try:
-            d = SaleDetail.objects.select_related(
-                'venta', 'venta__cliente', 'producto'
-            ).get(id=detail_id)
+            d = SaleDetail.objects.select_related("venta", "venta__cliente", "producto").get(id=detail_id)
 
             # Get all items from this same sale for invoice preview
-            sale_items = SaleDetail.objects.select_related('producto').filter(
-                venta_id=d.venta_id
-            ).order_by('id')
+            sale_items = SaleDetail.objects.select_related("producto").filter(venta_id=d.venta_id).order_by("id")
 
             items_list = []
             for item in sale_items:
-                items_list.append({
-                    'producto_nombre': item.producto.nombre,
-                    'cantidad': item.cantidad,
-                    'precio_unitario': float(item.precio_unitario),
-                    'subtotal': float(item.subtotal),
-                })
+                items_list.append(
+                    {
+                        "producto_nombre": item.producto.nombre,
+                        "cantidad": item.cantidad,
+                        "precio_unitario": float(item.precio_unitario),
+                        "subtotal": float(item.subtotal),
+                    }
+                )
 
             detail = {
-                'id': d.id,
-                'venta_id': d.venta_id,
-                'producto_id': d.producto_id,
-                'cantidad': d.cantidad,
-                'precio_unitario': float(d.precio_unitario),
-                'subtotal': float(d.subtotal),
-                'producto_nombre': d.producto.nombre,
-                'producto_precio': float(d.producto.precio_venta),
-                'numero_factura': d.venta.numero_factura,
-                'fecha_venta': d.venta.fecha,
-                'venta_total': float(d.venta.total),
-                'venta_subtotal': float(d.venta.subtotal or 0),
-                'venta_iva': float(d.venta.iva_total or 0),
-                'venta_estado': d.venta.estado,
-                'tipo_pago': d.venta.tipo_pago,
-                'cliente_nombre': d.venta.cliente.nombre,
-                'cliente_documento': d.venta.cliente.documento,
-                'venta_notas': d.venta.notas or '',
-                'venta_items': items_list,
+                "id": d.id,
+                "venta_id": d.venta_id,
+                "producto_id": d.producto_id,
+                "cantidad": d.cantidad,
+                "precio_unitario": float(d.precio_unitario),
+                "subtotal": float(d.subtotal),
+                "producto_nombre": d.producto.nombre,
+                "producto_precio": float(d.producto.precio_venta),
+                "numero_factura": d.venta.numero_factura,
+                "fecha_venta": d.venta.fecha,
+                "venta_total": float(d.venta.total),
+                "venta_subtotal": float(d.venta.subtotal or 0),
+                "venta_iva": float(d.venta.iva_total or 0),
+                "venta_estado": d.venta.estado,
+                "tipo_pago": d.venta.tipo_pago,
+                "cliente_nombre": d.venta.cliente.nombre,
+                "cliente_documento": d.venta.cliente.documento,
+                "venta_notas": d.venta.notas or "",
+                "venta_items": items_list,
             }
             return HttpResponse(SaleDetailView.view(user, detail))
 
         except SaleDetail.DoesNotExist:
-            return HttpResponseRedirect('/items-venta/')
+            return HttpResponseRedirect("/items-venta/")
 
     @staticmethod
     def export_csv(request):
         """Exportar items de venta filtrados a CSV"""
-        if 'user_id' not in request.session:
-            return HttpResponseRedirect('/login/')
+        if "user_id" not in request.session:
+            return HttpResponseRedirect("/login/")
 
         qs, q, ordering = SaleDetailController._build_queryset(request)
 
-        response = HttpResponse(content_type='text/csv')
-        timestamp = timezone.now().strftime('%Y%m%d_%H%M')
-        filename = f'items_venta_{timestamp}.csv'
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response = HttpResponse(content_type="text/csv")
+        timestamp = timezone.now().strftime("%Y%m%d_%H%M")
+        filename = f"items_venta_{timestamp}.csv"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         writer = csv.writer(response)
-        writer.writerow([
-            'N° Factura', 'Cliente', 'Fecha', 'Producto',
-            'Cantidad', 'Precio Unit.', 'Subtotal', 'Estado'
-        ])
+        writer.writerow(
+            ["N° Factura", "Cliente", "Fecha", "Producto", "Cantidad", "Precio Unit.", "Subtotal", "Estado"]
+        )
 
         for d in qs:
-            writer.writerow([
-                d.venta.numero_factura,
-                d.venta.cliente.nombre,
-                d.venta.fecha.strftime('%Y-%m-%d') if d.venta.fecha else '',
-                d.producto.nombre,
-                d.cantidad,
-                f'{float(d.precio_unitario):.2f}',
-                f'{float(d.subtotal):.2f}',
-                d.venta.estado or 'completada',
-            ])
+            writer.writerow(
+                [
+                    d.venta.numero_factura,
+                    d.venta.cliente.nombre,
+                    d.venta.fecha.strftime("%Y-%m-%d") if d.venta.fecha else "",
+                    d.producto.nombre,
+                    d.cantidad,
+                    f"{float(d.precio_unitario):.2f}",
+                    f"{float(d.subtotal):.2f}",
+                    d.venta.estado or "completada",
+                ]
+            )
 
         return response
-

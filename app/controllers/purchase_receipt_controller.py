@@ -20,6 +20,72 @@ from app.utils.file_validators import validate_receipt_file
 logger = logging.getLogger(__name__)
 
 
+def _find_matching_supplier(extracted_name: str):
+    """
+    Busca el proveedor que mejor coincida con el nombre extraido por OCR.
+    Returns: (supplier_id, supplier_nombre) o (None, None)
+    """
+    import re
+
+    from django.db.models import Q
+
+    from app.models.supplier import Supplier
+
+    if not extracted_name:
+        return None, None
+
+    extracted_clean = extracted_name.strip()
+
+    # 1. Buscar por NIT si el texto contiene uno
+    nit_match = re.search(r"(\d{9,10})", extracted_clean)
+    if nit_match:
+        nit_value = nit_match.group(1)
+        supplier = Supplier.objects.filter(nit=nit_value, activo=True).first()
+        if supplier:
+            return supplier.id, supplier.nombre
+
+    # 2. Buscar coincidencia exacta (case-insensitive) en nombre
+    supplier = Supplier.objects.filter(nombre__iexact=extracted_clean, activo=True).first()
+    if supplier:
+        return supplier.id, supplier.nombre
+
+    # 3. Buscar coincidencia parcial (el nombre extraido contiene el del proveedor o viceversa)
+    extracted_lower = extracted_clean.lower()
+    suppliers = Supplier.objects.filter(activo=True).values_list("id", "nombre")
+
+    best_match = None
+    best_score = 0
+
+    for sup_id, sup_nombre in suppliers:
+        sup_lower = sup_nombre.lower()
+
+        # Coincidencia directa de substrings
+        if sup_lower in extracted_lower or extracted_lower in sup_lower:
+            score = len(sup_lower) / max(len(extracted_lower), 1)
+            if score > best_score:
+                best_score = score
+                best_match = (sup_id, sup_nombre)
+            continue
+
+        # Token matching: contar palabras en comun
+        extract_tokens = set(re.findall(r"\b\w{3,}\b", extracted_lower))
+        sup_tokens = set(re.findall(r"\b\w{3,}\b", sup_lower))
+        # Quitar palabras genericas
+        stopwords = {"sas", "ltda", "sa", "nit", "the", "de", "del", "los", "las", "y", "and"}
+        extract_tokens -= stopwords
+        sup_tokens -= stopwords
+
+        if extract_tokens and sup_tokens:
+            overlap = extract_tokens & sup_tokens
+            if overlap:
+                score = len(overlap) / max(len(sup_tokens), 1)
+                if score > best_score and score >= 0.4:
+                    best_score = score
+                    best_match = (sup_id, sup_nombre)
+
+    return best_match if best_match else (None, None)
+
+
 @ensure_csrf_cookie
 @require_POST
 def extract_total_from_receipt(request):
@@ -93,14 +159,23 @@ def extract_total_from_receipt(request):
             # Limpiar formato para respuesta
             if result["success"]:
                 print(f"✓ OCR exitoso: Total={result.get('total')}")
+
+                # --- Fuzzy match del proveedor ---
+                supplier_match_id = None
+                supplier_match_name = None
+                if result.get("supplier_name"):
+                    supplier_match_id, supplier_match_name = _find_matching_supplier(result["supplier_name"])
+
                 response_data = {
                     "success": True,
                     "total": result["total"],
                     "invoice_number": result.get("invoice_number"),
                     "supplier_name": result.get("supplier_name"),
+                    "supplier_match_id": supplier_match_id,
+                    "supplier_match_name": supplier_match_name,
                     "date": result.get("date"),
                     "confidence": result["confidence"],
-                    "extracted_text_preview": result["extracted_text"][:200],
+                    "extracted_text_preview": result["extracted_text"][:500],
                     "filename_suggestion": result["filename_suggestion"],
                 }
                 logger.info(

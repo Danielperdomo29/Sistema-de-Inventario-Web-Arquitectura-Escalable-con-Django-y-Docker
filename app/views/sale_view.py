@@ -27,7 +27,7 @@ class SaleView:
                 return f"""
                 <form action="/ventas/{sale['id']}/eliminar/" method="POST" style="display:inline;">
                     {csrf_input}
-                    <button type="submit" class="btn btn-danger no-underline" 
+                    <button type="submit" class="btn btn-danger no-underline"
                         data-confirm-message="La venta tiene Factura DIAN. Se procederá a ANULARLA en lugar de eliminarla. ¿Continuar?"
                         onclick="return confirmDelete(event, this);">Anular</button>
                 </form>
@@ -41,89 +41,180 @@ class SaleView:
         """
 
     @staticmethod
-    def index(user, sales, request):
-        """Renderiza la página de listado de ventas"""
+    def _get_filter_form(params):
+        """Genera el formulario de filtros"""
+        fecha_desde = params.get("fecha_desde", "")
+        fecha_hasta = params.get("fecha_hasta", "")
+        cliente = params.get("cliente", "")
+        producto = params.get("producto", "")
+        factura = params.get("factura", "")
+
+        return f"""
+        <form id="filter-form" method="GET" class="mb-4 p-3 bg-light rounded">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label btn-sm fw-bold">Fecha Desde</label>
+                    <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{fecha_desde}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label btn-sm fw-bold">Fecha Hasta</label>
+                    <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{fecha_hasta}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label btn-sm fw-bold">Cliente</label>
+                    <input type="text" name="cliente" class="form-control form-control-sm" placeholder="Nombre o documento" value="{cliente}">
+                </div>
+                <div class="col-md-3">
+                     <label class="form-label btn-sm fw-bold">Producto</label>
+                    <input type="text" name="producto" class="form-control form-control-sm" placeholder="Nombre o código" value="{producto}">
+                </div>
+                <div class="col-md-3">
+                     <label class="form-label btn-sm fw-bold">Factura</label>
+                    <input type="text" name="factura" class="form-control form-control-sm" placeholder="Número" value="{factura}">
+                </div>
+                <div class="col-md-12 d-flex gap-2 justify-content-end align-items-end">
+                     <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Filtrar</button>
+                     <a href="/ventas/" class="btn btn-secondary btn-sm"><i class="fas fa-undo"></i> Limpiar</a>
+                </div>
+            </div>
+        </form>
+        """
+
+    @staticmethod
+    def render_rows(user, sales, request):
+        """Genera solo las filas de la tabla (para AJAX y uso interno)"""
+        if not sales:
+            return '<tr><td colspan="9" class="text-center">No hay ventas registradas.</td></tr>'
 
         # Mapeo de estados a badges
         estado_badges = {
             "pendiente": '<span class="badge badge-warning">Pendiente</span>',
             "completada": '<span class="badge badge-success">Completada</span>',
             "cancelada": '<span class="badge badge-cancelada">Cancelada</span>',
+            "anulada": '<span class="badge badge-danger">Anulada</span>',
         }
 
-        # Generar las filas de la tabla
         from django.middleware.csrf import get_token
 
         csrf_token = get_token(request)
 
-        if sales:
-            rows = ""
-            for sale in sales:
-                badge = estado_badges.get(sale["estado"], sale["estado"])
-                rows += f"""
-                <tr>
-                    <td>{sale['numero_factura']}</td>
-                    <td class="d-none d-md-table-cell">{sale['fecha']}</td>
-                    <td>{sale['cliente_nombre']}</td>
-                    <td class="d-none d-md-table-cell">{sale['cliente_documento'] or 'N/A'}</td>
-                    <td>
-                        <div class="font-bold">${sale['total']:.2f}</div>
-                        <div style="font-size: 0.8rem; color: #6c757d;">IVA: ${sale['iva']:.2f}</div>
-                    </td>
-                    <td>{badge}</td>
-                    <td class="d-none d-md-table-cell">{sale['tipo_pago'].capitalize()}</td>
-                    <td>
-                        {SaleView._get_dian_button(sale)}
-                    </td>
-                    <td>
-                        <a href="/ventas/{sale['id']}/editar/" class="btn btn-warning no-underline">Editar</a>
+        rows = ""
+        for sale in sales:
+            badge = estado_badges.get(sale["estado"], sale["estado"])
+
+            # Safe access to fields
+            date_val = sale.get("fecha", "")
+            # Clean date format if needed
+
+            rows += f"""
+            <tr>
+                <td>{sale['numero_factura']}</td>
+                <td class="d-none d-md-table-cell">{date_val}</td>
+                <td>{sale['cliente_nombre']}</td>
+                <td class="d-none d-md-table-cell">{sale.get('cliente_documento') or 'N/A'}</td>
+                <td>
+                    <div class="font-bold">${sale['total']:,.2f}</div>
+                    <div style="font-size: 0.8rem; color: #6c757d;">IVA: ${sale.get('iva', 0):,.2f}</div>
+                </td>
+                <td>{badge}</td>
+                <td class="d-none d-md-table-cell">{sale['tipo_pago'].capitalize()}</td>
+                <td>
+                    {SaleView._get_dian_button(sale)}
+                </td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="/ventas/{sale['id']}/editar/" class="btn btn-warning btn-sm no-underline" title="Editar"><i class="fas fa-edit"></i></a>
                         {SaleView._get_delete_button(sale, csrf_token)}
-                    </td>
-                </tr>
-                """
-
-            table_content = f"""
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Factura</th>
-                            <th class="d-none d-md-table-cell">Fecha</th>
-                            <th>Cliente</th>
-                            <th class="d-none d-md-table-cell">Documento</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th class="d-none d-md-table-cell">Tipo Pago</th>
-                            <th>Factura</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows}
-                    </tbody>
-                </table>
-            </div>
+                    </div>
+                </td>
+            </tr>
             """
-        else:
-            table_content = """
-            <div class="empty-state">
-                <div class="icon-4xl"><i class="fas fa-shopping-cart"></i></div>
-                <h3>No hay ventas registradas</h3>
-                <p>Comienza registrando tu primera venta</p>
-            </div>
-            """
+        return rows
 
-        content = f"""
-        <div class="card">
-            <div class="card-header">
-                <span>Gestión de Ventas</span>
-                <a href="/ventas/crear/" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Venta</a>
-            </div>
-            {table_content}
+    @staticmethod
+    def index(user, sales, request):
+        """Renderiza la página de listado de ventas"""
+
+        # Obtener parámetros GET para rellenar el formulario
+        params = request.GET.dict()
+        filter_form = SaleView._get_filter_form(params)
+
+        rows = SaleView.render_rows(user, sales, request)
+
+        table_content = f"""
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Gestión de Ventas</h1>
+            <a href="/ventas/crear/" class="btn btn-primary no-underline">
+                <i class="fas fa-plus"></i> Nueva Venta
+            </a>
         </div>
+
+        {filter_form}
+
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="table table-hover" id="sales-table">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Factura</th>
+                                <th class="d-none d-md-table-cell">Fecha</th>
+                                <th>Cliente</th>
+                                <th class="d-none d-md-table-cell">Documento</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th class="d-none d-md-table-cell">Tipo Pago</th>
+                                <th>DIAN</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-table-body">
+                            {rows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Script para manejo AJAX del filtro -->
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {{
+            const filterForm = document.getElementById('filter-form');
+            const tableBody = document.getElementById('sales-table-body');
+
+            filterForm.addEventListener('submit', function(e) {{
+                e.preventDefault();
+
+                // Mostrar estado de carga
+                tableBody.style.opacity = '0.5';
+
+                const formData = new FormData(this);
+                const params = new URLSearchParams(formData).toString();
+
+                fetch(`${{this.action}}?${{params}}`, {{
+                    headers: {{
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }}
+                }})
+                .then(response => response.text())
+                .then(html => {{
+                    tableBody.innerHTML = html;
+                    tableBody.style.opacity = '1';
+                }})
+                .catch(error => {{
+                    console.error('Error:', error);
+                    tableBody.style.opacity = '1';
+                    alert('Error al filtrar. Por favor intente de nuevo.');
+                }});
+
+                // Actualizar URL sin recargar
+                window.history.pushState({{}}, '', `?${{params}}`);
+            }});
+        }});
+        </script>
         """
 
-        return HttpResponse(Layout.render("Ventas", user, "ventas", content))
+        return Layout.render("Gestión de Ventas", user, "ventas", table_content)
 
     @staticmethod
     def create(user, clients, products, request, error=None):
@@ -191,7 +282,7 @@ class SaleView:
             <form method="POST" action="/ventas/crear/" id="saleForm" class="p-20" data-validate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 <input type="hidden" name="details" id="details">
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Cliente *</label>
@@ -201,14 +292,14 @@ class SaleView:
                             {client_options}
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Fecha *</label>
                         <input type="date" name="fecha" value="{fecha_actual}" class="form-input"
                                data-rules="required"
                                data-label="Fecha">
                     </div>
-                    
+
                     <div>
                         <label class="form-label">Tipo de Pago</label>
                         <select name="tipo_pago" class="form-select">
@@ -217,7 +308,7 @@ class SaleView:
                             <option value="transferencia">Transferencia</option>
                         </select>
                     </div>
-                    
+
                     <div>
                         <label class="form-label">Estado</label>
                         <select name="estado" class="form-select">
@@ -226,14 +317,14 @@ class SaleView:
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="mb-20">
                     <label class="form-label">Notas</label>
                     <textarea name="notas" rows="2" class="form-textarea"></textarea>
                 </div>
-                
+
                 <hr class="form-divider">
-                
+
                 <h3 class="mb-15">Productos</h3>
                 <div class="product-input-grid">
                     <select id="productSelect" class="form-select">
@@ -242,7 +333,7 @@ class SaleView:
                     <input type="number" id="quantityInput" placeholder="Cantidad" min="1" value="1" class="form-input">
                     <button type="button" onclick="addProduct()" class="btn btn-primary">Agregar</button>
                 </div>
-                
+
                 <div class="table-container">
                     <table id="productsTable" class="d-none mb-20" style="width: 100%;">
                         <thead>
@@ -270,14 +361,14 @@ class SaleView:
                         </tfoot>
                     </table>
                 </div>
-                
+
                 <div class="form-actions mt-30">
                     <button type="submit" class="btn btn-primary" data-original-text="Guardar Venta"><i class="fas fa-save"></i> Guardar Venta</button>
                     <a href="/ventas/" class="btn btn-secondary no-underline">Cancelar</a>
                 </div>
             </form>
         </div>
-        
+
         <script src="/static/js/product-manager.js?v=4"></script>
         <script>
             // Inicializar el gestor de productos con los datos del servidor
@@ -287,7 +378,7 @@ class SaleView:
         {error_script}
         """
 
-        return HttpResponse(Layout.render("Crear Venta", user, "ventas", content))
+        return Layout.render("Crear Venta", user, "ventas", content)
 
     @staticmethod
     def edit(user, sale, details, clients, products, request, error=None):
@@ -367,7 +458,7 @@ class SaleView:
                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                 <input type="hidden" name="details" id="details">
                 <input type="hidden" name="numero_factura" value="{sale['numero_factura']}">
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Cliente *</label>
@@ -377,14 +468,14 @@ class SaleView:
                             {client_options}
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Fecha *</label>
                         <input type="date" name="fecha" value="{sale['fecha']}" class="form-input"
                                data-rules="required"
                                data-label="Fecha">
                     </div>
-                    
+
                     <div>
                         <label class="form-label">Tipo de Pago</label>
                         <select name="tipo_pago" class="form-select">
@@ -393,7 +484,7 @@ class SaleView:
                             <option value="transferencia" {'selected' if sale.get('tipo_pago') == 'transferencia' else ''}>Transferencia</option>
                         </select>
                     </div>
-                    
+
                     <div>
                         <label class="form-label">Estado</label>
                         <select name="estado" class="form-select">
@@ -403,14 +494,14 @@ class SaleView:
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="mb-20">
                     <label class="form-label">Notas</label>
                     <textarea name="notas" rows="2" class="form-textarea">{sale.get('notas', '')}</textarea>
                 </div>
-                
+
                 <hr class="form-divider">
-                
+
                 <h3 class="mb-15">Productos</h3>
                 <div class="product-input-grid">
                     <select id="productSelect" class="form-select">
@@ -419,7 +510,7 @@ class SaleView:
                     <input type="number" id="quantityInput" placeholder="Cantidad" min="1" value="1" class="form-input">
                     <button type="button" onclick="addProduct()" class="btn btn-primary">Agregar</button>
                 </div>
-                
+
                 <div class="table-container">
                     <table id="productsTable" style="width: 100%;">
                         <thead>
@@ -447,14 +538,14 @@ class SaleView:
                         </tfoot>
                     </table>
                 </div>
-                
+
                 <div class="form-actions mt-30">
                     <button type="submit" class="btn btn-primary" data-original-text="Actualizar Venta"><i class="fas fa-save"></i> Actualizar Venta</button>
                     <a href="/ventas/" class="btn btn-secondary no-underline">Cancelar</a>
                 </div>
             </form>
         </div>
-        
+
         <script src="/static/js/product-manager.js?v=4"></script>
         <script>
             // Inicializar el gestor de productos con los datos del servidor
@@ -466,7 +557,7 @@ class SaleView:
         {error_script}
         """
 
-        return HttpResponse(Layout.render("Editar Venta", user, "ventas", content))
+        return Layout.render("Editar Venta", user, "ventas", content)
 
     @staticmethod
     def view(user, sale, details):
@@ -505,7 +596,7 @@ class SaleView:
                 </a>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6 mb-4">
                 <div class="card shadow-sm">
@@ -523,7 +614,7 @@ class SaleView:
                             <strong>Fecha:</strong> {sale['fecha']}
                         </div>
                         <div class="mb-2">
-                            <strong>Estado:</strong> 
+                            <strong>Estado:</strong>
                             <span class="badge bg-{estado_class}">{sale['estado']}</span>
                         </div>
                         <div class="mb-2">
@@ -538,7 +629,7 @@ class SaleView:
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-6 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-header bg-success text-white">
@@ -556,7 +647,7 @@ class SaleView:
                 </div>
             </div>
         </div>
-        
+
         <div class="card shadow-sm">
             <div class="card-header bg-light">
                 <h5 class="mb-0">Productos</h5>

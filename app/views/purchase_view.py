@@ -55,7 +55,7 @@ class PurchaseView:
                         <a href="/compras/{purchase['id']}/editar/" class="btn btn-warning">Editar</a>
                         <form method="POST" action="/compras/{purchase['id']}/eliminar/" class="d-inline">
                             {csrf_token}
-                            <button type="submit" class="btn btn-danger" 
+                            <button type="submit" class="btn btn-danger"
                                     onclick="event.preventDefault(); var form = this.form; if(typeof Swal !== 'undefined') {{ Swal.fire({{ title: '¿Eliminar compra?', text: 'Esta acción no se puede deshacer', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' }}).then(function(result) {{ if (result.isConfirmed) {{ form.submit(); }} }}); }} else if (confirm('¿Estás seguro de eliminar esta compra?')) {{ form.submit(); }} return false;">
                                 Eliminar
                             </button>
@@ -123,10 +123,19 @@ class PurchaseView:
             </div>
             """
 
-        # Select de proveedores
+        # Select de proveedores - incluir proveedor general para OCR
+        from app.models.supplier import Supplier
+
+        default_supplier, _ = Supplier.objects.get_or_create(
+            nombre="Proveedor General (OCR)", defaults={"activo": True, "tax_identification_type": "NIT"}
+        )
         suppliers_options = '<option value="">Seleccione un proveedor</option>'
+        suppliers_options += (
+            f'<option value="{default_supplier.id}" data-default="true">Proveedor General (OCR)</option>'
+        )
         for supplier in suppliers:
-            suppliers_options += f'<option value="{supplier["id"]}">{supplier["nombre"]}</option>'
+            if supplier["id"] != default_supplier.id:
+                suppliers_options += f'<option value="{supplier["id"]}">{supplier["nombre"]}</option>'
 
         # Select de productos
         products_options = '<option value="">Seleccione un producto</option>'
@@ -145,7 +154,7 @@ class PurchaseView:
                 <a href="/compras/" class="btn btn-secondary">← Volver</a>
             </div>
             {error_html}
-            
+
             <!-- SELECTOR DE MODO -->
             <div class="p-20 bg-light">
                 <h5 class="mb-3"><i class="fas fa-cog"></i> Modo de Entrada</h5>
@@ -156,7 +165,7 @@ class PurchaseView:
                         <strong>Modo Manual</strong><br>
                         <small>Ingreso producto por producto</small>
                     </label>
-                    
+
                     <input type="radio" class="btn-check" name="entry_mode" id="mode_auto" value="auto">
                     <label class="btn btn-outline-success" for="mode_auto" style="width: 50%; padding: 15px;">
                         <i class="fas fa-robot fa-2x d-block mb-2"></i>
@@ -165,19 +174,19 @@ class PurchaseView:
                     </label>
                 </div>
             </div>
-            
+
             <!-- PANEL MANUAL -->
             <div id="panel_manual" class="mode-panel">
                 <form method="POST" action="/compras/crear/" id="purchaseForm" class="p-20" enctype="multipart/form-data">
                     {csrf_token}
                     <input type="hidden" name="details" id="detailsInput" value="[]">
-                    
+
                 <div class="form-grid">
                     <div>
                         <label class="form-label">N° Factura</label>
                         <input type="text" name="numero_factura" placeholder="Opcional" class="form-input">
                     </div>
-                    
+
                     <div>
                         <label class="form-label">Proveedor *</label>
                         <select name="proveedor_id" id="supplierSelect" class="form-select">
@@ -185,13 +194,13 @@ class PurchaseView:
                         </select>
                     </div>
 
-                    
+
                     <div>
                         <label class="form-label">Fecha *</label>
                         <input type="date" name="fecha" required class="form-input" value="{__import__('datetime').date.today().isoformat()}">
                     </div>
 
-                    
+
                     <div>
                         <label class="form-label">Estado</label>
                         <select name="estado" class="form-select">
@@ -201,21 +210,21 @@ class PurchaseView:
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="mt-20">
                     <label class="form-label">Notas</label>
                     <textarea name="notas" rows="2" class="form-textarea"></textarea>
                 </div>
-                
+
                 <!-- NUEVA SECCIÓN: Adjuntar Factura -->
                 <div class="mt-3 p-3" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
                     <h6 class="mb-3"><i class="fas fa-paperclip"></i> Adjuntar Factura (Opcional)</h6>
                     <div>
-                        <input type="file" name="receipt_file_manual" id="receipt_file_manual" class="form-input" 
+                        <input type="file" name="receipt_file_manual" id="receipt_file_manual" class="form-input"
                                accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp">
                         <small class="form-text text-muted">PDF o imagen (máx. 5MB) - Se guardará con la compra</small>
                     </div>
-                    
+
                     <!-- Previsualización de la factura -->
                     <div id="receipt_preview_manual" style="display: none; margin-top: 15px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; background: white;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -229,7 +238,7 @@ class PurchaseView:
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- NUEVA SECCIÓN: Modo sin productos -->
                 <div class="mt-3 p-3" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
                     <div class="form-check mb-2">
@@ -243,18 +252,18 @@ class PurchaseView:
                         <label class="form-label"><strong>Total de la Compra *</strong></label>
                         <div style="display: flex; align-items: center;">
                             <span style="padding: 10px 15px; background: #e9ecef; border: 1px solid #ced4da; border-radius: 4px 0 0 4px; font-weight: bold;">S/</span>
-                            <input type="number" name="manual_total" id="manual_total" step="0.01" min="0" class="form-input" 
+                            <input type="number" name="manual_total" id="manual_total" step="0.01" min="0" class="form-input"
                                    style="border-radius: 0 4px 4px 0; flex: 1; font-size: 1.1em;" placeholder="0.00" disabled>
                         </div>
                         <small class="form-text text-muted">Ingrese el total de la factura</small>
                     </div>
                 </div>
-                
+
                 <div id="products_section_wrapper">
                     <hr class="form-divider">
-                    
+
                     <h3 class="mb-20">Productos</h3>
-                
+
                 <div class="purchase-product-grid">
                     <div>
                         <label class="form-label">Producto</label>
@@ -274,7 +283,7 @@ class PurchaseView:
                         <button type="button" class="btn btn-success" id="addProductBtn">+ Agregar</button>
                     </div>
                 </div>
-                
+
                 <div class="table-container">
                 <table class="mt-20">
                     <thead>
@@ -302,128 +311,241 @@ class PurchaseView:
                     </tfoot>
                 </table>
                 </div>
-                
+
                 <input type="hidden" name="total" id="totalInput" value="0">
                 </div> <!-- Cierre de products_section_wrapper -->
-                
+
                     <div class="form-actions-end mt-30">
                         <a href="/compras/" class="btn btn-secondary">Cancelar</a>
                         <button type="submit" class="btn btn-primary">Guardar Compra</button>
                     </div>
                 </form>
             </div>
-            
-            <!-- PANEL AUTOMÁTICO (OCR) -->
+
+            <!-- PANEL AUTOMATICO (OCR) -->
             <div id="panel_auto" class="mode-panel" style="display: none;">
                 <form method="POST" action="/compras/crear/" id="ocrPurchaseForm" class="p-20" enctype="multipart/form-data">
                     {csrf_token}
-                    
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>Modo OCR:</strong> Sube la factura en PDF o imagen y extraeremos el total automáticamente.
-                    </div>
-                    
-                    <!-- Upload de Factura -->
-                    <div class="mb-3">
-                        <label class="form-label"><i class="fas fa-file-invoice"></i> <strong>Archivo de Factura *</strong></label>
-                        <input type="file" class="form-input" id="receipt_file" name="receipt_file" 
-                               accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp" required>
-                        <small class="form-text text-muted">PDF o imagen (máx. 5MB)</small>
-                        <div id="file_preview" class="mt-2"></div>
-                    </div>
-                    
-                    <!-- Botón de Extracción OCR -->
-                    <div class="mb-4 text-center">
-                        <button type="button" class="btn btn-primary btn-lg" id="btn_extract" disabled>
-                            <i class="fas fa-search"></i> Extraer Total con OCR
-                        </button>
-                        <p class="form-text mt-2">
-                            <i class="fas fa-magic"></i> El sistema buscará automáticamente el total en tu factura
-                        </p>
-                    </div>
-                    
-                    <!-- Resultado de Extracción -->
-                    <div class="card mb-4" id="extraction_result" style="display: none;">
-                        <div class="card-header bg-success text-white">
-                            <i class="fas fa-check-circle"></i> Resultado de Extracción OCR
+
+                    <div class="ocr-info-banner">
+                        <i class="fas fa-robot"></i>
+                        <div>
+                            <strong>Modo OCR Inteligente</strong><br>
+                            <small>Sube tu factura y extraeremos autom&aacute;ticamente: total, proveedor, N&deg; factura y fecha. Puedes editar cualquier campo antes de guardar.</small>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label class="form-label">Total Extraído</label>
-                                    <div style="display: flex;">
-                                        <span style="padding: 8px 12px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px 0 0 4px;">$</span>
-                                        <input type="number" class="form-input" id="extracted_total" name="total" 
-                                               step="0.01" readonly style="border-radius: 0 4px 4px 0; flex: 1;">
+                    </div>
+
+                    <!-- Step 1: Upload -->
+                    <div class="ocr-step">
+                        <div class="ocr-step-header">
+                            <span class="ocr-step-num">1</span>
+                            <strong>Subir Factura</strong>
+                        </div>
+                        <div class="ocr-upload-area" id="ocr_upload_area">
+                            <input type="file" class="form-input" id="receipt_file" name="receipt_file"
+                                   accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp" required style="display:none;">
+                            <div id="upload_placeholder" style="text-align:center; cursor:pointer;" onclick="document.getElementById('receipt_file').click()">
+                                <i class="fas fa-cloud-upload-alt" style="font-size:2.5em; color:#6c63ff; margin-bottom:10px;"></i>
+                                <p style="margin:0; font-weight:600; color:#333;">Arrastra o haz clic para subir</p>
+                                <small style="color:#888;">PDF, JPG, PNG (m&aacute;x. 5MB)</small>
+                            </div>
+                            <div id="upload_file_info" style="display:none;"></div>
+                        </div>
+                        <div class="mt-2 text-center">
+                            <button type="button" class="btn btn-primary btn-lg" id="btn_extract" disabled style="min-width: 280px;">
+                                <i class="fas fa-search"></i> Extraer Datos con OCR
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Preview (hidden until extraction) -->
+                    <div id="extraction_result" style="display: none;">
+                        <div class="ocr-step">
+                            <div class="ocr-step-header">
+                                <span class="ocr-step-num">2</span>
+                                <strong>Vista Previa - Datos Extra&iacute;dos</strong>
+                                <div id="confidence_badge" style="margin-left:auto;"></div>
+                            </div>
+
+                            <div class="ocr-preview-grid">
+                                <!-- Columna izquierda: imagen -->
+                                <div class="ocr-preview-image">
+                                    <div id="receipt_image_preview" class="receipt-thumb">
+                                        <i class="fas fa-file-invoice" style="font-size:3em; color:#ccc;"></i>
+                                        <small style="color:#999;">Vista previa</small>
                                     </div>
-                                    <div id="confidence_badge" class="mt-2"></div>
+                                    <!-- Confidence -->
+                                    <div style="margin-top:12px;">
+                                        <label class="form-label" style="font-size:0.85em; margin-bottom:4px;">Confianza OCR</label>
+                                        <div style="background: #e9ecef; border-radius: 6px; height: 24px; overflow: hidden;">
+                                            <div id="confidence_bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #28a745, #20c997); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.75em; transition: width 0.5s ease;"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Confianza del OCR</label>
-                                    <div style="background: #f0f0f0; border-radius: 4px; height: 30px; overflow: hidden;">
-                                        <div id="confidence_bar" style="height: 100%; width: 0%; background: #28a745; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;"></div>
+
+                                <!-- Columna derecha: campos editables -->
+                                <div class="ocr-preview-fields">
+                                    <div class="ocr-field-row">
+                                        <div class="ocr-field">
+                                            <label class="form-label">
+                                                <i class="fas fa-dollar-sign text-success"></i> Total Factura
+                                                <span class="ocr-badge" id="badge_total" style="display:none;">OCR</span>
+                                            </label>
+                                            <div style="display: flex;">
+                                                <span class="ocr-currency-prefix">$</span>
+                                                <input type="number" class="form-input ocr-editable" id="extracted_total" name="total"
+                                                       step="0.01" placeholder="0.00" style="border-radius: 0 6px 6px 0; flex: 1; font-size: 1.15em; font-weight: 600;">
+                                            </div>
+                                        </div>
+                                        <div class="ocr-field">
+                                            <label class="form-label">
+                                                <i class="fas fa-building text-primary"></i> Proveedor
+                                                <span class="ocr-badge" id="badge_supplier" style="display:none;">OCR</span>
+                                            </label>
+                                            <div id="ocr_supplier_display" style="display:none; margin-bottom:6px;">
+                                                <small class="text-muted"><i class="fas fa-robot"></i> Detectado: <span id="ocr_supplier_text"></span></small>
+                                            </div>
+                                            <select name="proveedor_id" id="ocr_proveedor_select" required class="form-select ocr-editable">
+                                                {suppliers_options}
+                                            </select>
+                                            <div id="ocr_supplier_actions" style="display:none; margin-top:4px;">
+                                                <small>
+                                                    <a href="/proveedores/crear/" target="_blank" id="ocr_create_supplier_link" style="color:#6c63ff; text-decoration:none;">
+                                                        <i class="fas fa-plus-circle"></i> Crear nuevo proveedor
+                                                    </a>
+                                                    <span style="color:#888; margin-left:8px;" id="ocr_supplier_hint"></span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ocr-field-row">
+                                        <div class="ocr-field">
+                                            <label class="form-label">
+                                                <i class="fas fa-hashtag text-info"></i> N&deg; Factura
+                                                <span class="ocr-badge" id="badge_invoice" style="display:none;">OCR</span>
+                                            </label>
+                                            <input type="text" name="numero_factura" id="ocr_numero_factura" class="form-input ocr-editable" placeholder="Opcional">
+                                        </div>
+                                        <div class="ocr-field">
+                                            <label class="form-label">
+                                                <i class="fas fa-calendar text-warning"></i> Fecha
+                                                <span class="ocr-badge" id="badge_date" style="display:none;">OCR</span>
+                                            </label>
+                                            <input type="date" name="fecha" id="ocr_fecha" required class="form-input ocr-editable" value="{__import__('datetime').date.today().isoformat()}">
+                                        </div>
+                                    </div>
+                                    <div class="ocr-field-row">
+                                        <div class="ocr-field">
+                                            <label class="form-label"><i class="fas fa-flag"></i> Estado</label>
+                                            <select name="estado" class="form-select">
+                                                <option value="pendiente">Pendiente</option>
+                                                <option value="completada">Completada</option>
+                                                <option value="cancelada">Cancelada</option>
+                                            </select>
+                                        </div>
+                                        <div class="ocr-field">
+                                            <label class="form-label"><i class="fas fa-sticky-note"></i> Notas</label>
+                                            <input type="text" name="notas" class="form-input" placeholder="Notas adicionales...">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Texto extraido colapsable -->
+                            <details class="ocr-extracted-text" style="margin-top:12px;">
+                                <summary style="cursor:pointer; color:#6c757d; font-size:0.85em;">
+                                    <i class="fas fa-file-alt"></i> Ver texto completo extra&iacute;do por OCR
+                                </summary>
+                                <pre id="ocr_raw_text" style="max-height:200px; overflow:auto; background:#f8f9fa; padding:10px; border-radius:4px; font-size:0.8em; margin-top:8px; white-space:pre-wrap; word-break:break-word;"></pre>
+                            </details>
                         </div>
                     </div>
-                    
-                    <!-- Datos Básicos -->
-                    <h6 class="mb-3"><i class="fas fa-info-circle"></i> Información de la Compra</h6>
-                    <div class="form-grid">
-                        <div>
-                            <label class="form-label">N° Factura</label>
-                            <input type="text" name="numero_factura" class="form-input" placeholder="Opcional">
-                        </div>
-                        <div>
-                            <label class="form-label">Proveedor *</label>
-                            <select name="proveedor_id" required class="form-select">
-                                {suppliers_options}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label">Fecha *</label>
-                            <input type="date" name="fecha" required class="form-input" value="{__import__('datetime').date.today().isoformat()}">
-                        </div>
-                        <div>
-                            <label class="form-label">Estado</label>
-                            <select name="estado" class="form-select">
-                                <option value="pendiente">Pendiente</option>
-                                <option value="completada">Completada</option>
-                                <option value="cancelada">Cancelada</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-3">
-                        <label class="form-label">Notas</label>
-                        <textarea name="notas" rows="2" class="form-textarea"></textarea>
-                    </div>
-                    
+
                     <input type="hidden" name="mode" value="ocr">
                     <input type="hidden" name="details" value="[]">
-                    
+
                     <div class="form-actions-end mt-4">
                         <button type="button" class="btn btn-secondary" id="btnSwitchToManual">
-                            <i class="fas fa-exchange-alt"></i> Cambiar a Modo Manual
+                            <i class="fas fa-exchange-alt"></i> Cambiar a Manual
                         </button>
-                        <button type="submit" class="btn btn-success btn-lg">
-                            <i class="fas fa-save"></i> Guardar Compra con Factura
+                        <button type="submit" class="btn btn-success btn-lg" id="btnSaveOcr">
+                            <i class="fas fa-save"></i> Guardar Compra
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-        
+
         {receipt_js}
-        
+
         <style>
         .mode-panel {{ padding: 0; }}
         .btn-check:checked + label {{ background-color: #007bff !important; color: white !important; }}
         .btn-check:checked + label.btn-outline-success {{ background-color: #28a745 !important; }}
         .alert-info {{ padding: 15px; margin-bottom: 20px; background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px; }}
+
+        /* OCR Panel Styles */
+        .ocr-info-banner {{
+            display: flex; align-items: center; gap: 14px;
+            padding: 16px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border-radius: 8px; margin-bottom: 20px;
+        }}
+        .ocr-info-banner i {{ font-size: 2em; opacity: 0.9; }}
+        .ocr-step {{
+            background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
+            padding: 20px; margin-bottom: 16px;
+        }}
+        .ocr-step-header {{
+            display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+        }}
+        .ocr-step-num {{
+            width: 28px; height: 28px; border-radius: 50%; background: #6c63ff;
+            color: white; font-weight: bold; font-size: 0.85em;
+            display: flex; align-items: center; justify-content: center;
+        }}
+        .ocr-upload-area {{
+            border: 2px dashed #d0d0d0; border-radius: 8px; padding: 30px;
+            transition: border-color 0.3s, background 0.3s; margin-bottom: 12px;
+        }}
+        .ocr-upload-area.drag-over {{ border-color: #6c63ff; background: #f0eeff; }}
+        .ocr-upload-area.has-file {{ border-style: solid; border-color: #28a745; background: #f6fff6; }}
+        .ocr-preview-grid {{
+            display: grid; grid-template-columns: 240px 1fr; gap: 20px;
+        }}
+        @media (max-width: 768px) {{
+            .ocr-preview-grid {{ grid-template-columns: 1fr; }}
+        }}
+        .ocr-preview-image {{
+            display: flex; flex-direction: column; align-items: center;
+        }}
+        .receipt-thumb {{
+            width: 100%; min-height: 200px; max-height: 320px; overflow: hidden;
+            border: 1px solid #e0e0e0; border-radius: 6px; background: #fafafa;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }}
+        .receipt-thumb img {{ width: 100%; height: auto; object-fit: contain; border-radius: 6px; }}
+        .ocr-preview-fields {{ display: flex; flex-direction: column; gap: 12px; }}
+        .ocr-field-row {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
+        @media (max-width: 600px) {{
+            .ocr-field-row {{ grid-template-columns: 1fr; }}
+        }}
+        .ocr-field label {{ font-size: 0.85em; margin-bottom: 4px; }}
+        .ocr-badge {{
+            display: inline-block; font-size: 0.65em; padding: 2px 6px;
+            background: #ffc107; color: #333; border-radius: 3px; font-weight: 700;
+            margin-left: 6px; vertical-align: middle;
+        }}
+        .ocr-editable.ocr-filled {{
+            border-color: #28a745 !important; background: #f0fff4 !important;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.15);
+        }}
+        .ocr-currency-prefix {{
+            padding: 8px 14px; background: #e9ecef; border: 1px solid #ced4da;
+            border-radius: 6px 0 0 6px; font-weight: bold; color: #495057;
+            display: flex; align-items: center;
+        }}
         </style>
-        
+
         <script>
         document.getElementById('btnSwitchToManual')?.addEventListener('click', function() {{
             document.getElementById('mode_manual').checked = true;
@@ -431,7 +553,7 @@ class PurchaseView:
             document.getElementById('panel_auto').style.display = 'none';
         }});
         </script>
-        
+
         <script src="/static/js/purchase-manager.js?v=2.0"></script>
         <script src="/static/js/purchase_manual_mode.js?v=2.0"></script>
         """
@@ -497,21 +619,21 @@ class PurchaseView:
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
-        
+
         {error_html}
-        
+
         <div class="card shadow-sm">
             <div class="card-body">
                 <form method="POST" id="purchaseForm">
                     {csrf_token}
                     <input type="hidden" name="details" id="detailsInput" value="">
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">N° Factura</label>
                             <input type="text" class="form-control" name="numero_factura" value="{purchase.get('numero_factura', '')}">
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Proveedor <span class="text-danger">*</span></label>
                             <select class="form-select" name="proveedor_id" required>
@@ -519,13 +641,13 @@ class PurchaseView:
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Fecha <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" name="fecha" value="{str(purchase['fecha']).split()[0] if purchase['fecha'] else ''}" required>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Estado</label>
                             <select class="form-select" name="estado">
@@ -533,16 +655,16 @@ class PurchaseView:
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Notas</label>
                         <textarea class="form-control" name="notas" rows="2">{purchase.get('notas', '')}</textarea>
                     </div>
-                    
+
                     <hr class="my-4">
-                    
+
                     <h5 class="mb-3">Productos</h5>
-                    
+
                     <div class="row mb-3">
                         <div class="col-md-5">
                             <label class="form-label">Producto</label>
@@ -564,7 +686,7 @@ class PurchaseView:
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="table-responsive">
                         <table class="table table-bordered" id="productsTable">
                             <thead class="table-light">
@@ -592,9 +714,9 @@ class PurchaseView:
                             </tfoot>
                         </table>
                     </div>
-                    
+
                     <input type="hidden" name="total" id="totalInput" value="0">
-                    
+
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <a href="/compras/" class="btn btn-secondary">Cancelar</a>
                         <button type="submit" class="btn btn-primary">
@@ -604,7 +726,7 @@ class PurchaseView:
                 </form>
             </div>
         </div>
-        
+
         <script src="/static/js/purchase-manager.js"></script>
         <script>
         // Cargar detalles existentes
@@ -653,7 +775,7 @@ class PurchaseView:
                 </a>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6 mb-4">
                 <div class="card shadow-sm">
@@ -671,7 +793,7 @@ class PurchaseView:
                             <strong>Fecha:</strong> {purchase['fecha']}
                         </div>
                         <div class="mb-2">
-                            <strong>Estado:</strong> 
+                            <strong>Estado:</strong>
                             <span class="badge bg-{estado_class}">{purchase['estado']}</span>
                         </div>
                         <div class="mb-2">
@@ -683,7 +805,7 @@ class PurchaseView:
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-6 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-header bg-success text-white">
@@ -698,7 +820,7 @@ class PurchaseView:
                 </div>
             </div>
         </div>
-        
+
         <div class="card shadow-sm">
             <div class="card-header bg-light">
                 <h5 class="mb-0">Productos</h5>

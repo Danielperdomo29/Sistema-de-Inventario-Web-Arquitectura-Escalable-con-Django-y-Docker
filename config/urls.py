@@ -1,14 +1,19 @@
-from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.contrib import admin
+from django.urls import include, path, re_path
+from django.views.generic import RedirectView
 
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+
+from app.api.views import CustomTokenObtainPairView
 from app.controllers.auth_controller import AuthController
 from app.controllers.category_controller import CategoryController
 from app.controllers.chatbot_controller import ChatbotController
 from app.controllers.client_controller import ClientController
 from app.controllers.config_controller import ConfigController
 from app.controllers.dashboard_controller import DashboardController
+from app.controllers.dian_invoice_controller import DianInvoiceController
 from app.controllers.documentation_controller import DocumentationController
 from app.controllers.fiscal_controller import FiscalController
 from app.controllers.inventory_movement_controller import InventoryMovementController
@@ -18,25 +23,29 @@ from app.controllers.purchase_detail_controller import PurchaseDetailController
 from app.controllers.purchase_receipt_controller import (
     extract_total_from_receipt,
     save_purchase_with_receipt,
-    view_receipt
+    view_receipt,
 )
 from app.controllers.report_controller import ReportController
 from app.controllers.role_controller import RoleController
 from app.controllers.sale_controller import SaleController
 from app.controllers.sale_detail_controller import SaleDetailController
 from app.controllers.supplier_controller import SupplierController
-from app.controllers.dian_invoice_controller import DianInvoiceController
 from app.controllers.warehouse_controller import WarehouseController
 
 # URLs del sistema de inventario (existentes - sin cambios)
 urlpatterns = [
     # Django Admin
     path("admin/", admin.site.urls),
-    # Dashboard y autenticación
+    # API Auth endpoints (JWT + Anti-Tamper)
+    path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("api-auth/", include("rest_framework.urls")),
+    # Dashboard y autenticación (Unificados al sistema Premium)
     path("", DashboardController.index, name="dashboard"),
-    path("login/", AuthController.login, name="login"),
-    path("register/", AuthController.register, name="register"),
-    path("logout/", AuthController.logout, name="logout"),
+    path("login/", RedirectView.as_view(url="/accounts/login/", permanent=True), name="login_redirect"),
+    path("register/", RedirectView.as_view(url="/accounts/signup/", permanent=True), name="register_redirect"),
+    path("logout/", RedirectView.as_view(url="/accounts/logout/", permanent=True), name="logout"),
     path("productos/", ProductController.index, name="products"),
     path("productos/crear/", ProductController.create, name="products_create"),
     path("productos/<int:product_id>/editar/", ProductController.edit, name="products_edit"),
@@ -81,12 +90,10 @@ urlpatterns = [
     path("ventas/<int:sale_id>/ver/", SaleController.view, name="sales_detail"),  # NEW: Added for /ventas/{id}/ver/
     # Solicitud del usuario: URL de detalle de ventas (alias)
     path("detalle-ventas/<int:sale_id>/ver/", SaleController.view, name="sales_view"),
-    
     # DIAN - Facturación Electrónica
     path("dian/generar/<int:sale_id>/", DianInvoiceController.generate_invoice, name="dian_generate_invoice"),
     path("dian/pdf/<int:sale_id>/", DianInvoiceController.download_pdf, name="dian_download_pdf"),
     path("dian/xml/<int:sale_id>/", DianInvoiceController.download_xml, name="dian_download_xml"),
-
     # Detalle de Ventas (Items individuales)
     path("items-venta/", SaleDetailController.index, name="sale_details"),
     path("items-venta/crear/", SaleDetailController.create, name="sale_details_create"),
@@ -100,9 +107,7 @@ urlpatterns = [
         SaleDetailController.delete,
         name="sale_details_delete",
     ),
-    path(
-        "items-venta/<int:detail_id>/ver/", SaleDetailController.view, name="sale_details_view"
-    ),
+    path("items-venta/<int:detail_id>/ver/", SaleDetailController.view, name="sale_details_view"),
     path("items-venta/exportar/", SaleDetailController.export_csv, name="sale_details_export"),
     path("compras/", PurchaseController.index, name="purchases"),
     path("compras/crear/", PurchaseController.create, name="purchases_create"),
@@ -172,12 +177,10 @@ urlpatterns = [
     path("chatbot/send/", ChatbotController.send_message, name="chatbot_send"),
     path("chatbot/clear-history/", ChatbotController.clear_history, name="chatbot_clear_history"),
     path("chatbot/history/", ChatbotController.get_history, name="chatbot_history"),
-    
     # ===== API PARA FACTURAS CON OCR =====
     path("api/purchases/extract-total/", extract_total_from_receipt, name="extract_receipt_total"),
     path("api/purchases/save-with-receipt/", save_purchase_with_receipt, name="save_purchase_with_receipt"),
     path("compras/<int:purchase_id>/factura/", view_receipt, name="view_receipt"),
-    
     # Analytics con IA (DeepSeek)
     path("analytics/", include("app.views.analytics_urls")),
     # Módulo Fiscal - Fase A
@@ -198,8 +201,14 @@ from app.views import stock_alert_api
 
 urlpatterns += [
     path("api/stock/alertas-pendientes/", stock_alert_api.get_pending_stock_alerts, name="stock_alerts_pending"),
-    path("api/stock/alertas/<int:alerta_id>/revisar/", stock_alert_api.mark_alert_as_reviewed, name="stock_alert_review"),
-    path("api/stock/alertas/<int:alerta_id>/resolver/", stock_alert_api.mark_alert_as_resolved, name="stock_alert_resolve"),
+    path(
+        "api/stock/alertas/<int:alerta_id>/revisar/", stock_alert_api.mark_alert_as_reviewed, name="stock_alert_review"
+    ),
+    path(
+        "api/stock/alertas/<int:alerta_id>/resolver/",
+        stock_alert_api.mark_alert_as_resolved,
+        name="stock_alert_resolve",
+    ),
     path("api/stock/alertas/", stock_alert_api.get_all_alerts, name="stock_alerts_all"),
 ]
 
@@ -232,22 +241,39 @@ from app.controllers import async_report_controller
 
 urlpatterns += [
     # Reportes Async
-    path("tasks/report/monthly/", async_report_controller.AsyncReportController.generate_monthly_report_async, name="async_monthly_report"),
-    path("tasks/report/daily/", async_report_controller.AsyncReportController.generate_daily_summary_async, name="async_daily_report"),
-    
+    path(
+        "tasks/report/monthly/",
+        async_report_controller.AsyncReportController.generate_monthly_report_async,
+        name="async_monthly_report",
+    ),
+    path(
+        "tasks/report/daily/",
+        async_report_controller.AsyncReportController.generate_daily_summary_async,
+        name="async_daily_report",
+    ),
     # Stock Async
-    path("tasks/stock/check/", async_report_controller.AsyncReportController.check_low_stock_async, name="async_stock_check"),
-    
+    path(
+        "tasks/stock/check/",
+        async_report_controller.AsyncReportController.check_low_stock_async,
+        name="async_stock_check",
+    ),
     # Batch Operations
-    path("tasks/invoices/batch/", async_report_controller.AsyncReportController.batch_invoices_async, name="async_batch_invoices"),
-    
+    path(
+        "tasks/invoices/batch/",
+        async_report_controller.AsyncReportController.batch_invoices_async,
+        name="async_batch_invoices",
+    ),
     # Task Status
-    path("tasks/status/<str:task_id>/", async_report_controller.AsyncReportController.check_task_status, name="task_status"),
+    path(
+        "tasks/status/<str:task_id>/",
+        async_report_controller.AsyncReportController.check_task_status,
+        name="task_status",
+    ),
 ]
 
 # Django-Allauth & 2FA URLs
 urlpatterns += [
-    path("accounts/", include("allauth_2fa.urls")), # Include 2FA urls before allauth urls
+    path("accounts/", include("allauth_2fa.urls")),  # Include 2FA urls before allauth urls
     path("accounts/", include("allauth.urls")),
 ]
 

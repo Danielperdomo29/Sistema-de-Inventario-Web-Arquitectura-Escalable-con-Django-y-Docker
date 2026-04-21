@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     "core",  # Core Infrastructure - EventBus & DataAggregator
     "analytics",  # Analytics ML - Predicción y Optimización
     "ia",  # IA - Chatbot RAG y Recomendaciones
+    "rest_framework",
+    "rest_framework_simplejwt",
 ]
 
 # Feature flag: Activar django-allauth
@@ -44,6 +46,8 @@ if ENABLE_ALLAUTH:
         "allauth",
         "allauth.account",
         "allauth.socialaccount",
+        # Allauth Social Accounts
+        "allauth.socialaccount.providers.google",
         # Django-OTP (2FA)
         "django_otp",
         "django_otp.plugins.otp_totp",
@@ -58,6 +62,7 @@ if ENABLE_ALLAUTH:
     ]
 
 MIDDLEWARE = [
+    "app.middleware.device_fingerprint.DeviceFingerprintMiddleware",  # Intercepción temprana (Defensa Activa)
     "corsheaders.middleware.CorsMiddleware",  # Debe ser primero
     "csp.middleware.CSPMiddleware",  # Content Security Policy
     "django.middleware.security.SecurityMiddleware",
@@ -71,6 +76,7 @@ MIDDLEWARE = [
     "app.fiscal.middleware.FiscalAuditMiddleware",  # Auditoría Fiscal
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "app.middleware.security_headers.SecurityHeadersMiddleware",
 ]
 
 if ENABLE_ALLAUTH:
@@ -158,6 +164,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "app.context_processors.ui_config_processor",  # UI Config
             ],
         },
     }
@@ -266,6 +273,7 @@ AUTH_USER_MODEL = "app.UserAccount"
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 3600  # 1 hora
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
 
 # ============================================================================
 # CORS CONFIGURATION (Restrictivo por defecto)
@@ -315,9 +323,10 @@ CSP_STYLE_SRC = (
     "'unsafe-inline'",
     "https://cdn.jsdelivr.net",
     "https://cdnjs.cloudflare.com",
+    "https://fonts.googleapis.com",
 )
 CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_FONT_SRC = ("'self'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net")
+CSP_FONT_SRC = ("'self'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com")
 CSP_CONNECT_SRC = ("'self'", "https://cdn.jsdelivr.net")
 CSP_FRAME_ANCESTORS = ("'none'",)  # Prevenir clickjacking
 CSP_BASE_URI = ("'self'",)
@@ -386,13 +395,14 @@ if ENABLE_ALLAUTH:
 
     # Rate limiting para prevenir abuso
     ACCOUNT_RATE_LIMITS = {
-        # Rate limiting disabled due to parser error (Invalid duration unit)
-        # "login_failed": "5/5m",
-        # "signup": "20/60m",
-        # "password_reset": "10/60m",
-        # "change_password": "5/5m",
-        # "email_management": "10/60m",
+        "login_failed": "5/5m",
+        "login_failed_ip": "10/h",
+        "signup": "20/h",
+        "password_reset": "5/h",
     }
+
+    if DEBUG:
+        ACCOUNT_RATE_LIMITS = {}
 
     # Tiempo de expiración de confirmación de email (3 días)
     ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
@@ -420,6 +430,14 @@ if ENABLE_ALLAUTH:
     # Custom Adapters
     # ========================================================================
     ACCOUNT_ADAPTER = "app.adapters.account_adapter.CustomAccountAdapter"
+
+    # ========================================================================
+    # CUSTOM FORMS (Seguridad Anti-Inyección SQL)
+    # ========================================================================
+    ACCOUNT_FORMS = {
+        "login": "app.forms.auth_forms.SafeLoginForm",
+        "signup": "app.forms.auth_forms.SafeSignupForm",
+    }
 
     # ========================================================================
     # Crispy Forms Configuration
@@ -469,6 +487,27 @@ if ENABLE_ALLAUTH:
     # ACCOUNT_ADAPTER = 'app.adapters.CustomAccountAdapter'
     # SOCIALACCOUNT_ADAPTER = 'app.adapters.CustomSocialAccountAdapter'
 
+    # ========================================================================
+    # Social Account Providers
+    # ========================================================================
+    SOCIALACCOUNT_PROVIDERS = {
+        "google": {
+            "APP": {
+                "client_id": os.getenv("GOOGLE_OAUTH_CLIENT_ID", ""),
+                "secret": os.getenv("GOOGLE_OAUTH_SECRET", ""),
+                "key": "",
+            },
+            "SCOPE": [
+                "profile",
+                "email",
+            ],
+            "AUTH_PARAMS": {
+                "access_type": "online",
+            },
+            "OAUTH_PKCE_ENABLED": True,
+        }
+    }
+
 
 # ============================================================================
 # API Security - Token Authentication
@@ -489,3 +528,77 @@ API_RATE_LIMIT_WINDOW = int(os.getenv("API_RATE_LIMIT_WINDOW", "60"))  # segundo
 # Redis URL (para EventBus y Cache)
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 EVENT_BUS_ENABLED = os.getenv("EVENT_BUS_ENABLED", "true").lower() == "true"
+
+# ============================================================================
+# DJANGO REST FRAMEWORK + JWT (API Anti-Tampering)
+# ============================================================================
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser",),
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": None,
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    "JTI_CLAIM": "jti",
+}
+
+# ============================================================================
+# LOGGING (Preparación SIEM - Detección de Ataques SQLi/Tampering)
+# ============================================================================
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "security_hmac": {
+            "level": "WARNING",
+            "class": "app.logging.hmac_handler.HMACChainFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs/security.log"),
+            "formatter": "verbose",
+            "secret_key": os.getenv("LOG_HMAC_SECRET", "d3f4u1t-s3cr3t-k3y"),
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "app.forms.auth_forms": {
+            "handlers": ["security_hmac", "console"],
+            "level": "WARNING",
+            "propagate": True,
+        },
+        "app.middleware.device_fingerprint": {
+            "handlers": ["security_hmac", "console"],
+            "level": "WARNING",
+            "propagate": True,
+        },
+    },
+}

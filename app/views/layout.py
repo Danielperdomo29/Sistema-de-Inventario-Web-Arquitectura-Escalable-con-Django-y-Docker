@@ -1,3 +1,4 @@
+﻿# -*- coding: utf-8 -*-
 class Layout:
     """Layouts y componentes compartidos"""
 
@@ -26,13 +27,13 @@ class Layout:
         <div class="navbar">
             <div class="navbar-content">
                 <div class="navbar-brand">
-                    <h1>HUB DE GESTIÓN</h1>
-                    <p class="navbar-subtitle">Sistema de Facturación Electrónica e Inteligencia de Inventarios</p>
+                    <h1>HUB DE GESTI&Oacute;N</h1>
+                    <p class="navbar-subtitle">Sistema de Facturaci&oacute;n Electr&oacute;nica e Inteligencia de Inventarios</p>
                 </div>
                 <div class="navbar-menu">
                     <span class="user-info-mobile"><i class="fas fa-user-circle"></i> {user.username}</span>
                     <a href="/configuracion/"><i class="fas fa-user-cog"></i> <span>Mi Perfil</span></a>
-                    <a href="/logout/"><i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesión</span></a>
+                    <a href="/logout/"><i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesi&oacute;n</span></a>
                 </div>
             </div>
         </div>
@@ -42,11 +43,11 @@ class Layout:
     def sidebar(active_page=""):
         """Componente de Sidebar con secciones colapsables (Sincronizado con base.html)"""
 
-        # Categorización de items del menú
+        # Categorizacion de items del menu
         inventario_items = [
             {"url": "/", "label": "Dashboard", "icon": "fas fa-home", "key": "dashboard"},
             {"url": "/productos/", "label": "Productos", "icon": "fas fa-box", "key": "productos"},
-            {"url": "/categorias/", "label": "Categorías", "icon": "fas fa-tags", "key": "categorias"},
+            {"url": "/categorias/", "label": "Categor&iacute;as", "icon": "fas fa-tags", "key": "categorias"},
             {"url": "/almacenes/", "label": "Almacenes", "icon": "fas fa-warehouse", "key": "almacenes"},
             {
                 "url": "/movimientos-inventario/",
@@ -74,13 +75,13 @@ class Layout:
         fiscal_items = [
             {
                 "url": "/fiscal/reportes/declaracion-iva/",
-                "label": "Declaración IVA (300)",
+                "label": "Declaraci&oacute;n IVA (300)",
                 "icon": "fas fa-file-invoice-dollar",
                 "key": "declaracion_iva",
             },
             {
                 "url": "/fiscal/reportes/declaracion-retefuente/",
-                "label": "Retención Fte (350)",
+                "label": "Retenci&oacute;n Fte (350)",
                 "icon": "fas fa-hand-holding-usd",
                 "key": "declaracion_retefuente",
             },
@@ -102,20 +103,17 @@ class Layout:
             {"url": "/roles/", "label": "Roles", "icon": "fas fa-user-tag", "key": "roles"},
             {"url": "/chatbot/", "label": "Chatbot IA", "icon": "fas fa-robot", "key": "chatbot"},
             {"url": "/analytics/", "label": "Analytics IA", "icon": "fas fa-brain", "key": "analytics"},
-            {"url": "/configuracion/", "label": "Configuración", "icon": "fas fa-cog", "key": "configuracion"},
-            {"url": "/documentacion/", "label": "Documentación", "icon": "fas fa-book", "key": "documentacion"},
+            {"url": "/configuracion/", "label": "Configuraci&oacute;n", "icon": "fas fa-cog", "key": "configuracion"},
+            {"url": "/documentacion/", "label": "Documentaci&oacute;n", "icon": "fas fa-book", "key": "documentacion"},
         ]
 
         def generate_menu_html(items):
-            """Genera el HTML para un grupo de items del menú"""
+            """Genera el HTML para un grupo de items del menu"""
             menu_html = ""
             for item in items:
-                # Verificar si la página activa coincide
                 is_active = False
                 if active_page == item["key"]:
                     is_active = True
-                # También marcar activo si la URL está contenida en la página actual (para subpáginas)
-                # (Lógica simplificada para coincidir con base.html)
 
                 active_class = 'class="active"' if is_active else ""
                 menu_html += f'<li><a href="{item["url"]}" {active_class} data-tooltip="{item["label"]}"><i class="{item["icon"]}"></i> <span>{item["label"]}</span></a></li>\n'
@@ -127,7 +125,7 @@ class Layout:
         sistema_html = generate_menu_html(sistema_items)
 
         return f"""
-        <!-- Overlay para cerrar sidebar en móviles -->
+        <!-- Overlay para cerrar sidebar en moviles -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <div class="sidebar" id="sidebar">
@@ -135,14 +133,14 @@ class Layout:
             <div class="sidebar-mobile-header">
                 <div class="sidebar-brand">
                     <i class="fas fa-cube"></i>
-                    <span>Menú Principal</span>
+                    <span>Men&uacute; Principal</span>
                 </div>
-                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Cerrar menú">
+                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Cerrar menu">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <!-- Sección Inventario -->
+            <!-- Seccion Inventario -->
             <div class="sidebar-section" data-section="inventario">
                 <div class="sidebar-section-header">
                     <div class="section-title">
@@ -156,12 +154,12 @@ class Layout:
                 </ul>
             </div>
 
-            <!-- Sección Facturación -->
+            <!-- Seccion Facturacion -->
             <div class="sidebar-section" data-section="facturacion">
                 <div class="sidebar-section-header">
                     <div class="section-title">
                         <i class="fas fa-file-invoice-dollar"></i>
-                        <span>Facturación</span>
+                        <span>Facturaci&oacute;n</span>
                     </div>
                     <div class="section-toggle"><i class="fas fa-chevron-down"></i></div>
                 </div>
@@ -170,7 +168,7 @@ class Layout:
                 </ul>
             </div>
 
-            <!-- Sección Fiscal -->
+            <!-- Seccion Fiscal -->
             <div class="sidebar-section" data-section="fiscal">
                 <div class="sidebar-section-header">
                     <div class="section-title">
@@ -184,7 +182,7 @@ class Layout:
                 </ul>
             </div>
 
-            <!-- Sección Sistema -->
+            <!-- Seccion Sistema -->
             <div class="sidebar-section" data-section="sistema">
                 <div class="sidebar-section-header">
                     <div class="section-title">
@@ -210,13 +208,46 @@ class Layout:
         chatbot_script = ""
         if active_page == "chatbot":
             chatbot_script = '<script src="/static/js/chatbot.js"></script>'
+
+        # Build chatbot widget HTML outside the f-string to avoid nested triple-quote issues
+        chatbot_widget = ""
+        chatbot_js_tag = ""
+        if active_page != "chatbot":
+            chatbot_js_tag = '<script src="/static/js/chatbot.js"></script>'
+            chatbot_widget = """
+            <div id="chatbot-widget-container" style="z-index: 9999;">
+                <button id="chatbot-fab" class="chatbot-fab" title="Asistente IA">
+                    <i class="fas fa-robot"></i>
+                </button>
+                <div id="chatbot-widget-window" class="chatbot-widget-window">
+                    <div class="chatbot-header chatbot-widget-header">
+                        <h3><i class="fas fa-robot"></i> Asistente IA</h3>
+                        <button id="chatbot-minimize" class="chatbot-widget-close"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="chat-messages" class="chat-messages">
+                        <!-- Messages go here -->
+                        <div class="message bot-message">
+                            <div class="message-content">
+                                <div class="message-text">Hola, soy tu asistente virtual. &iquest;En qu&eacute; puedo ayudarte hoy?</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <textarea id="message-input" class="form-control" placeholder="Escribe tu consulta..." rows="1" style="resize: none;"></textarea>
+                        <button id="voice-input-btn" class="btn btn-secondary" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 5px;"><i class="fas fa-microphone"></i></button>
+                        <button id="send-btn" class="btn btn-primary" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+            """
+
         return f"""
         <!DOCTYPE html>
         <html lang="es">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>{title} - HUB DE GESTIÓN</title>
+            <title>{title} - HUB DE GESTI&Oacute;N</title>
             {styles}
         </head>
         <body>
@@ -235,43 +266,13 @@ class Layout:
             <script src="/static/js/stock_alerts.js"></script>
             <script src="/static/js/kpi_charts.js"></script>
             <script>
-                // Pasar estado del usuario y token CSRF al JavaScript
-                // activo=1 -> true (puede modificar), activo=0 -> false (no puede modificar)
                 window.userActive = {('true' if user.is_active else 'false')};
                 window.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
             </script>
             <script src="/static/js/protection.js"></script>
-            <script src="/static/js/protection.js"></script>
             {chatbot_script}
-            {'<script src="/static/js/chatbot.js"></script>' if active_page != "chatbot" else ""}
-            
-            <!-- Chatbot Widget (Only if not on Chatbot Page) -->
-            {"""
-            <div id="chatbot-widget-container" style="z-index: 9999;">
-                <button id="chatbot-fab" class="chatbot-fab" title="Asistente IA">
-                    <i class="fas fa-robot"></i>
-                </button>
-                <div id="chatbot-widget-window" class="chatbot-widget-window">
-                    <div class="chatbot-header chatbot-widget-header">
-                        <h3><i class="fas fa-robot"></i> Asistente IA</h3>
-                        <button id="chatbot-minimize" class="chatbot-widget-close"><i class="fas fa-times"></i></button>
-                    </div>
-                    <div id="chat-messages" class="chat-messages">
-                        <!-- Messages go here -->
-                        <div class="message bot-message">
-                            <div class="message-content">
-                                <div class="message-text">Hola, soy tu asistente virtual. ¿En qué puedo ayudarte hoy?</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chat-input-container">
-                        <textarea id="message-input" class="form-control" placeholder="Escribe tu consulta..." rows="1" style="resize: none;"></textarea>
-                        <button id="voice-input-btn" class="btn btn-secondary" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 5px;"><i class="fas fa-microphone"></i></button>
-                        <button id="send-btn" class="btn btn-primary" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-paper-plane"></i></button>
-                    </div>
-                </div>
-            </div>
-            """ if active_page != "chatbot" else ""}
+            {chatbot_js_tag}
+            {chatbot_widget}
         </body>
         </html>
         """
