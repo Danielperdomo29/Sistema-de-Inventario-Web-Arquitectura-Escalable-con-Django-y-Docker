@@ -6,6 +6,8 @@ python-dotenv>=1.0.0
 
 # Authentication & Security
 django-allauth==0.63.3
+django-otp==1.5.0
+django-allauth-2fa==0.11.0
 django-crispy-forms==2.3
 crispy-bootstrap5==2024.2
 
@@ -30,6 +32,9 @@ gunicorn==21.2.0
 lxml>=5.1.0
 reportlab>=4.1.0
 Pillow==10.3.0
+pytesseract==0.3.10
+pymupdf==1.23.8
+python-magic==0.4.27
 
 # AI Integration
 google-generativeai
@@ -40,14 +45,10 @@ django-debug-toolbar==4.2.0
 
 # Redis Cache (Fase 2 - Production)
 django-redis==5.4.0
-redis==5.0.1
 hiredis==2.3.2
 
 # Load Testing
 locust==2.20.0
-
-# Celery (Fase 3 - Async Tasks)
-celery==5.3.4
 
 # DevSecOps Tools
 black==24.1.1
