@@ -1,203 +1,200 @@
 import json
-from datetime import date
+import logging
+import re
 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from app.models.chatbot_message import ChatbotMessage
-from app.models.user import User
+from app.services.ai.intent_service import IntentService
+from app.services.ai.prompt_builder import PromptBuilder
+from app.services.ai.tool_argument_enricher import ToolArgumentEnricher
+from app.services.ai.tool_router import ToolRouter
+
+# Importar arquitectura de servicios
+from app.services.metrics_service import MetricsService
+from app.services.openrouter_service import get_ai_service
 from app.views.chatbot_view import ChatbotView
 
 
+def has_tool_call(response):
+    """Verifica de forma segura si la respuesta del LLM contiene un llamado a función"""
+    return isinstance(response, dict) and response.get("tool_calls") and len(response["tool_calls"]) > 0
+
+
+def safe_parse_arguments(tool_call):
+    """Extrae de forma segura los argumentos del JSON devuelto por la IA"""
+    try:
+        args = json.loads(tool_call["function"]["arguments"])
+        if not isinstance(args, dict):
+            return None
+        return args
+    except Exception:
+        return None
+
+
 class ChatbotController:
-    """Controlador del Chatbot con IA y memoria contextual"""
+    """
+    Controlador del chatbot con IA. Actúa como orquestador puro (Copiloto Operativo).
+    """
+
+    MAX_SESSION_TURNS = 4
+    MAX_RESPONSE_TOKENS = 350
+    TEMPERATURE = 0.3
+
+    # Herramientas que requieren confirmación explícita del usuario
+    CRITICAL_TOOLS = ["crear_factura"]
 
     @staticmethod
     @ensure_csrf_cookie
     def index(request):
-        """Muestra la interfaz del chatbot"""
-        # Usar autenticación nativa de Django
         if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
         user = request.user
-        user_id = user.id
-
-        history = ChatbotMessage.get_history(user_id, limit=20)
+        history = ChatbotMessage.get_history(user.id, limit=20)
         return HttpResponse(ChatbotView.render(user, history, request))
 
     @staticmethod
     @ensure_csrf_cookie
     def send_message(request):
-        """Procesa mensaje con memoria contextual (últimas 3 interacciones)"""
-        # Usar autenticación nativa de Django
         if not request.user.is_authenticated:
             return JsonResponse({"success": False, "error": "No autenticado"}, status=401)
 
-        user_id = request.user.id
         if request.method != "POST":
             return JsonResponse({"success": False, "error": "Método no permitido"}, status=405)
 
         try:
-            body = json.loads(request.body.decode("utf-8"))
-            user_message = body.get("message", "").strip()
+            payload = json.loads(request.body.decode("utf-8"))
+            user_message = (payload.get("message") or "").strip()
+
             if not user_message:
                 return JsonResponse({"success": False, "error": "Mensaje vacío"}, status=400)
 
-            # Obtener contexto de sesión (últimas 3 interacciones)
-            context = request.session.get("chatbot_context", [])
+            user_id = request.user.id
 
-            # Importar modelos
-            from app.models.client import Client
-            from app.models.product import Product
-            from app.models.purchase import Purchase
-            from app.models.sale import Sale
-            from app.models.warehouse import Warehouse
+            # 1. Obtener contexto de sesión
+            session_context = request.session.get("chatbot_context", [])
 
-            msg_lower = user_message.lower()
-            response = None
-            intent = None  # Para guardar en contexto
+            # 2. Servicios - Delegación total de lógica
+            metrics = MetricsService.get_metrics()
+            intent = IntentService.detect(user_message)
 
-            # Sistema de detección con PRIORIDAD (específico → genérico)
+            messages = PromptBuilder.build(
+                user_message=user_message, metrics=metrics, intent=intent, context=session_context
+            )
 
-            # AYUDA
-            if any(word in msg_lower for word in ["ayuda", "help", "comandos", "que puedes", "qué puedes"]):
-                intent = "ayuda"
-                response = "🤖 **Asistente HUB DE GESTIÓN**\n\nPuedo responderte:\n\n💰 Ventas: 'ventas de hoy'\n📦 Productos: 'cuántos productos'\n📊 Stock: 'stock bajo'\n👥 Clientes: 'total clientes'\n🏢 Almacenes: 'cuántos almacenes'\n🛒 Compras: 'resumen compras'\n\n¡Pregunta lo que necesites!"
+            # 3. IA - Llamada principal con Tools
+            ai = get_ai_service()
+            try:
+                ai_response_dict = ai.chat_with_tools(
+                    messages=messages,
+                    max_tokens=ChatbotController.MAX_RESPONSE_TOKENS,
+                    temperature=ChatbotController.TEMPERATURE,
+                )
+            except Exception as ai_err:
+                logging.error(f"Error AI Service en Chatbot: {ai_err}", exc_info=True)
+                raw_response = "Lo siento, mi conexión inteligente está intermitente. Inténtalo de nuevo."
+                return ChatbotController._finalize_response(
+                    request, user_id, user_message, raw_response, intent, session_context
+                )
 
-            # CLIENTES (antes que genéricos)
-            elif any(word in msg_lower for word in ["cliente", "comprador", "cartera"]):
-                intent = "clientes"
-                try:
-                    clients = Client.get_all()
-                    response = f"👥 **Base de Clientes**\n\nTienes **{len(clients)} clientes** registrados\n\nGestiona en: Clientes"
-                except:
-                    response = "👥 **Clientes**: Clientes → Gestión"
+            # 4. Procesamiento de Tool Calling (Ejecución de acciones)
+            if has_tool_call(ai_response_dict):
+                tool_call = ai_response_dict["tool_calls"][0]
+                tool_name = tool_call["function"]["name"]
 
-            # ALMACENES (específico)
-            elif any(word in msg_lower for word in ["almacen", "bodega", "ubicacion"]):
-                intent = "almacenes"
-                try:
-                    warehouses = Warehouse.get_all()
-                    response = f"🏢 **Almacenes**\n\n📍 **{len(warehouses)} almacenes**:\n"
-                    for w in warehouses[:5]:
-                        response += f"• {w.get('nombre', 'N/A')}\n"
-                    response += "\nGestiona en: Almacenes"
-                except:
-                    response = "🏢 **Almacenes**: Ver todos"
+                # Parsear de forma segura
+                arguments = safe_parse_arguments(tool_call)
+                if arguments is None:
+                    raw_response = "No pude procesar los datos para ejecutar la acción."
+                    return ChatbotController._finalize_response(
+                        request, user_id, user_message, raw_response, intent, session_context
+                    )
 
-            # VENTAS
-            elif any(word in msg_lower for word in ["venta", "vend", "factura", "ingreso", "gané", "vendí"]):
-                intent = "ventas"
-                try:
-                    sales = Sale.get_all()
-                    today_sales = [s for s in sales if s.get("fecha_venta", "").startswith(str(date.today()))]
-                    total_today = sum(s.get("total", 0) for s in today_sales)
-                    total_all = sum(s.get("total", 0) for s in sales)
+                # 🔥 ENRIQUECER CON NLP (Entity Resolution)
+                arguments = ToolArgumentEnricher.enrich(tool_name, arguments, user_message)
 
-                    response = f"💰 **Ventas**\n\n📅 Hoy: ${total_today:,.0f} ({len(today_sales)} ventas)\n📊 Total: ${total_all:,.0f} ({len(sales)} ventas)\n\nVer más: Dashboard"
-                except:
-                    response = "💰 **Ventas**: Dashboard → Estadísticas"
-
-            # STOCK (antes de productos)
-            elif any(word in msg_lower for word in ["stock", "inventario", "existencia", "disponible"]):
-                intent = "stock"
-                try:
-                    products = Product.get_all()
-                    low_stock = [p for p in products if p.get("stock_actual", 0) < 10]
-
-                    if low_stock:
-                        response = f"📦 **Stock Bajo**\n\n⚠️ {len(low_stock)} productos:\n"
-                        for p in low_stock[:5]:
-                            response += f"• {p.get('nombre', 'N/A')}: {p.get('stock_actual', 0)} u\n"
-                        if len(low_stock) > 5:
-                            response += f"\n+{len(low_stock) - 5} más"
+                # 🔥 CONFIRMACIÓN DE ACCIONES CRÍTICAS
+                if tool_name in ChatbotController.CRITICAL_TOOLS and not arguments.get("confirmado"):
+                    # Ver si el usuario ya dijo "sí" en el mensaje actual como confirmación
+                    # de un prompt anterior (lógica simplificada para el demo)
+                    if user_message.lower() in ["si", "sí", "confirmar", "ok", "hazlo"]:
+                        arguments["confirmado"] = True
                     else:
-                        response = "✅ **Stock OK**\n\nTodos los productos tienen suficiente"
-                    response += "\n\nVer: Dashboard → Stock Bajo"
-                except:
-                    response = "📦 **Stock**: Dashboard"
+                        # Retornar pidiendo confirmación
+                        raw_response = (
+                            f"¿Confirmas que deseas ejecutar la acción '{tool_name}' "
+                            f"con estos datos? Responde 'sí' para continuar."
+                        )
+                        return ChatbotController._finalize_response(
+                            request, user_id, user_message, raw_response, intent, session_context
+                        )
 
-            # PRODUCTOS (después de específicos)
-            elif any(word in msg_lower for word in ["producto", "articulo", "cuanto", "cuánto", "total"]):
-                intent = "productos"
+                # Validación mínima post-enriquecimiento (Removido para delegar al ToolRouter)
+
+                # Ejecutar acción real en el negocio
+                result = ToolRouter.execute(tool_name, arguments, request.user)
+
+                # Segunda llamada a IA con resultado
+                messages.append(ai_response_dict)
+                messages.append(
+                    {
+                        "role": "tool",
+                        "name": tool_name,
+                        "content": json.dumps(result),
+                        "tool_call_id": tool_call.get("id", "call_01"),
+                    }
+                )
+
                 try:
-                    products = Product.get_all()
-                    total_stock = sum(p.get("stock_actual", 0) for p in products)
-
-                    response = f"📦 **Inventario**\n\n🏷️ Productos: {len(products)}\n📊 Stock total: {total_stock:,} u\n\nVer: Productos"
-                except:
-                    response = "📦 **Productos**: Ver catálogo"
-
-            # COMPRAS
-            elif any(word in msg_lower for word in ["compra", "proveedor", "orden"]):
-                intent = "compras"
-                try:
-                    purchases = Purchase.get_all()
-                    total = sum(p.get("total", 0) for p in purchases)
-                    response = f"🛒 **Compras**\n\n📦 Total: {len(purchases)}\n💵 Monto: ${total:,.0f}\n\nVer: Compras"
-                except:
-                    response = "🛒 **Compras**: Ver órdenes"
-
-            # REPORTES
-            elif any(word in msg_lower for word in ["reporte", "analisis", "estadistica", "kpi"]):
-                intent = "reportes"
-                response = "📊 **Análisis**\n\n• Dashboard → KPIs\n• Reportes → Detallados\n• Analytics IA → Avanzado"
-
-            # SALUDOS
-            elif any(word in msg_lower for word in ["hola", "buenos", "hey", "saludos"]):
-                intent = "saludo"
-                response = "¡Hola! 😊 **HUB DE GESTIÓN**\n\n¿En qué ayudo?\nEscribe 'ayuda' para opciones"
-
-            # DESPEDIDAS
-            elif any(word in msg_lower for word in ["gracias", "adios", "chao", "bye"]):
-                intent = "despedida"
-                response = "¡De nada! 😊 ¡Excelente día!"
-
-            # FALLBACK con contexto
+                    # La IA formula la respuesta final al usuario
+                    raw_response = ai.chat(messages, temperature=ChatbotController.TEMPERATURE)
+                except Exception as ai_err:
+                    logging.error(f"Error AI Service Tool Callback: {ai_err}")
+                    raw_response = f"Acción '{tool_name}' ejecutada, pero no pude generar la confirmación final."
             else:
-                # Intentar usar contexto de conversación anterior
-                if context and len(context) > 0:
-                    last_intent = context[-1].get("intent")
-                    if last_intent == "ventas" and any(w in msg_lower for w in ["más", "detalle", "cuál"]):
-                        response = "💡 Para ver detalles de ventas específicas ve a:\n• Ventas → Lista completa\n• Reportes → Análisis detallado"
-                    else:
-                        response = f"🤔 No entendí \"{user_message}\"\n\nEscribe 'ayuda' para ver comandos"
+                # Flujo normal sin tools
+                if isinstance(ai_response_dict, dict) and "content" in ai_response_dict:
+                    raw_response = ai_response_dict["content"]
                 else:
-                    response = f"🤔 No entendí \"{user_message}\"\n\n'ayuda' → ver comandos"
-                intent = "unknown"
+                    raw_response = str(ai_response_dict)
 
-            # Guardar en contexto (últimas 3)
-            context.append({"message": user_message, "intent": intent, "response": response[:50]})
-            if len(context) > 3:
-                context = context[-3:]  # Solo últimas 3
-            request.session["chatbot_context"] = context
-
-            # Guardar en BD
-            ChatbotMessage.save_message(user_id, user_message, response)
-            return JsonResponse({"success": True, "message": user_message, "response": response})
+            return ChatbotController._finalize_response(
+                request, user_id, user_message, raw_response, intent, session_context
+            )
 
         except json.JSONDecodeError:
-            return JsonResponse({"success": False, "error": "JSON inválido"}, status=400)
+            return JsonResponse({"success": False, "error": "Formato de mensaje inválido"}, status=400)
         except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=500)
+            logging.error(f"ChatbotController Critical Error: {str(e)}", exc_info=True)
+            return JsonResponse({"success": False, "error": "Error interno del servidor."}, status=500)
+
+    @staticmethod
+    def _finalize_response(request, user_id, user_message, raw_response, intent, session_context):
+        """Helper para sanitizar y guardar el mensaje antes de devolverlo al frontend"""
+        response = ChatbotController._sanitize_response(raw_response)
+
+        # Guardar memoria corta en sesión
+        session_context.append({"message": user_message, "response": response})
+        request.session["chatbot_context"] = session_context[-ChatbotController.MAX_SESSION_TURNS :]
+
+        # Guardar historial persistente
+        ChatbotMessage.save_message(user_id, user_message, response)
+
+        return JsonResponse({"success": True, "message": user_message, "response": response, "intent": intent})
 
     @staticmethod
     @ensure_csrf_cookie
     def clear_history(request):
-        """Limpia historial Y contexto de sesión"""
-        # Usar autenticación nativa de Django
         if not request.user.is_authenticated:
             return JsonResponse({"success": False, "error": "No autenticado"}, status=401)
-
-        user_id = request.user.id
 
         if request.method != "POST":
             return JsonResponse({"success": False, "error": "Método no permitido"}, status=405)
 
         try:
-            ChatbotMessage.delete_history(user_id)
-            # Limpiar contexto de sesión
+            ChatbotMessage.delete_history(request.user.id)
             request.session["chatbot_context"] = []
             return JsonResponse({"success": True, "message": "Historial y contexto eliminados"})
         except Exception as e:
@@ -205,15 +202,34 @@ class ChatbotController:
 
     @staticmethod
     def get_history(request):
-        """Obtiene historial"""
-        # Usar autenticación nativa de Django
         if not request.user.is_authenticated:
             return JsonResponse({"success": False, "error": "No autenticado"}, status=401)
 
-        user_id = request.user.id
-
         try:
-            history = ChatbotMessage.get_history(user_id, limit=50)
+            history = ChatbotMessage.get_history(request.user.id, limit=50)
             return JsonResponse({"success": True, "history": history})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+    @staticmethod
+    def _sanitize_response(text: str) -> str:
+        if not text:
+            return "No pude generar una respuesta en este momento."
+
+        # Quitar frases meta o explicaciones indeseadas
+        patterns = [
+            r"Este comportamiento es muy común.*?(?:\n|$)",
+            r"No se considera un error.*?(?:\n|$)",
+            r"Como IA.*?(?:\n|$)",
+            r"Soy un modelo de lenguaje.*?(?:\n|$)",
+        ]
+
+        clean = text.strip()
+        for pattern in patterns:
+            clean = re.sub(pattern, "", clean, flags=re.IGNORECASE | re.DOTALL)
+
+        # Limitar a dos párrafos
+        paragraphs = [p.strip() for p in clean.split("\n\n") if p.strip()]
+        clean = "\n\n".join(paragraphs[:2])
+
+        return clean.strip() or "No pude generar una respuesta útil en este momento."

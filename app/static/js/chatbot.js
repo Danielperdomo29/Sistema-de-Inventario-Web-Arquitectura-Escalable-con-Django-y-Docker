@@ -378,6 +378,11 @@ document.addEventListener('DOMContentLoaded', function() {
         clearHistoryBtn.addEventListener('click', clearHistory);
     }
 
+    const widgetClearBtn = document.getElementById('chatbot-widget-clear');
+    if (widgetClearBtn) {
+        widgetClearBtn.addEventListener('click', clearHistory);
+    }
+
     // Scroll inicial al final
     scrollToBottom();
 
@@ -385,13 +390,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Solo si no estamos en modo widget (o si el widget está abierto por defecto)
     // messageInput.focus(); // Comentado para evitar teclado en móviles al cargar
 
-    // Toast de bienvenida (opcional, solo si no hay historial)
-    const hasHistory = chatMessages.querySelector('.message');
-    if (!hasHistory) {
-        setTimeout(() => {
-            Notifications.toast('¡Hola! Soy tu asistente de inventario 🤖', 'info', 4000);
-        }, 500);
+    /**
+     * Cargar historial de chat desde el servidor
+     */
+    async function loadHistory() {
+        try {
+            const csrfToken = getCsrfToken();
+            if (!csrfToken) return;
+
+            const response = await fetch('/chatbot/history/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) return;
+
+            const data = await response.json();
+            if (data.success && data.history && data.history.length > 0) {
+                // Limpiar el chat actual
+                chatMessages.innerHTML = '';
+
+                // Cargar mensajes en orden
+                data.history.forEach(msg => {
+                    const timeStr = new Date(msg.created_at).toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'});
+                    if (msg.message) addMessage(msg.message, true, timeStr);
+                    if (msg.response) addMessage(msg.response, false, timeStr);
+                });
+                scrollToBottom();
+            } else {
+                // Toast de bienvenida solo si no hay historial
+                setTimeout(() => {
+                    Notifications.toast('¡Hola! Soy tu asistente operativo 🤖', 'info', 4000);
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Error cargando historial:', error);
+        }
     }
+
+    // Cargar el historial en inicialización
+    loadHistory();
 
     // ============================================================================
     // WIDGET TOGGLE LOGIC

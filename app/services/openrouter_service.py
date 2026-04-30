@@ -13,7 +13,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Optional
+from typing import Optional
 
 import requests
 from dotenv import load_dotenv
@@ -137,7 +137,7 @@ class OpenRouterService:
             try:
                 error_json = exception.response.json()
                 return error_json.get("error", {}).get("message", str(exception))
-            except:
+            except Exception:
                 pass
         return str(exception)
 
@@ -248,9 +248,57 @@ class OpenRouterService:
         all_errors = "; ".join(errors_log[-5:])  # Últimos 5 errores
         raise Exception(f"Todos los modelos IA fallaron. Últimos errores: {all_errors}")
 
+    def chat_with_tools(
+        self, messages: list[dict], model: str = None, temperature: float = 0.3, max_tokens: int = 500
+    ) -> dict:
+        """
+        Envía una consulta al modelo soportando Tool Calling (Function Calling).
+        Retorna el diccionario completo del mensaje para verificar si hay tool_calls.
+        """
+        from app.services.ai.tools_definitions import TOOLS
+
+        # Para tools, usamos un modelo conocido por ser muy bueno con tools, o el que se pase
+        # Nota: No todos los modelos gratuitos soportan tools bien, por eso priorizamos modelos específicos.
+        current_model = model or "openai/gpt-4o-mini"
+
+        # Si queremos failover con tools, idealmente usaríamos una lista de fallback específica para tools,
+        # pero por simplicidad de este ejemplo, intentamos con el modelo indicado con reintentos básicos.
+        retry_count = 0
+        while retry_count <= self.MAX_RETRIES:
+            try:
+                payload = {
+                    "model": current_model,
+                    "messages": messages,
+                    "tools": TOOLS,
+                    "tool_choice": "auto",
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                }
+
+                result = self._make_request("/chat/completions", payload)
+
+                if "choices" in result and len(result["choices"]) > 0:
+                    logger.info(f"OpenRouter: Respuesta exitosa con tools de {current_model}")
+                    return result["choices"][0]["message"]
+
+                raise Exception("Respuesta vacía del modelo con tools")
+
+            except Exception as e:
+                logger.warning(f"OpenRouter Tools Error en {current_model}: {str(e)}")
+                retry_count += 1
+                import time
+
+                if retry_count <= self.MAX_RETRIES:
+                    time.sleep(self.RETRY_DELAY * retry_count)
+
+        raise Exception(
+            f"El modelo {current_model} falló la llamada con herramientas después de {self.MAX_RETRIES} reintentos."
+        )
+
     def generate_summary(self, data: dict, context: str = "") -> str:
         """Genera un resumen ejecutivo de datos con failover automático."""
-        prompt = f"""Eres un analista de negocios experto. Analiza los siguientes datos y genera un resumen ejecutivo breve y profesional en español.
+        prompt = f"""Eres un analista de negocios experto. Analiza los siguientes datos y
+genera un resumen ejecutivo breve y profesional en español.
 
 Contexto: {context}
 
@@ -269,7 +317,8 @@ Mantén el resumen conciso (máximo 150 palabras)."""
 
     def natural_language_to_insight(self, question: str, available_data: dict) -> str:
         """Responde preguntas en lenguaje natural con failover automático."""
-        prompt = f"""Eres un asistente de análisis de inventario. Responde la siguiente pregunta basándote únicamente en los datos proporcionados.
+        prompt = f"""Eres un asistente de análisis de inventario. Responde la siguiente
+pregunta basándote únicamente en los datos proporcionados.
 
 Pregunta del usuario: {question}
 
