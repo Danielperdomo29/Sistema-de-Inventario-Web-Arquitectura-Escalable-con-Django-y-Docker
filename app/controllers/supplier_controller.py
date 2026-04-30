@@ -11,12 +11,11 @@ class SupplierController:
     @staticmethod
     def index(request):
         """Mostrar lista de proveedores"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         suppliers = Supplier.get_all()
         total = Supplier.count()
@@ -26,12 +25,11 @@ class SupplierController:
     @ensure_csrf_cookie
     def create(request):
         """Crear un nuevo proveedor"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -71,12 +69,11 @@ class SupplierController:
     @ensure_csrf_cookie
     def edit(request, supplier_id):
         """Editar un proveedor existente"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         supplier = Supplier.get_by_id(supplier_id)
         if not supplier:
@@ -119,12 +116,11 @@ class SupplierController:
     @staticmethod
     def delete(request, supplier_id):
         """Eliminar lógicamente un proveedor"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -133,4 +129,3 @@ class SupplierController:
                 pass
 
         return HttpResponseRedirect("/proveedores/")
-

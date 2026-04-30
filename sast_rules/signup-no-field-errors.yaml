@@ -1,0 +1,19 @@
+rules:
+  - id: signup-no-field-errors
+    patterns:
+      - pattern-either:
+          - pattern: |
+              {% for error in form.username.errors %}
+          - pattern: |
+              {% for error in form.email.errors %}
+          - pattern: |
+              {% for error in form.password1.errors %}
+          - pattern: |
+              {% for error in form.password2.errors %}
+    message: "No mostrar errores de campo específicos (enumeración de usuarios/emails)."
+    severity: WARNING
+    languages: [generic]
+    paths:
+      include:
+        - "templates/account/signup.html"
+        - "templates/account/password_reset.html"

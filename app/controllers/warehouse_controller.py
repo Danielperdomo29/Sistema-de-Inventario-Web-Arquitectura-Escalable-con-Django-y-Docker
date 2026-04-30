@@ -12,14 +12,11 @@ class WarehouseController:
     @ensure_csrf_cookie
     def index(request):
         """Muestra el listado de almacenes"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return redirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            return redirect("/login/")
+        user = request.user
 
         # Obtener todos los almacenes
         warehouses = Warehouse.get_all()
@@ -31,16 +28,11 @@ class WarehouseController:
     @ensure_csrf_cookie
     def create(request):
         """Crear un nuevo almacén"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Si es GET, mostrar formulario
         if request.method == "GET":
@@ -59,9 +51,7 @@ class WarehouseController:
 
                 # Validaciones básicas
                 if not data["nombre"]:
-                    return HttpResponse(
-                        WarehouseView.create(user, request, error="El nombre es obligatorio")
-                    )
+                    return HttpResponse(WarehouseView.create(user, request, error="El nombre es obligatorio"))
 
                 # Crear el almacén
                 Warehouse.create(data)
@@ -70,24 +60,17 @@ class WarehouseController:
                 return HttpResponseRedirect("/almacenes/")
 
             except Exception as e:
-                return HttpResponse(
-                    WarehouseView.create(user, request, error=f"Error al crear almacén: {str(e)}")
-                )
+                return HttpResponse(WarehouseView.create(user, request, error=f"Error al crear almacén: {str(e)}"))
 
     @staticmethod
     @ensure_csrf_cookie
     def edit(request, warehouse_id):
         """Editar un almacén existente"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener el almacén
         warehouse = Warehouse.get_by_id(warehouse_id)
@@ -111,11 +94,7 @@ class WarehouseController:
 
                 # Validaciones básicas
                 if not data["nombre"]:
-                    return HttpResponse(
-                        WarehouseView.edit(
-                            user, warehouse, request, error="El nombre es obligatorio"
-                        )
-                    )
+                    return HttpResponse(WarehouseView.edit(user, warehouse, request, error="El nombre es obligatorio"))
 
                 # Actualizar el almacén
                 Warehouse.update(warehouse_id, data)
@@ -125,25 +104,18 @@ class WarehouseController:
 
             except Exception as e:
                 return HttpResponse(
-                    WarehouseView.edit(
-                        user, warehouse, request, error=f"Error al actualizar almacén: {str(e)}"
-                    )
+                    WarehouseView.edit(user, warehouse, request, error=f"Error al actualizar almacén: {str(e)}")
                 )
 
     @staticmethod
     @ensure_csrf_cookie
     def delete(request, warehouse_id):
         """Eliminar un almacén"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Eliminar solo si es POST
         if request.method == "POST":

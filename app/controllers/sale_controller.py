@@ -20,15 +20,11 @@ class SaleController:
     @ensure_csrf_cookie
     def index(request):
         """Muestra el listado de ventas con filtros"""
-        # Verificar si el usuario está autenticado
-        user_id = request.session.get("user_id")
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return redirect("/login/")
 
-        # Obtener el usuario
-        user = User.get_by_id(user_id)
-        if not user:
-            return redirect("/login/")
+        user = request.user
 
         # 1. Base QuerySet
         queryset = Sale.objects.select_related("cliente", "usuario", "factura_electronica").order_by("-fecha", "-id")
@@ -68,16 +64,11 @@ class SaleController:
     @ensure_csrf_cookie
     def create(request):
         """Crear una nueva venta"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Si es GET, mostrar formulario
         if request.method == "GET":
@@ -123,7 +114,7 @@ class SaleController:
                 data = {
                     "numero_factura": numero_factura,
                     "cliente_id": request.POST.get("cliente_id"),
-                    "usuario_id": user_id,
+                    "usuario_id": user.id,
                     "fecha": fecha_aware,
                     "total": total,
                     "estado": request.POST.get("estado", "completada"),
@@ -143,7 +134,7 @@ class SaleController:
                 venta = Sale.objects.create(
                     numero_factura=data["numero_factura"],
                     cliente_id=data["cliente_id"],
-                    usuario_id=user_id,
+                    usuario_id=user.id,
                     fecha=data["fecha"],
                     total=Decimal("0"),  # Se calcula después
                     estado="pendiente",  # Temporal
@@ -207,16 +198,11 @@ class SaleController:
     @ensure_csrf_cookie
     def edit(request, sale_id):
         """Editar una venta existente"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener la venta
         # Obtener la venta
@@ -370,16 +356,11 @@ class SaleController:
     @ensure_csrf_cookie
     def delete(request, sale_id):
         """Eliminar una venta"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             # Verificar si tiene factura DIAN asociada
@@ -402,16 +383,11 @@ class SaleController:
     @staticmethod
     def view(request, sale_id):
         """Ver detalle de una venta"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener la venta
         sale = Sale.get_by_id(sale_id)

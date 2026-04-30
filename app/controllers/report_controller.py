@@ -10,15 +10,11 @@ class ReportController:
     @staticmethod
     def index(request):
         """Muestra el dashboard de reportes"""
-        # Verificar si el usuario está autenticado
-        user_id = request.session.get("user_id")
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return redirect("/login/")
 
-        # Obtener el usuario
-        user = User.get_by_id(user_id)
-        if not user:
-            return redirect("/login/")
+        user = request.user
 
         # Obtener datos para reportes
         data = {

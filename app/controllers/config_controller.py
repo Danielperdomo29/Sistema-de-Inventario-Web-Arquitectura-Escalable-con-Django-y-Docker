@@ -13,22 +13,18 @@ class ConfigController:
     @staticmethod
     def index(request):
         """Muestra la página de configuración"""
-        # Verificar si el usuario está autenticado
-        user_id = request.session.get("user_id")
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return redirect("/login/")
 
-        # Obtener el usuario
-        user = User.get_by_id(user_id)
-        if not user:
-            return redirect("/login/")
+        user = request.user
 
         # Verificar si es superadmin
         is_superadmin = user.username == "superadmin"
 
         # Obtener datos de configuración
         data = {
-            "user_info": Config.get_user_info(user_id),
+            "user_info": Config.get_user_info(user.id),
             "system_stats": Config.get_system_stats(),
             "all_users": Config.get_all_users(include_superadmin=is_superadmin),
             "database_info": Config.get_database_info(),
@@ -41,16 +37,11 @@ class ConfigController:
     @ensure_csrf_cookie
     def create_user(request):
         """Crear un nuevo usuario"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Si es GET, mostrar formulario
         if request.method == "GET":
@@ -62,7 +53,7 @@ class ConfigController:
             try:
                 # Hashear la contraseña (delegamos al modelo)
                 password = request.POST.get("password")
-                
+
                 data = {
                     "username": request.POST.get("username"),
                     "password": password,
@@ -76,9 +67,7 @@ class ConfigController:
                 if not data["username"] or not password:
                     roles = Config.get_roles()
                     return HttpResponse(
-                        ConfigView.create_user(
-                            user, roles, request, error="Usuario y contraseña son obligatorios"
-                        )
+                        ConfigView.create_user(user, roles, request, error="Usuario y contraseña son obligatorios")
                     )
 
                 # Crear el usuario
@@ -90,25 +79,18 @@ class ConfigController:
             except Exception as e:
                 roles = Config.get_roles()
                 return HttpResponse(
-                    ConfigView.create_user(
-                        user, roles, request, error=f"Error al crear usuario: {str(e)}"
-                    )
+                    ConfigView.create_user(user, roles, request, error=f"Error al crear usuario: {str(e)}")
                 )
 
     @staticmethod
     @ensure_csrf_cookie
     def edit_user(request, user_edit_id):
         """Editar un usuario existente"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener el usuario a editar
         user_to_edit = Config.get_user_by_id(user_edit_id)
@@ -135,9 +117,7 @@ class ConfigController:
                 if not data["username"]:
                     roles = Config.get_roles()
                     return HttpResponse(
-                        ConfigView.edit_user(
-                            user, user_to_edit, roles, request, error="El usuario es obligatorio"
-                        )
+                        ConfigView.edit_user(user, user_to_edit, roles, request, error="El usuario es obligatorio")
                     )
 
                 # Actualizar el usuario
@@ -161,19 +141,14 @@ class ConfigController:
     @staticmethod
     def delete_user(request, user_delete_id):
         """Desactivar un usuario"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # No permitir desactivarse a sí mismo
-        if user_id == user_delete_id:
+        if user.id == user_delete_id:
             return HttpResponseRedirect("/configuracion/")
 
         # Desactivar el usuario
@@ -186,28 +161,21 @@ class ConfigController:
     @ensure_csrf_cookie
     def edit_profile(request):
         """Editar el perfil del usuario actual"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener información completa del usuario
-        user_info = Config.get_user_info(user_id)
+        user_info = Config.get_user_info(user.id)
 
         # Verificar si el usuario está activo (solo usuarios con activo=1 pueden editar estado)
         is_active_user = user.is_active
 
         # Si es GET, mostrar formulario
         if request.method == "GET":
-            return HttpResponse(
-                ConfigView.edit_profile(user, user_info, request, is_admin=is_active_user)
-            )
+            return HttpResponse(ConfigView.edit_profile(user, user_info, request, is_admin=is_active_user))
 
         # Si es POST, procesar el formulario
         if request.method == "POST":
@@ -222,7 +190,7 @@ class ConfigController:
                     data["activo"] = int(request.POST.get("activo", 1))
 
                 # Actualizar el perfil
-                Config.update_profile(user_id, data)
+                Config.update_profile(user.id, data)
 
                 # Redireccionar
                 return HttpResponseRedirect("/configuracion/")
@@ -242,16 +210,11 @@ class ConfigController:
     @ensure_csrf_cookie
     def change_password(request):
         """Cambiar contraseña del usuario actual"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Si es GET, mostrar formulario
         if request.method == "GET":
@@ -267,18 +230,12 @@ class ConfigController:
                 # Validar contraseña actual
                 if not user.check_password(current_password):
                     return HttpResponse(
-                        ConfigView.change_password(
-                            user, request, error="La contraseña actual es incorrecta"
-                        )
+                        ConfigView.change_password(user, request, error="La contraseña actual es incorrecta")
                     )
 
                 # Validar que las contraseñas coincidan
                 if new_password != confirm_password:
-                    return HttpResponse(
-                        ConfigView.change_password(
-                            user, request, error="Las contraseñas no coinciden"
-                        )
-                    )
+                    return HttpResponse(ConfigView.change_password(user, request, error="Las contraseñas no coinciden"))
 
                 # Validar longitud mínima
                 if len(new_password) < 4:
@@ -289,14 +246,12 @@ class ConfigController:
                     )
 
                 # Actualizar contraseña (delegamos hasheo al modelo)
-                Config.change_password(user_id, new_password)
+                Config.change_password(user.id, new_password)
 
                 # Redireccionar
                 return HttpResponseRedirect("/configuracion/")
 
             except Exception as e:
                 return HttpResponse(
-                    ConfigView.change_password(
-                        user, request, error=f"Error al cambiar contraseña: {str(e)}"
-                    )
+                    ConfigView.change_password(user, request, error=f"Error al cambiar contraseña: {str(e)}")
                 )

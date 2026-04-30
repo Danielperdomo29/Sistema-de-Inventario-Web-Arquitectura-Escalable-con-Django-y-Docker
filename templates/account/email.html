@@ -1,0 +1,67 @@
+{% extends "account/base.html" %}
+
+{% block title %}Gestionar Correos - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card" style="max-width: 600px;">
+        <h2><i class="fas fa-envelope"></i> Direcciones de Correo</h2>
+        <p>Gestiona los correos asociados a tu cuenta</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if user.emailaddress_set.all %}
+        <form action="{% url 'account_email' %}" class="email_list" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {% for emailaddress in user.emailaddress_set.all %}
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
+                        <input type="radio" name="email" {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked="checked"{%endif %} value="{{emailaddress.email}}"/>
+                        <span style="font-weight: 500;">{{ emailaddress.email }}</span>
+
+                        {% if emailaddress.verified %}
+                        <span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">Verificado</span>
+                        {% else %}
+                        <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">No Verificado</span>
+                        {% endif %}
+
+                        {% if emailaddress.primary %}
+                        <span style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">Primario</span>
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px;">
+                <button type="submit" name="action_primary" class="btn btn-primary" style="flex: 1; min-width: 140px;"><i class="fas fa-star"></i> Hacer Primario</button>
+                <button type="submit" name="action_send" class="btn btn-secondary" style="flex: 1; min-width: 140px; background-color: #64748b;"><i class="fas fa-paper-plane"></i> Verificar</button>
+                <button type="submit" name="action_remove" class="btn btn-cancel" style="flex: 1; min-width: 140px; background: #fee2e2; color: #b91c1c; border-color: #fca5a5;"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        </form>
+        {% endif %}
+
+        <hr style="border: 0; height: 1px; background: #e2e8f0; margin: 20px 0;">
+
+        <h3><i class="fas fa-plus-circle"></i> Agregar Nuevo Correo</h3>
+        <form method="post" action="{% url 'account_email' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="email" name="email" class="form-control" placeholder="nuevo-correo@ejemplo.com" required>
+            </div>
+            <button type="submit" name="action_add" class="btn btn-primary"><i class="fas fa-plus"></i> Agregar Correo</button>
+        </form>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="/" style="color: #3b82f6; text-decoration: none; font-weight: 500;"><i class="fas fa-arrow-left"></i> Volver al Inicio</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

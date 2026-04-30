@@ -11,16 +11,15 @@ class PurchaseDetailController:
     @staticmethod
     def index(request):
         """Mostrar lista de todos los detalles de compras"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener todos los detalles de todas las compras
         query = """
-            SELECT dc.*, 
+            SELECT dc.*,
                    p.nombre as producto_nombre,
                    c.numero_factura,
                    c.fecha as fecha_compra,
@@ -41,12 +40,11 @@ class PurchaseDetailController:
     @ensure_csrf_cookie
     def create(request):
         """Crear un nuevo detalle de compra"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -81,10 +79,10 @@ class PurchaseDetailController:
 
                 # Actualizar el total de la compra
                 update_query = """
-                    UPDATE compras 
+                    UPDATE compras
                     SET total = (
-                        SELECT SUM(subtotal) 
-                        FROM detalle_compras 
+                        SELECT SUM(subtotal)
+                        FROM detalle_compras
                         WHERE compra_id = %s
                     )
                     WHERE id = %s
@@ -97,9 +95,7 @@ class PurchaseDetailController:
                 purchases = Purchase.get_all()
                 products = Product.get_all()
                 error_message = f"Error al crear el detalle: {str(e)}"
-                return HttpResponse(
-                    PurchaseDetailView.create(user, purchases, products, request, error_message)
-                )
+                return HttpResponse(PurchaseDetailView.create(user, purchases, products, request, error_message))
 
         # GET request
         purchases = Purchase.get_all()
@@ -110,12 +106,11 @@ class PurchaseDetailController:
     @ensure_csrf_cookie
     def edit(request, detail_id):
         """Editar un detalle de compra existente"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener el detalle
         query = """
@@ -155,32 +150,26 @@ class PurchaseDetailController:
                         subtotal = %s
                     WHERE id = %s
                 """
-                Database.execute_query(
-                    update_query, (cantidad, precio_unitario, subtotal, detail_id), fetch=False
-                )
+                Database.execute_query(update_query, (cantidad, precio_unitario, subtotal, detail_id), fetch=False)
 
                 # Actualizar el total de la compra
                 update_total_query = """
-                    UPDATE compras 
+                    UPDATE compras
                     SET total = (
-                        SELECT SUM(subtotal) 
-                        FROM detalle_compras 
+                        SELECT SUM(subtotal)
+                        FROM detalle_compras
                         WHERE compra_id = %s
                     )
                     WHERE id = %s
                 """
-                Database.execute_query(
-                    update_total_query, (detail["compra_id"], detail["compra_id"]), fetch=False
-                )
+                Database.execute_query(update_total_query, (detail["compra_id"], detail["compra_id"]), fetch=False)
 
                 return HttpResponseRedirect("/detalle-compras/")
 
             except Exception as e:
                 products = Product.get_all()
                 error_message = f"Error al actualizar el detalle: {str(e)}"
-                return HttpResponse(
-                    PurchaseDetailView.edit(user, detail, products, request, error_message)
-                )
+                return HttpResponse(PurchaseDetailView.edit(user, detail, products, request, error_message))
 
         # GET request
         products = Product.get_all()
@@ -189,12 +178,11 @@ class PurchaseDetailController:
     @staticmethod
     def delete(request, detail_id):
         """Eliminar un detalle de compra"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -213,10 +201,10 @@ class PurchaseDetailController:
 
                     # Actualizar el total de la compra
                     update_query = """
-                        UPDATE compras 
+                        UPDATE compras
                         SET total = COALESCE((
-                            SELECT SUM(subtotal) 
-                            FROM detalle_compras 
+                            SELECT SUM(subtotal)
+                            FROM detalle_compras
                             WHERE compra_id = %s
                         ), 0)
                         WHERE id = %s
@@ -231,16 +219,15 @@ class PurchaseDetailController:
     @staticmethod
     def view(request, detail_id):
         """Ver detalle de una compra específica"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener el detalle con toda la información
         query = """
-            SELECT dc.*, 
+            SELECT dc.*,
                    p.nombre as producto_nombre,
                    p.precio as producto_precio,
                    c.numero_factura,

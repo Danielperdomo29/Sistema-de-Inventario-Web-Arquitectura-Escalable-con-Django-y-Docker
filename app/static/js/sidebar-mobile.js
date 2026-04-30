@@ -9,26 +9,42 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const navbarBrand = document.querySelector('.navbar-brand');
     const closeBtn = document.getElementById('sidebarCloseBtn');
-    
-    // Función para abrir sidebar con animación
+    const sidebarToggleBtn = document.getElementById('sidebarToggle');
+
     function openSidebar() {
-        if (sidebar && sidebarOverlay) {
+        if (sidebar) {
             sidebar.classList.add('active');
-            sidebarOverlay.classList.add('active');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.add('active');
+            }
             document.body.style.overflow = 'hidden';
         }
     }
-    
-    // Función para cerrar sidebar con animación
+
     function closeSidebar() {
-        if (sidebar && sidebarOverlay) {
+        if (sidebar) {
             sidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('active');
+            }
             document.body.style.overflow = '';
         }
     }
-    
-    // Toggle sidebar al tocar "HUB DE GESTIÓN" (solo en móviles)
+
+    // Toggle sidebar con botón hamburguesa (nuevo)
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (sidebar.classList.contains('active')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+    }
+
+    // Toggle sidebar al tocar "HUB DE GESTIÓN" (compatibilidad)
     if (navbarBrand) {
         navbarBrand.addEventListener('click', function(e) {
             if (window.innerWidth <= 768) {
@@ -41,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Cerrar sidebar con botón X
     if (closeBtn) {
         closeBtn.addEventListener('click', function(e) {
@@ -50,14 +66,14 @@ document.addEventListener('DOMContentLoaded', function() {
             closeSidebar();
         });
     }
-    
+
     // Cerrar sidebar al tocar overlay
     if (sidebarOverlay) {
         sidebarOverlay.addEventListener('click', function() {
             closeSidebar();
         });
     }
-    
+
     // Cerrar sidebar al seleccionar un enlace (navegación)
     const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
     sidebarLinks.forEach(link => {
@@ -68,14 +84,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Cerrar sidebar con tecla Escape
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && sidebar && sidebar.classList.contains('active')) {
             closeSidebar();
         }
     });
-    
+
     // Cerrar sidebar si se redimensiona la ventana a desktop
     window.addEventListener('resize', function() {
         if (window.innerWidth > 768 && sidebar && sidebar.classList.contains('active')) {

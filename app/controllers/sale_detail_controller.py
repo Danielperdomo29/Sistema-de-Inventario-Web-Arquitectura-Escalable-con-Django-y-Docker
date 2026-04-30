@@ -52,12 +52,11 @@ class SaleDetailController:
     @staticmethod
     def index(request):
         """Mostrar lista de todos los detalles de ventas con búsqueda y paginación"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         qs, q, ordering = SaleDetailController._build_queryset(request)
 
@@ -103,12 +102,11 @@ class SaleDetailController:
     @ensure_csrf_cookie
     def create(request):
         """Crear un nuevo detalle de venta"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -166,12 +164,11 @@ class SaleDetailController:
     @ensure_csrf_cookie
     def edit(request, detail_id):
         """Editar un detalle de venta existente"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener detalle via ORM
         try:
@@ -237,12 +234,11 @@ class SaleDetailController:
     @staticmethod
     def delete(request, detail_id):
         """Eliminar un detalle de venta"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -277,12 +273,11 @@ class SaleDetailController:
     @staticmethod
     def view(request, detail_id):
         """Ver detalle de una venta específica con vista previa de factura"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         try:
             d = SaleDetail.objects.select_related("venta", "venta__cliente", "producto").get(id=detail_id)
@@ -330,7 +325,8 @@ class SaleDetailController:
     @staticmethod
     def export_csv(request):
         """Exportar items de venta filtrados a CSV"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
         qs, q, ordering = SaleDetailController._build_queryset(request)

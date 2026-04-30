@@ -13,15 +13,11 @@ class CategoryController:
     @ensure_csrf_cookie
     def index(request):
         """Muestra el listado de categorías"""
-        # Verificar si el usuario está autenticado
-        user_id = request.session.get("user_id")
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return redirect("/login/")
 
-        # Obtener el usuario
-        user = User.get_by_id(user_id)
-        if not user:
-            return redirect("/login/")
+        user = request.user
 
         # Obtener todas las categorías
         categories = Category.get_all()
@@ -34,16 +30,11 @@ class CategoryController:
     @AuthMiddleware.require_active_user
     def create(request):
         """Crear una nueva categoría"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Si es GET, mostrar formulario
         if request.method == "GET":
@@ -61,9 +52,7 @@ class CategoryController:
 
                 # Validaciones básicas
                 if not data["nombre"]:
-                    return HttpResponse(
-                        CategoryView.create(user, request, error="El nombre es obligatorio")
-                    )
+                    return HttpResponse(CategoryView.create(user, request, error="El nombre es obligatorio"))
 
                 # Crear la categoría
                 Category.create(data)
@@ -72,25 +61,18 @@ class CategoryController:
                 return HttpResponseRedirect("/categorias/")
 
             except Exception as e:
-                return HttpResponse(
-                    CategoryView.create(user, request, error=f"Error al crear categoría: {str(e)}")
-                )
+                return HttpResponse(CategoryView.create(user, request, error=f"Error al crear categoría: {str(e)}"))
 
     @staticmethod
     @ensure_csrf_cookie
     @AuthMiddleware.require_active_user
     def edit(request, category_id):
         """Editar una categoría existente"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener la categoría
         category = Category.get_by_id(category_id)
@@ -113,9 +95,7 @@ class CategoryController:
 
                 # Validaciones básicas
                 if not data["nombre"]:
-                    return HttpResponse(
-                        CategoryView.edit(user, category, request, error="El nombre es obligatorio")
-                    )
+                    return HttpResponse(CategoryView.edit(user, category, request, error="El nombre es obligatorio"))
 
                 # Actualizar la categoría
                 Category.update(category_id, data)
@@ -125,28 +105,19 @@ class CategoryController:
 
             except Exception as e:
                 return HttpResponse(
-                    CategoryView.edit(
-                        user, category, request, error=f"Error al actualizar categoría: {str(e)}"
-                    )
+                    CategoryView.edit(user, category, request, error=f"Error al actualizar categoría: {str(e)}")
                 )
 
-    @staticmethod
-    @AuthMiddleware.require_active_user
     @staticmethod
     @AuthMiddleware.require_active_user
     @ensure_csrf_cookie
     def delete(request, category_id):
         """Eliminar una categoría"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -156,6 +127,6 @@ class CategoryController:
                 print(f"Error deleting category {category_id}: {e}")
                 # Podríamos pasar un error a la vista usando sessions o params,
                 # pero por ahora el redirect es estándar.
-        
+
         # Redireccionar a la lista
         return HttpResponseRedirect("/categorias/")

@@ -9,6 +9,10 @@ class AuthMiddleware:
     @staticmethod
     def check_user_active(request):
         """Verifica si el usuario está activo"""
+        # Soportar autenticación nativa de Django
+        if hasattr(request, "user") and request.user.is_authenticated:
+            return request.user.is_active, request.user
+
         user_id = request.session.get("user_id")
 
         if not user_id:
@@ -37,9 +41,7 @@ class AuthMiddleware:
                 # Si el usuario NO está activo (activo = 0), mostrar restricción
                 if not is_active:
                     # Retornar respuesta JSON indicando acceso restringido
-                    return JsonResponse(
-                        {"success": False, "restricted": True, "message": "Acceso Restringido"}
-                    )
+                    return JsonResponse({"success": False, "restricted": True, "message": "Acceso Restringido"})
 
             return view_func(request, *args, **kwargs)
 

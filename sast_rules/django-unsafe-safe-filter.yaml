@@ -1,0 +1,11 @@
+rules:
+  - id: django-unsafe-safe-filter
+    patterns:
+      - pattern: "{{ $VAR | safe }}"
+      - pattern-not: "{{ $VAR | bleach | safe }}"
+    message: "Uso de filtro safe sin sanitización previa (posible XSS)."
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - "templates/**"

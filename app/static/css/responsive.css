@@ -10,32 +10,26 @@ html, body {
     overflow-x: hidden;
 }
 
-/* ========================================
-   NAVBAR BRAND
-   ======================================== */
+/* Navbar-brand overrides moved to theme-professional-neutral.css */
 .navbar-brand {
     text-align: left;
 }
 
-.navbar-brand h1 {
-    color: white;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    margin: 0;
-    font-size: 1.3em;
-}
-
-.navbar-brand p,
-.navbar-subtitle {
-    font-size: 0.65em;
-    color: #ddd;
-    margin: 0;
-    font-weight: 300;
-}
-
-/* Ocultar hamburguesa por defecto */
+/* Hamburguesa: oculta en desktop, visible en mobile */
 .hamburger-menu {
     display: none;
+    background: transparent;
+    border: none;
+    color: #1d1d1f;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.hamburger-menu:hover {
+    background: rgba(0, 0, 0, 0.06);
 }
 
 /* Sidebar mobile header - oculto en desktop */
@@ -49,7 +43,7 @@ html, body {
    ======================================== */
 @media (max-width: 768px) {
 
-    /* OVERLAY - Glassmorphism */
+    /* OVERLAY - Invisible click-catcher (estilo Facebook) */
     .sidebar-overlay {
         display: none;
         position: fixed;
@@ -57,93 +51,109 @@ html, body {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        z-index: 999;
-        opacity: 0;
-        transition: opacity 0.3s ease;
+        background: transparent;
+        z-index: 1001;
+        cursor: pointer;
     }
 
     .sidebar-overlay.active {
         display: block;
-        opacity: 1;
     }
 
-    /* NAVBAR - Premium fijo */
+    /* NAVBAR - Mobile Specific */
     .navbar {
-        padding: 0.6rem 1rem;
+        padding: 0.6rem 1rem !important;
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         z-index: 1001;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
     .navbar-content {
         flex-wrap: nowrap;
         align-items: center;
+        padding: 0 0.75rem !important;
     }
 
-    .navbar-brand {
-        flex: 1;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Hamburger animado */
-    .navbar-brand::before {
-        content: "☰";
-        font-size: 1.4rem;
-        color: white;
-        display: flex;
+    /* Mostrar hamburguesa real en mobile */
+    .hamburger-menu {
+        display: flex !important;
         align-items: center;
         justify-content: center;
         width: 36px;
         height: 36px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.15);
-        transition: background 0.2s ease, transform 0.2s ease;
+        color: #1d1d1f !important;
+        font-size: 1.2rem;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.05);
         flex-shrink: 0;
     }
 
-    .navbar-brand:active::before {
-        background: rgba(255, 255, 255, 0.25);
+    .hamburger-menu:active {
+        background: rgba(0, 0, 0, 0.1);
         transform: scale(0.92);
     }
 
+    /* Eliminar pseudo-hamburguesa vieja */
+    .navbar-brand::before {
+        display: none !important;
+        content: none !important;
+    }
+
+    .navbar-brand {
+        cursor: default;
+    }
+
+    /* Navbar-left: toma el espacio disponible, alineado a la izquierda */
+    .navbar-left {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        flex: 1 1 auto !important;
+        justify-content: flex-start !important;
+        min-width: 0;
+    }
+
     .navbar-brand h1 {
-        font-size: 1rem;
+        font-size: 1rem !important;
         white-space: nowrap;
-        letter-spacing: 0.5px;
+        color: #1d1d1f !important;
     }
 
-    .navbar-brand p,
+    /* Centro oculto en mobile */
+    .navbar-center {
+        display: none !important;
+    }
+
     .navbar-subtitle {
+        display: none !important;
+    }
+
+    /* Navbar right: compacto, sin crecer */
+    .navbar-right {
+        gap: 0.4rem !important;
+        min-width: auto !important;
+        flex: 0 0 auto !important;
+    }
+
+    .navbar-right .user-profile-pill span {
         display: none;
     }
 
-    .navbar-menu {
-        gap: 6px;
+    .navbar-icon-btn {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 0.95rem !important;
     }
 
-    .navbar-menu a {
-        padding: 8px 10px;
-        font-size: 0.85rem;
-        border-radius: 8px;
-        transition: background 0.2s ease;
+    .btn-whatsapp {
+        width: 34px !important;
+        height: 34px !important;
     }
 
-    .navbar-menu a:active {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .navbar-menu span {
-        display: none;
+    .user-profile-pill {
+        padding: 0.3rem 0.5rem !important;
     }
 
     /* ===== SIDEBAR - Premium desplegable ===== */
@@ -153,7 +163,7 @@ html, body {
         left: -300px;
         width: 300px;
         height: 100vh;
-        z-index: 1000;
+        z-index: 1002;
         transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
         overflow-y: auto;
@@ -325,13 +335,14 @@ html, body {
 
     /* LAYOUT */
     .layout {
-        padding-top: 58px;
+        padding-top: 0;
     }
 
     .main-content {
         margin-left: 0 !important;
         padding: 15px;
-        width: 100%;
+        width: 100% !important;
+        margin-top: 70px !important;
     }
 
     /* CARDS */

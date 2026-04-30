@@ -104,6 +104,7 @@ urlpatterns = [
     path("dian/pdf/<int:sale_id>/", DianInvoiceController.download_pdf, name="dian_download_pdf"),
     path("dian/xml/<int:sale_id>/", DianInvoiceController.download_xml, name="dian_download_xml"),
     # Detalle de Ventas (Items individuales)
+    path("detalle-ventas/", SaleDetailController.index, name="sale_details_list"),
     path("items-venta/", SaleDetailController.index, name="sale_details"),
     path("items-venta/crear/", SaleDetailController.create, name="sale_details_create"),
     path(

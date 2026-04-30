@@ -10,16 +10,10 @@ class DocumentationController:
     @staticmethod
     def index(request):
         """Muestra la página de documentación del sistema"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        # Obtener usuario
-        user = User.get_by_id(user_id)
-
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         return DocumentationView.index(user, request.path)

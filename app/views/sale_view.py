@@ -53,7 +53,7 @@ class SaleView:
         <style>
             .sales-filter-bar {{
                 display: flex;
-                flex-wrap: wrap;
+                flex-wrap: nowrap; /* Forzar una sola línea */
                 align-items: center;
                 gap: 8px;
                 padding: 8px 12px;
@@ -65,6 +65,14 @@ class SaleView:
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.05);
                 margin-bottom: 24px;
                 font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+                overflow-x: auto; /* Scroll horizontal */
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none; /* Ocultar scrollbar en Firefox */
+                -ms-overflow-style: none; /* Ocultar scrollbar en IE/Edge */
+            }}
+            /* Ocultar scrollbar en navegadores WebKit (Chrome, Safari) */
+            .sales-filter-bar::-webkit-scrollbar {{
+                display: none;
             }}
             .sales-filter-bar .filter-icon {{
                 display: flex;
@@ -88,8 +96,8 @@ class SaleView:
                 height: 36px;
                 border: 1px solid transparent;
                 transition: all 0.15s ease;
-                flex: 1 1 140px;
-                min-width: 120px;
+                flex-shrink: 0; /* Evitar que se encojan demasiado */
+                min-width: 140px; /* Tamaño mínimo razonable */
             }}
             .sales-filter-bar .filter-item:focus-within {{
                 background: white;
@@ -153,25 +161,39 @@ class SaleView:
                 background: rgba(142, 142, 147, 0.1);
                 color: #1C1C1E;
             }}
-            @media (max-width: 900px) {{
+            /* Indicador visual de scroll en móviles */
+            @media (max-width: 768px) {{
                 .sales-filter-bar {{
-                    border-radius: 24px;
-                }}
-                .sales-filter-bar .filter-item {{
-                    flex-basis: calc(50% - 12px);
-                    min-width: auto;
+                    border-radius: 20px;
+                    padding-right: 24px; /* Espacio extra al final para indicar que hay más */
+                    margin-bottom: 20px;
                 }}
             }}
-            @media (max-width: 600px) {{
-                .sales-filter-bar .filter-item {{
-                    flex-basis: 100%;
+
+            /* Responsive Header Actions */
+            .header-actions-mobile {{
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                margin-bottom: 24px;
+            }}
+            .btn-action-responsive {{
+                width: 100%;
+                text-align: center;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 16px;
+            }}
+            @media (min-width: 768px) {{
+                .header-actions-mobile {{
+                    flex-direction: row;
+                    justify-content: space-between;
+                    align-items: center;
                 }}
-                .sales-filter-bar .filter-btn {{
-                    width: 100%;
-                    justify-content: center;
-                }}
-                .sales-filter-bar .filter-icon {{
-                    display: none;
+                .btn-action-responsive {{
+                    width: auto;
                 }}
             }}
         </style>
@@ -272,9 +294,9 @@ class SaleView:
         rows = SaleView.render_rows(user, sales, request)
 
         table_content = f"""
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="header-actions-mobile">
             <h1 class="h3 mb-0 text-gray-800">Gestión de Ventas</h1>
-            <a href="/ventas/crear/" class="btn btn-primary no-underline">
+            <a href="/ventas/crear/" class="btn btn-primary no-underline btn-action-responsive">
                 <i class="fas fa-plus"></i> Nueva Venta
             </a>
         </div>
@@ -315,6 +337,31 @@ class SaleView:
             filterForm.addEventListener('submit', function(e) {{
                 e.preventDefault();
 
+                // Validación: al menos un campo debe estar lleno
+                let hasValue = false;
+                const inputs = filterForm.querySelectorAll('.filter-input');
+                inputs.forEach(input => {{
+                    if (input.value.trim() !== '') hasValue = true;
+                }});
+
+                if (!hasValue) {{
+                    if (typeof Swal !== 'undefined') {{
+                        Swal.fire({{
+                            icon: 'warning',
+                            title: 'Filtros Vacíos',
+                            text: 'Por favor, ingresa al menos un criterio (fecha, cliente, producto o factura) para realizar la búsqueda.',
+                            confirmButtonColor: '#007AFF',
+                            confirmButtonText: 'Entendido',
+                            customClass: {{
+                                popup: 'rounded-xl shadow-lg border-0'
+                            }}
+                        }});
+                    }} else {{
+                        alert('Por favor ingresa al menos un criterio para filtrar.');
+                    }}
+                    return; // Detener envío
+                }}
+
                 // Mostrar estado de carga
                 tableBody.style.opacity = '0.5';
 
@@ -334,7 +381,9 @@ class SaleView:
                 .catch(error => {{
                     console.error('Error:', error);
                     tableBody.style.opacity = '1';
-                    alert('Error al filtrar. Por favor intente de nuevo.');
+                    if (typeof Swal !== 'undefined') {{
+                        Swal.fire('Error', 'Error al filtrar. Por favor intente de nuevo.', 'error');
+                    }}
                 }});
 
                 // Actualizar URL sin recargar

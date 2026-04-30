@@ -12,12 +12,11 @@ class InventoryMovementController:
     @staticmethod
     def index(request):
         """Mostrar lista de movimientos de inventario"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         movements = InventoryMovement.get_all()
         return HttpResponse(InventoryMovementView.index(user, movements, request))
@@ -26,12 +25,11 @@ class InventoryMovementController:
     @ensure_csrf_cookie
     def create(request):
         """Crear un nuevo movimiento de inventario"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -53,7 +51,7 @@ class InventoryMovementController:
                     "almacen_id": almacen_id,
                     "tipo_movimiento": tipo_movimiento,
                     "cantidad": cantidad,
-                    "usuario_id": request.session["user_id"],
+                    "usuario_id": user.id,
                     "referencia": referencia,
                     "motivo": motivo,
                 }
@@ -65,9 +63,7 @@ class InventoryMovementController:
                 products = Product.get_all()
                 warehouses = Warehouse.get_all()
                 error_message = f"Error al crear el movimiento: {str(e)}"
-                return HttpResponse(
-                    InventoryMovementView.create(user, products, warehouses, request, error_message)
-                )
+                return HttpResponse(InventoryMovementView.create(user, products, warehouses, request, error_message))
 
         # GET request
         products = Product.get_all()
@@ -78,12 +74,11 @@ class InventoryMovementController:
     @ensure_csrf_cookie
     def edit(request, movement_id):
         """Editar un movimiento de inventario existente"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         movement = InventoryMovement.get_by_id(movement_id)
         if not movement:
@@ -121,27 +116,22 @@ class InventoryMovementController:
                 warehouses = Warehouse.get_all()
                 error_message = f"Error al actualizar el movimiento: {str(e)}"
                 return HttpResponse(
-                    InventoryMovementView.edit(
-                        user, movement, products, warehouses, request, error_message
-                    )
+                    InventoryMovementView.edit(user, movement, products, warehouses, request, error_message)
                 )
 
         # GET request
         products = Product.get_all()
         warehouses = Warehouse.get_all()
-        return HttpResponse(
-            InventoryMovementView.edit(user, movement, products, warehouses, request)
-        )
+        return HttpResponse(InventoryMovementView.edit(user, movement, products, warehouses, request))
 
     @staticmethod
     def delete(request, movement_id):
         """Eliminar un movimiento de inventario"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         if request.method == "POST":
             try:
@@ -154,12 +144,11 @@ class InventoryMovementController:
     @staticmethod
     def view(request, movement_id):
         """Ver detalle de un movimiento específico"""
-        if "user_id" not in request.session:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(request.session["user_id"])
-        if not user:
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         movement = InventoryMovement.get_by_id(movement_id)
         if not movement:

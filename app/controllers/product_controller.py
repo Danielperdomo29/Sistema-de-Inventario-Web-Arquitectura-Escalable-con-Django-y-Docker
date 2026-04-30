@@ -15,16 +15,11 @@ class ProductController:
     @ensure_csrf_cookie
     def index(request):
         """Lista de productos"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener productos
         products = Product.get_all()
@@ -36,16 +31,11 @@ class ProductController:
     @AuthMiddleware.require_active_user
     def create(request):
         """Crear un nuevo producto"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Si es GET, mostrar formulario
         if request.method == "GET":
@@ -72,17 +62,16 @@ class ProductController:
                 if not data["codigo"] or not data["nombre"]:
                     categories = Category.get_all()
                     return HttpResponse(
-                        ProductView.create(
-                            user, categories, request, error="Código y nombre son obligatorios"
-                        )
+                        ProductView.create(user, categories, request, error="Código y nombre son obligatorios")
                     )
 
                 # Crear el producto
                 Product.create(data)
-                
+
                 # Invalidar caché de productos para reflejar el nuevo producto
                 from django.core.cache import cache
-                cache.delete('catalog:products:all')
+
+                cache.delete("catalog:products:all")
 
                 # Redireccionar a la lista
                 return HttpResponseRedirect("/productos/")
@@ -90,9 +79,7 @@ class ProductController:
             except Exception as e:
                 categories = Category.get_all()
                 return HttpResponse(
-                    ProductView.create(
-                        user, categories, request, error=f"Error al crear producto: {str(e)}"
-                    )
+                    ProductView.create(user, categories, request, error=f"Error al crear producto: {str(e)}")
                 )
 
     @staticmethod
@@ -100,16 +87,11 @@ class ProductController:
     @AuthMiddleware.require_active_user
     def edit(request, product_id):
         """Editar un producto existente"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener el producto
         product = Product.get_by_id(product_id)
@@ -152,10 +134,11 @@ class ProductController:
 
                 # Actualizar el producto
                 Product.update(product_id, data)
-                
+
                 # Invalidar caché de productos para reflejar cambios
                 from django.core.cache import cache
-                cache.delete('catalog:products:all')
+
+                cache.delete("catalog:products:all")
 
                 # Redireccionar a la lista
                 return HttpResponseRedirect("/productos/")
@@ -177,24 +160,20 @@ class ProductController:
     @ensure_csrf_cookie
     def delete(request, product_id):
         """Eliminar un producto"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Eliminar solo si es POST
         if request.method == "POST":
             Product.delete(product_id)
-            
+
             # Invalidar caché de productos para reflejar cambios
             from django.core.cache import cache
-            cache.delete('catalog:products:all')
+
+            cache.delete("catalog:products:all")
 
         # Redireccionar a la lista
         return HttpResponseRedirect("/productos/")

@@ -11,14 +11,11 @@ class RoleController:
     @staticmethod
     def index(request):
         """Muestra el listado de roles"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return redirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            return redirect("/login/")
+        user = request.user
 
         # Obtener todos los roles
         roles = Role.get_all()
@@ -30,16 +27,11 @@ class RoleController:
     @ensure_csrf_cookie
     def create(request):
         """Crear un nuevo rol"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Si es GET, mostrar formulario
         if request.method == "GET":
@@ -56,9 +48,7 @@ class RoleController:
 
                 # Validaciones básicas
                 if not data["nombre"]:
-                    return HttpResponse(
-                        RoleView.create(user, request, error="El nombre es obligatorio")
-                    )
+                    return HttpResponse(RoleView.create(user, request, error="El nombre es obligatorio"))
 
                 # Crear el rol
                 Role.create(data)
@@ -67,24 +57,17 @@ class RoleController:
                 return HttpResponseRedirect("/roles/")
 
             except Exception as e:
-                return HttpResponse(
-                    RoleView.create(user, request, error=f"Error al crear rol: {str(e)}")
-                )
+                return HttpResponse(RoleView.create(user, request, error=f"Error al crear rol: {str(e)}"))
 
     @staticmethod
     @ensure_csrf_cookie
     def edit(request, role_id):
         """Editar un rol existente"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Obtener el rol
         role = Role.get_by_id(role_id)
@@ -106,9 +89,7 @@ class RoleController:
 
                 # Validaciones básicas
                 if not data["nombre"]:
-                    return HttpResponse(
-                        RoleView.edit(user, role, request, error="El nombre es obligatorio")
-                    )
+                    return HttpResponse(RoleView.edit(user, role, request, error="El nombre es obligatorio"))
 
                 # Actualizar el rol
                 Role.update(role_id, data)
@@ -117,23 +98,16 @@ class RoleController:
                 return HttpResponseRedirect("/roles/")
 
             except Exception as e:
-                return HttpResponse(
-                    RoleView.edit(user, role, request, error=f"Error al actualizar rol: {str(e)}")
-                )
+                return HttpResponse(RoleView.edit(user, role, request, error=f"Error al actualizar rol: {str(e)}"))
 
     @staticmethod
     def delete(request, role_id):
         """Eliminar un rol"""
-        # Verificar autenticación
-        user_id = request.session.get("user_id")
-
-        if not user_id:
+        # Usar autenticación nativa de Django
+        if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = User.get_by_id(user_id)
-        if not user:
-            request.session.flush()
-            return HttpResponseRedirect("/login/")
+        user = request.user
 
         # Eliminar el rol
         Role.delete(role_id)

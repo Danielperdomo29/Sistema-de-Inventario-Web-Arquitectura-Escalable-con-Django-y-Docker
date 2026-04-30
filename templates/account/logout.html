@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Cerrar Sesión | {{ ui_config.welcome_title|default:"PayRoll" }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+
+    <!-- Soporte dinámico para caso en el que la DB cambie el color -->
+    <style>
+        :root {
+            --accent: {{ ui_config.primary_color|default:"#EF4444" }}; /* Rojo suave para logout */
+        }
+
+        .logout-warning {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            color: #7f1d1d;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-cancel {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            margin-top: 10px;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e5e7eb;
+            color: #111827;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Panel Izquierdo: Formulario -->
+        <div class="login-sidebar">
+            <div class="login-content">
+                <div class="logo-area">
+                    {% if ui_config.logo %}
+                    <img src="{{ ui_config.logo.url }}" alt="Logo">
+                    {% else %}
+                    <div class="logo-placeholder">
+                        <i class="fas fa-hand-holding-usd" style="color: var(--accent);"></i>
+                        <span>{{ ui_config.welcome_title|default:"PayRoll" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <h2>¿Cerrar Sesión?</h2>
+                <p class="welcome-subtitle">Estás a punto de salir del sistema</p>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-{{ message.tags }}{% endif %}">
+                            <i class="fas fa-info-circle"></i> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="logout-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>¿Estás seguro de que deseas cerrar tu sesión? Tendrás que volver a ingresar tus credenciales para acceder.</span>
+                </div>
+
+                <form method="POST" action="{% url 'account_logout' %}" id="logout-form">
+                    {% csrf_token %}
+
+                    {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--accent);">
+                        <i class="fas fa-sign-out-alt"></i> Sí, Cerrar Sesión
+                    </button>
+
+                    <a href="javascript:history.back()" class="btn btn-cancel" style="display: block; text-align: center; text-decoration: none;">
+                        <i class="fas fa-arrow-left"></i> Cancelar y Volver
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Información del Panel -->
+        <div class="info-panel" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+            <div class="info-content">
+                <div class="shield-icon" style="color: #cbd5e1; background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2>Cierre Seguro</h2>
+                <p>Tu seguridad es nuestra prioridad.</p>
+
+                <ul class="feature-list">
+                    <li><i class="fas fa-lock" style="color: #94a3b8;"></i> Sesión encriptada finalizada correctamente</li>
+                    <li><i class="fas fa-user-shield" style="color: #94a3b8;"></i> Protección contra accesos no autorizados</li>
+                    <li><i class="fas fa-history" style="color: #94a3b8;"></i> Registro de actividad guardado de forma segura</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Eliminar alertas automáticamente después de 6 segundos
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s ease-out';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 6000);
+    </script>
+</body>
+</html>

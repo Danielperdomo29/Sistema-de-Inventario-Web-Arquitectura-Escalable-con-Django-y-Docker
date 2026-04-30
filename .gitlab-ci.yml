@@ -1,0 +1,45 @@
+stages:
+  - test
+  - sast
+
+variables:
+  # Variables globales (ej: imagen de python)
+  PYTHON_VERSION: "3.12"
+
+sast_bandit:
+  stage: sast
+  image: python:${PYTHON_VERSION}-slim
+  before_script:
+    - pip install bandit
+  script:
+    - bandit -c bandit.yaml -r . -f json -o bandit-report.json || true
+  artifacts:
+    reports:
+      sast: bandit-report.json
+    paths:
+      - bandit-report.json
+    expire_in: 1 week
+  allow_failure: false # Cambiar a true si no queremos bloquear el pipeline al principio
+
+sast_semgrep:
+  stage: sast
+  image: returntocorp/semgrep:latest
+  script:
+    - semgrep scan --config p/django --config p/javascript --config sast_rules/ --error --json -o semgrep-report.json || true
+  artifacts:
+    reports:
+      sast: semgrep-report.json
+    paths:
+      - semgrep-report.json
+    expire_in: 1 week
+  allow_failure: false
+
+eslint_security:
+  stage: sast
+  image: node:20-alpine
+  before_script:
+    - npm install -g eslint eslint-plugin-security
+  script:
+    # Ajustar según dónde tengas el JS, o ignorar si ya lo hace un linter general
+    - eslint "app/static/js/**/*.js" || true
+  allow_failure: true

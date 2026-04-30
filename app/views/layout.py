@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 class Layout:
     """Layouts y componentes compartidos"""
 
@@ -8,32 +8,76 @@ class Layout:
         return """
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-        <link rel="stylesheet" href="/static/css/main.css">
+        <link rel="stylesheet" href="/static/css/main.css?v=3.0">
         <link rel="stylesheet" href="/static/css/forms.css">
         <link rel="stylesheet" href="/static/css/dashboard.css">
         <link rel="stylesheet" href="/static/css/swal.css">
         <link rel="stylesheet" href="/static/css/chatbot.css">
         <link rel="stylesheet" href="/static/css/stock_alerts.css">
-        <link rel="stylesheet" href="/static/css/theme-professional-neutral.css?v=12.0">
-        <link rel="stylesheet" href="/static/css/responsive.css?v=6.0">
+        <link rel="stylesheet" href="/static/css/responsive.css?v=8.0">
+        <link rel="stylesheet" href="/static/css/theme-professional-neutral.css?v=16.0">
         <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
         """
 
     @staticmethod
-    def navbar(user):
-        """Componente de Navbar (Sincronizado con base.html)"""
+    def navbar(user, active_page=""):
+        """Componente de Navbar (Estilo Facebook)"""
+        # Determinar clases activas para el menu central
+        active_dash = "active" if active_page == "dashboard" else ""
+        active_prod = "active" if active_page == "productos" else ""
+        active_sale = "active" if active_page == "ventas" else ""
+        active_bot = "active" if active_page == "chatbot" else ""
+
         return f"""
         <div class="navbar">
             <div class="navbar-content">
-                <div class="navbar-brand">
-                    <h1>HUB DE GESTI&Oacute;N</h1>
-                    <p class="navbar-subtitle">Sistema de Facturaci&oacute;n Electr&oacute;nica e Inteligencia de Inventarios</p>
+                <!-- Izquierda: Brand -->
+                <div class="navbar-left">
+                    <button class="hamburger-menu" id="sidebarToggle" aria-label="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="navbar-brand">
+                        <h1>HUB DE GESTI&Oacute;N</h1>
+                    </div>
                 </div>
-                <div class="navbar-menu">
-                    <span class="user-info-mobile"><i class="fas fa-user-circle"></i> {user.username}</span>
-                    <a href="/configuracion/"><i class="fas fa-user-cog"></i> <span>Mi Perfil</span></a>
-                    <a href="/logout/"><i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesi&oacute;n</span></a>
+
+                <!-- Centro: Navegación Rápida -->
+                <div class="navbar-center mobile-hidden">
+                    <a href="/" class="nav-item-central {active_dash}" title="Dashboard">
+                        <i class="fas fa-home"></i>
+                    </a>
+                    <a href="/productos/" class="nav-item-central {active_prod}" title="Productos">
+                        <i class="fas fa-box"></i>
+                    </a>
+                    <a href="/ventas/" class="nav-item-central {active_sale}" title="Ventas">
+                        <i class="fas fa-shopping-cart"></i>
+                    </a>
+                    <a href="/chatbot/" class="nav-item-central {active_bot}" title="Asistente IA">
+                        <i class="fas fa-robot"></i>
+                    </a>
+                </div>
+
+                <!-- Derecha: Acciones y Usuario (Estilo iOS) -->
+                <div class="navbar-right">
+                    {f'''
+                    <a href="https://wa.me/{user.phone_number.replace("+", "").replace(" ", "")}" class="btn-whatsapp" title="Seguimiento WhatsApp" id="whatsapp-track-btn" target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    ''' if hasattr(user, "phone_number") and user.phone_number else '''
+                    <a href="/configuracion/" class="btn-whatsapp" title="Configurar WhatsApp" target="_self">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    '''}
+
+                    <a href="/configuracion/" class="user-profile-pill" title="Mi Perfil">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="mobile-hidden">{user.username}</span>
+                    </a>
+
+                    <a href="/logout/" class="navbar-icon-btn" title="Cerrar Sesi&oacute;n">
+                        <i class="fas fa-right-from-bracket"></i>
+                    </a>
                 </div>
             </div>
         </div>
@@ -125,20 +169,8 @@ class Layout:
         sistema_html = generate_menu_html(sistema_items)
 
         return f"""
-        <!-- Overlay para cerrar sidebar en moviles -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <div class="sidebar" id="sidebar">
-            <!-- Header del Sidebar (visible en mobile) -->
-            <div class="sidebar-mobile-header">
-                <div class="sidebar-brand">
-                    <i class="fas fa-cube"></i>
-                    <span>Men&uacute; Principal</span>
-                </div>
-                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Cerrar menu">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
 
             <!-- Seccion Inventario -->
             <div class="sidebar-section" data-section="inventario">
@@ -202,7 +234,7 @@ class Layout:
     def render(title, user, active_page, content):
         """Renderiza el layout completo"""
         styles = Layout.get_styles()
-        navbar = Layout.navbar(user)
+        navbar = Layout.navbar(user, active_page)
         sidebar = Layout.sidebar(active_page)
 
         chatbot_script = ""
@@ -252,6 +284,7 @@ class Layout:
         </head>
         <body>
             {navbar}
+
             <div class="layout">
                 {sidebar}
                 <div class="main-content">

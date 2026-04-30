@@ -1,0 +1,12 @@
+# Bandit Custom Configuration
+# Mapeado a los reportes requeridos para el pipeline
+assert_used:
+  skips: ['*_test.py', 'test_*.py']
+exclude_dirs:
+  - '/venv'
+  - '/migrations'
+  - '/.git'
+  - '/node_modules'
+  - '/tests'
+  - '**/migrations/*'
+skips: ['B101', 'B104']
