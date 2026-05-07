@@ -280,6 +280,7 @@ class Layout:
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>{title} - HUB DE GESTI&Oacute;N</title>
+            <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2897/2897785.png">
             {styles}
         </head>
         <body>
@@ -301,6 +302,7 @@ class Layout:
             <script>
                 window.userActive = {('true' if user.is_active else 'false')};
                 window.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
+                document.body.classList.add('theme-professional');
             </script>
             <script src="/static/js/protection.js"></script>
             {chatbot_script}

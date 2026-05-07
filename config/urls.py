@@ -200,8 +200,6 @@ urlpatterns = [
     path("fiscal/perfiles/<int:perfil_id>/editar/", FiscalController.perfil_fiscal_editar, name="fiscal_perfil_editar"),
     path("fiscal/cuentas-puc/", FiscalController.cuentas_puc, name="fiscal_cuentas_puc"),
     path("fiscal/impuestos/", FiscalController.impuestos, name="fiscal_impuestos"),
-    # DIAN
-    path("dian/", include("facturacion.urls")),
     # API Fiscal & Reportes
     path("fiscal/", include("app.fiscal.urls")),
 ]

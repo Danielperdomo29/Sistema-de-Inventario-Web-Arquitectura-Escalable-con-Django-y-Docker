@@ -2,7 +2,7 @@
  * Sistema de alertas de stock en tiempo real
  * Hace polling cada 30 segundos para verificar alertas pendientes
  * Muestra notificaciones con SweetAlert2
- * 
+ *
  * Autor: Sistema de Inventario
  * Fecha: 2026-01-12
  */
@@ -19,11 +19,17 @@ class StockAlertManager {
      * Inicializa el sistema de alertas
      */
     init() {
+        if (window.stockAlertSystemInitialized) {
+            console.log('[StockAlertManager] Sistema ya inicializado globalmente.');
+            return;
+        }
+
         console.log('[StockAlertManager] Inicializando sistema de alertas...');
-        
+        window.stockAlertSystemInitialized = true;
+
         // Verificar inmediatamente al cargar
         this.checkAlerts();
-        
+
         // Iniciar polling
         this.startPolling();
     }
@@ -36,12 +42,12 @@ class StockAlertManager {
             console.log('[StockAlertManager] Polling ya está activo');
             return;
         }
-        
+
         this.isPolling = true;
         this.intervalId = setInterval(() => {
             this.checkAlerts();
         }, this.pollingInterval);
-        
+
         console.log(`[StockAlertManager] Polling iniciado (cada ${this.pollingInterval/1000}s)`);
     }
 
@@ -63,25 +69,25 @@ class StockAlertManager {
     async checkAlerts() {
         try {
             const response = await fetch('/api/stock/alertas-pendientes/');
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (data.alertas && data.alertas.length > 0) {
                 console.log(`[StockAlertManager] ${data.count} alertas pendientes encontradas`);
-                
+
                 // Mostrar solo alertas nuevas (que no hemos mostrado antes)
                 const newAlerts = data.alertas.filter(
                     alerta => !this.lastAlertIds.has(alerta.id)
                 );
-                
+
                 if (newAlerts.length > 0) {
                     console.log(`[StockAlertManager] ${newAlerts.length} alertas nuevas para mostrar`);
                     this.showAlerts(newAlerts);
-                    
+
                     // Guardar IDs de alertas mostradas
                     newAlerts.forEach(alerta => {
                         this.lastAlertIds.add(alerta.id);
@@ -102,17 +108,17 @@ class StockAlertManager {
     showAlerts(alertas) {
         // Mostrar la alerta más crítica primero
         const alertaCritica = alertas.find(a => a.nivel === 'ROJO') || alertas[0];
-        
+
         const icon = alertaCritica.nivel === 'ROJO' ? 'error' : 'warning';
         const iconColor = alertaCritica.nivel === 'ROJO' ? '#dc3545' : '#ffc107';
-        
+
         // Iconos de Bootstrap 5 (ahora permitidos por CSP)
-        const bootstrapIcon = alertaCritica.nivel === 'ROJO' 
+        const bootstrapIcon = alertaCritica.nivel === 'ROJO'
             ? '<i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>'
             : '<i class="bi bi-exclamation-circle-fill text-warning" style="font-size: 3rem;"></i>';
-        
+
         const title = alertaCritica.nivel === 'ROJO' ? 'Stock Crítico' : 'Stock Bajo';
-        
+
         Swal.fire({
             icon: icon,
             title: title,
@@ -145,7 +151,7 @@ class StockAlertManager {
                     </div>
                     ${alertas.length > 1 ? `
                         <div style="background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 0.75rem; border-radius: 0.25rem;">
-                            <i class="bi bi-info-circle"></i> 
+                            <i class="bi bi-info-circle"></i>
                             Tienes ${alertas.length - 1} alerta(s) más pendiente(s)
                         </div>
                     ` : ''}
@@ -172,7 +178,7 @@ class StockAlertManager {
             console.log('[StockAlertManager] isConfirmed:', result.isConfirmed);
             console.log('[StockAlertManager] isDismissed:', result.isDismissed);
             console.log('[StockAlertManager] URL editar:', alertaCritica.url_editar);
-            
+
             if (result.isConfirmed) {
                 // Redirigir a edición de producto
                 console.log(`[StockAlertManager] ✅ Redirigiendo a ${alertaCritica.url_editar}`);
@@ -192,7 +198,7 @@ class StockAlertManager {
     async markAsReviewed(alertaId) {
         try {
             const csrfToken = this.getCSRFToken();
-            
+
             const response = await fetch(`/api/stock/alertas/${alertaId}/revisar/`, {
                 method: 'POST',
                 headers: {
@@ -200,7 +206,7 @@ class StockAlertManager {
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             if (response.ok) {
                 console.log(`[StockAlertManager] Alerta ${alertaId} marcada como revisada`);
             } else {
@@ -221,22 +227,22 @@ class StockAlertManager {
         if (metaTag) {
             return metaTag.getAttribute('content');
         }
-        
+
         // Intentar obtener del input hidden
         const inputTag = document.querySelector('[name=csrfmiddlewaretoken]');
         if (inputTag) {
             return inputTag.value;
         }
-        
+
         // Intentar obtener de las cookies
         const cookieValue = document.cookie
             .split('; ')
             .find(row => row.startsWith('csrftoken='));
-        
+
         if (cookieValue) {
             return cookieValue.split('=')[1];
         }
-        
+
         console.warn('[StockAlertManager] No se pudo obtener el token CSRF');
         return '';
     }
@@ -257,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // También en: dashboard, productos, compras
     const relevantPages = ['/venta', '/', '/dashboard', '/producto', '/compra'];
     const currentPath = window.location.pathname;
-    
+
     // Verificar si la ruta actual contiene alguna de las páginas relevantes
     const isRelevantPage = relevantPages.some(page => {
         if (page === '/') {
@@ -265,15 +271,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return currentPath.includes(page);
     });
-    
+
     if (isRelevantPage) {
         console.log('[StockAlertManager] Página relevante detectada, inicializando...');
         const alertManager = new StockAlertManager();
         alertManager.init();
-        
+
         // Guardar en window para debugging y control manual
         window.stockAlertManager = alertManager;
-        
+
         console.log('[StockAlertManager] Sistema de alertas activo. Usa window.stockAlertManager para control manual.');
     } else {
         console.log('[StockAlertManager] Página no relevante, no se inicializa el sistema de alertas');
