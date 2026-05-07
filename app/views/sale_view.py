@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+
 
 from app.views.layout import Layout
 
@@ -265,7 +265,8 @@ class SaleView:
                 <td>{sale['cliente_nombre']}</td>
                 <td class="d-none d-md-table-cell">{sale.get('cliente_documento') or 'N/A'}</td>
                 <td>
-                    <div class="font-bold">${sale['total']:,.2f}</div>
+                    <div class="font-bold" style="color: #2c3e50;">Total: ${sale['total']:,.2f}</div>
+                    <div style="font-size: 0.8rem; color: #6c757d;">Total sin IVA: ${(sale['total'] - sale.get('iva', 0)):,.2f}</div>
                     <div style="font-size: 0.8rem; color: #6c757d;">IVA: ${sale.get('iva', 0):,.2f}</div>
                 </td>
                 <td>{badge}</td>
@@ -426,7 +427,9 @@ class SaleView:
                     "nombre": product["nombre"],
                     "precio": float(product["precio_venta"]),
                     "stock": product["stock_actual"],
-                    "iva_tasa": float(product.get("tax_percentage", 19.00)) if "tax_percentage" in product else 19.00,
+                    "iva_porcentaje": float(product.get("iva_porcentaje", 19.00)),
+                    "iva_tipo": product.get("iva_tipo", "GRAVADO"),
+                    "descuento": float(product.get("descuento", 0.00)),
                 }
             )
         products_json = json.dumps(products_list)
@@ -452,7 +455,18 @@ class SaleView:
 
         fecha_actual = date.today().strftime("%Y-%m-%d")
 
+        # Librería Tom Select (Buscador Predictivo)
+        header_links = """
+        <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+        <style>
+            .ts-control { border-radius: 8px !important; padding: 10px !important; border: 1px solid #ced4da !important; }
+            .ts-dropdown { border-radius: 8px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
+        </style>
+        """
+
         content = f"""
+        {header_links}
         <div class="card">
             <div class="card-header">
                 <span><i class="fas fa-shopping-cart"></i> Crear Nueva Venta</span>
@@ -514,31 +528,64 @@ class SaleView:
                 </div>
 
                 <div class="table-container">
-                    <table id="productsTable" class="d-none mb-20" style="width: 100%;">
-                        <thead>
+                    <table id="productsTable" class="table table-hover d-none mb-4" style="width: 100%;">
+                        <thead class="bg-light">
                             <tr>
                                 <th>Producto</th>
-                                <th>Precio Unit</th>
-                                <th>Cantidad</th>
-                                <th>Subtotal</th>
-                                <th class="d-none d-md-table-cell">IVA%</th>
-                                <th class="d-none d-md-table-cell">IVA Valor</th>
+                                <th>Precio Base</th>
+                                <th>Cant</th>
+                                <th>Desc %</th>
+                                <th>Subtotal (Base)</th>
+                                <th class="d-none d-md-table-cell">IVA %</th>
                                 <th>Total</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody id="productsBody"></tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" class="text-right font-bold">Totales:</td>
-                                <td id="footer-subtotal">$0.00</td>
-                                <td class="d-none d-md-table-cell"></td>
-                                <td id="footer-iva" class="d-none d-md-table-cell">$0.00</td>
-                                <td id="footer-total" class="font-bold text-success">$0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                     </table>
+                </div>
+
+                <!-- Nuevo Panel de Resumen Vertical (DIAN) -->
+                <div class="row justify-content-end mt-4">
+                    <div class="col-md-5 col-lg-4">
+                        <div class="card shadow-sm border-0" style="background-color: #f8f9fa; border-radius: 12px;">
+                            <div class="card-body p-4">
+                                <h6 class="font-weight-bold text-uppercase mb-4 text-muted border-bottom pb-2">
+                                    <i class="fas fa-calculator mr-2"></i> Resumen de Factura
+                                </h6>
+
+                                <div class="d-flex justify-content-between mb-3 align-items-center">
+                                    <span class="text-secondary font-weight-medium">Subtotal (Bruto)</span>
+                                    <span id="resumen-subtotal" class="font-weight-bold text-dark">$ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-3 align-items-center">
+                                    <span class="text-secondary font-weight-medium">Descuentos</span>
+                                    <span id="resumen-descuentos" class="text-danger font-weight-bold">- $ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-3 align-items-center border-top pt-3">
+                                    <span class="text-dark font-weight-bold">Base Gravable (Sin IVA)</span>
+                                    <span id="resumen-base" class="font-weight-bold text-dark h5 mb-0">$ 0.00</span>
+                                </div>
+
+                                <div id="resumen-impuestos" class="mt-3">
+                                    <div class="d-flex justify-content-between mb-3 align-items-center">
+                                        <span class="text-secondary font-weight-medium">IVA Total</span>
+                                        <span id="resumen-iva" class="font-weight-bold text-dark">$ 0.00</span>
+                                    </div>
+                                </div>
+
+                                <div class="border-top border-primary pt-3 mt-3" style="border-top-width: 3px !important;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="h5 font-weight-bold text-primary mb-0">TOTAL A PAGAR</span>
+                                        <span class="h3 font-weight-bold text-primary mb-0" id="resumen-total">$ 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 </div>
 
                 <div class="form-actions mt-30">
@@ -553,6 +600,16 @@ class SaleView:
             // Inicializar el gestor de productos con los datos del servidor
             const products = {products_json};
             manager = new ProductManager(products);
+
+            // Inicializar Buscador Predictivo (FASE 4)
+            new TomSelect("#productSelect", {{
+                create: false,
+                sortField: {{
+                    field: "text",
+                    direction: "asc"
+                }},
+                placeholder: "Buscar producto por nombre o código..."
+            }});
         </script>
         {error_script}
         """
@@ -589,7 +646,9 @@ class SaleView:
                     "nombre": product["nombre"],
                     "precio": float(product["precio_venta"]),
                     "stock": product["stock_actual"],
-                    "iva_tasa": float(product.get("tax_percentage", 19.00)) if "tax_percentage" in product else 19.00,
+                    "iva_porcentaje": float(product.get("iva_porcentaje", 19.00)),
+                    "iva_tipo": product.get("iva_tipo", "GRAVADO"),
+                    "descuento": float(product.get("descuento", 0.00)),
                 }
             )
         products_json = json.dumps(products_list)
@@ -601,13 +660,14 @@ class SaleView:
                 {
                     "producto_id": detail["producto_id"],
                     "nombre": detail["producto_nombre"],
-                    "precio_unitario": float(detail["precio_unitario"]),
+                    "precio_unitario_base": float(detail["precio_unitario"]),
                     "cantidad": detail["cantidad"],
-                    "subtotal": float(detail["subtotal"]),
-                    # Campos para JS
-                    "subtotal_sin_iva": float(detail.get("subtotal_sin_iva", 0) or 0),
-                    "iva_valor": float(detail.get("iva_valor", 0) or 0),
+                    "descuento_pct": float(detail.get("descuento_tasa", 0) or 0),
+                    "valor_descuento": float(detail.get("descuento_valor", 0) or 0),
+                    "subtotal_base": float(detail.get("subtotal_sin_iva", 0) or 0),
                     "iva_tasa": float(detail.get("iva_tasa", 19) or 19),
+                    "iva_valor": float(detail.get("iva_valor", 0) or 0),
+                    "subtotal": float(detail["subtotal"]),
                 }
             )
 
@@ -627,7 +687,18 @@ class SaleView:
             </script>
             """
 
+        # Librería Tom Select (Buscador Predictivo)
+        header_links = """
+        <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+        <style>
+            .ts-control { border-radius: 8px !important; padding: 10px !important; border: 1px solid #ced4da !important; }
+            .ts-dropdown { border-radius: 8px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
+        </style>
+        """
+
         content = f"""
+        {header_links}
         <div class="card">
             <div class="card-header">
                 <span><i class="fas fa-edit"></i> Editar Venta - {sale['numero_factura']}</span>
@@ -650,7 +721,7 @@ class SaleView:
 
                     <div class="form-group">
                         <label class="form-label">Fecha *</label>
-                        <input type="date" name="fecha" value="{sale['fecha']}" class="form-input"
+                        <input type="date" name="fecha" value="{sale['fecha'].strftime('%Y-%m-%d') if hasattr(sale['fecha'], 'strftime') else sale['fecha'][:10]}" class="form-input"
                                data-rules="required"
                                data-label="Fecha">
                     </div>
@@ -691,31 +762,63 @@ class SaleView:
                 </div>
 
                 <div class="table-container">
-                    <table id="productsTable" style="width: 100%;">
-                        <thead>
+                    <table id="productsTable" class="table table-hover d-none mb-4" style="width: 100%;">
+                        <thead class="bg-light">
                             <tr>
                                 <th>Producto</th>
-                                <th>Precio Unit</th>
-                                <th>Cantidad</th>
-                                <th>Subtotal</th>
-                                <th class="d-none d-md-table-cell">IVA%</th>
-                                <th class="d-none d-md-table-cell">IVA Valor</th>
+                                <th>Precio Base</th>
+                                <th>Cant</th>
+                                <th>Desc %</th>
+                                <th>Subtotal (Base)</th>
+                                <th class="d-none d-md-table-cell">IVA %</th>
                                 <th>Total</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody id="productsBody"></tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" class="text-right font-bold">Totales:</td>
-                                <td id="footer-subtotal">$0.00</td>
-                                <td class="d-none d-md-table-cell"></td>
-                                <td id="footer-iva" class="d-none d-md-table-cell">$0.00</td>
-                                <td id="footer-total" class="font-bold text-success">$0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                     </table>
+                </div>
+
+                <!-- Nuevo Panel de Resumen Vertical (DIAN) -->
+                <div class="row justify-content-end mt-4">
+                    <div class="col-md-5 col-lg-4">
+                        <div class="card shadow-sm border-0" style="background-color: #f8f9fa; border-radius: 12px;">
+                            <div class="card-body p-4">
+                                <h6 class="font-weight-bold text-uppercase mb-4 text-muted border-bottom pb-2">
+                                    <i class="fas fa-calculator mr-2"></i> Resumen de Factura
+                                </h6>
+
+                                <div class="d-flex justify-content-between mb-3 align-items-center">
+                                    <span class="text-secondary font-weight-medium">Subtotal (Bruto)</span>
+                                    <span id="resumen-subtotal" class="font-weight-bold text-dark">$ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-3 align-items-center">
+                                    <span class="text-secondary font-weight-medium">Descuentos</span>
+                                    <span id="resumen-descuentos" class="text-danger font-weight-bold">- $ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-3 align-items-center border-top pt-3">
+                                    <span class="text-dark font-weight-bold">Base Gravable (Sin IVA)</span>
+                                    <span id="resumen-base" class="font-weight-bold text-dark h5 mb-0">$ 0.00</span>
+                                </div>
+
+                                <div id="resumen-impuestos" class="mt-3">
+                                    <div class="d-flex justify-content-between mb-3 align-items-center">
+                                        <span class="text-secondary font-weight-medium">IVA Total</span>
+                                        <span id="resumen-iva" class="font-weight-bold text-dark">$ 0.00</span>
+                                    </div>
+                                </div>
+
+                                <div class="border-top border-primary pt-3 mt-3" style="border-top-width: 3px !important;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="h5 font-weight-bold text-primary mb-0">TOTAL A PAGAR</span>
+                                        <span class="h3 font-weight-bold text-primary mb-0" id="resumen-total">$ 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-actions mt-30">
@@ -732,6 +835,16 @@ class SaleView:
             const existingDetails = {json.dumps(existing_details)};
             manager = new ProductManager(products, existingDetails);
             manager.render();
+
+            // Inicializar Buscador Predictivo (FASE 4)
+            new TomSelect("#productSelect", {{
+                create: false,
+                sortField: {{
+                    field: "text",
+                    direction: "asc"
+                }},
+                placeholder: "Buscar producto por nombre o código..."
+            }});
         </script>
         {error_script}
         """
@@ -741,7 +854,7 @@ class SaleView:
     @staticmethod
     def view(user, sale, details):
         """Vista de detalle de una venta"""
-        from django.middleware.csrf import get_token
+
 
         estado_class = {"pendiente": "warning", "completada": "success", "cancelada": "danger"}.get(
             sale["estado"], "secondary"

@@ -4,7 +4,6 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from app.middleware.auth_middleware import AuthMiddleware
 from app.models.category import Category
 from app.models.product import Product
-from app.models.user import User
 from app.views.product_view import ProductView
 
 
@@ -21,10 +20,41 @@ class ProductController:
 
         user = request.user
 
-        # Obtener productos
-        products = Product.get_all()
+        # Obtener parámetros de búsqueda (FASE 4)
+        q = request.GET.get("q", "")
+        categoria_id = request.GET.get("categoria", "")
 
-        return HttpResponse(ProductView.index(user, request, products))
+        # Obtener productos
+        from django.db.models import Q
+
+        queryset = Product.objects.select_related("categoria").all().order_by("-id")
+
+        if q:
+            queryset = queryset.filter(Q(nombre__icontains=q) | Q(codigo__icontains=q))
+
+        if categoria_id:
+            queryset = queryset.filter(categoria_id=categoria_id)
+
+        # Convertir a lista de dicts (Presentation Layer)
+        products = []
+        for p in queryset:
+            products.append(
+                {
+                    "id": p.id,
+                    "codigo": p.codigo,
+                    "nombre": p.nombre,
+                    "categoria": p.categoria.nombre if p.categoria else "Sin categoría",
+                    "precio_venta": float(p.precio_venta),
+                    "iva_porcentaje": float(p.iva_porcentaje),
+                    "iva_tipo": p.iva_tipo,
+                    "descuento": float(p.descuento),
+                    "stock_actual": p.stock_actual,
+                }
+            )
+
+        categories = Category.get_all()
+
+        return HttpResponse(ProductView.index(user, request, products, categories))
 
     @staticmethod
     @ensure_csrf_cookie
@@ -55,6 +85,12 @@ class ProductController:
                     "precio_venta": request.POST.get("precio_venta"),
                     "stock_minimo": request.POST.get("stock_minimo", 10),
                     "stock_actual": request.POST.get("stock_actual", 0),
+                    "codigo_dian": request.POST.get("codigo_dian"),
+                    "iva_tipo": request.POST.get("iva_tipo", "GRAVADO"),
+                    "iva_porcentaje": request.POST.get("iva_porcentaje", 19.00),
+                    "unidad_medida": request.POST.get("unidad_medida", "94"),
+                    "impoconsumo": request.POST.get("impoconsumo", 0.00),
+                    "descuento": request.POST.get("descuento", 0.00),
                     "activo": 1,
                 }
 
@@ -116,6 +152,12 @@ class ProductController:
                     "precio_venta": request.POST.get("precio_venta"),
                     "stock_minimo": request.POST.get("stock_minimo", 10),
                     "stock_actual": request.POST.get("stock_actual", 0),
+                    "codigo_dian": request.POST.get("codigo_dian"),
+                    "iva_tipo": request.POST.get("iva_tipo"),
+                    "iva_porcentaje": request.POST.get("iva_porcentaje"),
+                    "unidad_medida": request.POST.get("unidad_medida"),
+                    "impoconsumo": request.POST.get("impoconsumo"),
+                    "descuento": request.POST.get("descuento"),
                     "activo": 1,
                 }
 
@@ -164,7 +206,7 @@ class ProductController:
         if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = request.user
+
 
         # Eliminar solo si es POST
         if request.method == "POST":

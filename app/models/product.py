@@ -33,9 +33,32 @@ class Product(models.Model):
     activo = models.BooleanField(default=True)
 
     # Campos Tributarios DIAN
-    tax_type_id = models.CharField(
-        max_length=4, default="01", verbose_name="Código Impuesto DIAN"
-    )  # 01=IVA, 04=INC
+    IVA_TIPOS = [
+        ("GRAVADO", "Gravado"),
+        ("EXENTO", "Exento"),
+        ("EXCLUIDO", "Excluido"),
+    ]
+
+    codigo_dian = models.CharField(max_length=20, blank=True, null=True, help_text="Código estándar DIAN (ej. UNSPSC)")
+
+    iva_tipo = models.CharField(max_length=10, choices=IVA_TIPOS, default="GRAVADO", verbose_name="Tipo de IVA")
+
+    iva_porcentaje = models.DecimalField(
+        max_digits=5, decimal_places=2, default=19.00, verbose_name="Porcentaje de IVA"
+    )
+
+    unidad_medida = models.CharField(
+        max_length=5, default="94", verbose_name="Unidad de Medida"  # 94 es 'Unidad' estándar DIAN
+    )
+
+    impoconsumo = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, verbose_name="Impoconsumo (%)")
+
+    descuento = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0.00, help_text="Porcentaje de descuento por defecto (%)"
+    )
+
+    # Legacy (se mantendrán para compatibilidad temporal)
+    tax_type_id = models.CharField(max_length=4, default="01", verbose_name="Código Impuesto DIAN")  # 01=IVA, 04=INC
     tax_percentage = models.DecimalField(
         max_digits=5, decimal_places=2, default=19.00, verbose_name="Porcentaje Impuesto"
     )
@@ -46,15 +69,15 @@ class Product(models.Model):
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
         indexes = [
-            models.Index(fields=['codigo'], name='idx_prod_codigo'),
-            models.Index(fields=['categoria'], name='idx_prod_categoria'),
-            models.Index(fields=['activo'], name='idx_prod_activo'),
-            models.Index(fields=['stock_actual'], name='idx_prod_stock'),
-            models.Index(fields=['activo', 'stock_actual'], name='idx_prod_activo_stock'),
+            models.Index(fields=["codigo"], name="idx_prod_codigo"),
+            models.Index(fields=["categoria"], name="idx_prod_categoria"),
+            models.Index(fields=["activo"], name="idx_prod_activo"),
+            models.Index(fields=["stock_actual"], name="idx_prod_stock"),
+            models.Index(fields=["activo", "stock_actual"], name="idx_prod_activo_stock"),
         ]
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} ({self.iva_tipo})"
 
     @staticmethod
     @CacheService.cache_product_catalog()
@@ -76,9 +99,13 @@ class Product(models.Model):
                     "stock_minimo": p.stock_minimo,
                     "stock_actual": p.stock_actual,
                     "proveedor_id": p.proveedor_id,
-                    "proveedor_id": p.proveedor_id,
                     "activo": p.activo,
-                    "tax_percentage": float(p.tax_percentage),
+                    "iva_porcentaje": float(p.iva_porcentaje),
+                    "iva_tipo": p.iva_tipo,
+                    "codigo_dian": p.codigo_dian,
+                    "unidad_medida": p.unidad_medida,
+                    "impoconsumo": float(p.impoconsumo),
+                    "descuento": float(p.descuento),
                 }
             )
         return data
@@ -101,6 +128,12 @@ class Product(models.Model):
                 "stock_actual": p.stock_actual,
                 "proveedor_id": p.proveedor_id,
                 "activo": p.activo,
+                "iva_porcentaje": float(p.iva_porcentaje),
+                "iva_tipo": p.iva_tipo,
+                "codigo_dian": p.codigo_dian,
+                "unidad_medida": p.unidad_medida,
+                "impoconsumo": float(p.impoconsumo),
+                "descuento": float(p.descuento),
             }
         except Product.DoesNotExist:
             return None
@@ -124,6 +157,12 @@ class Product(models.Model):
             stock_actual=data.get("stock_actual", 0),
             proveedor_id=data.get("proveedor_id"),
             activo=data.get("activo", True),
+            codigo_dian=data.get("codigo_dian"),
+            iva_tipo=data.get("iva_tipo", "GRAVADO"),
+            iva_porcentaje=data.get("iva_porcentaje", 19.00),
+            unidad_medida=data.get("unidad_medida", "94"),
+            impoconsumo=data.get("impoconsumo", 0.00),
+            descuento=data.get("descuento", 0.00),
         )
         return p.id
 
@@ -141,6 +180,12 @@ class Product(models.Model):
             stock_actual=data.get("stock_actual", 0),
             proveedor_id=data.get("proveedor_id"),
             activo=data.get("activo", True),
+            codigo_dian=data.get("codigo_dian"),
+            iva_tipo=data.get("iva_tipo"),
+            iva_porcentaje=data.get("iva_porcentaje"),
+            unidad_medida=data.get("unidad_medida"),
+            impoconsumo=data.get("impoconsumo"),
+            descuento=data.get("descuento"),
         )
 
     @staticmethod

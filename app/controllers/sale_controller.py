@@ -10,7 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from app.models.client import Client
 from app.models.product import Product
 from app.models.sale import Sale, SaleDetail
-from app.models.user import User
+
 from app.services.sale_filter_service import SaleFilterService
 from app.views.sale_view import SaleView
 
@@ -145,24 +145,25 @@ class SaleController:
                 # Crear detalles con cálculo de IVA
                 created_details = []  # Lista temporal para cálculo seguro
                 for detail in details:
-                    precio_unit = Decimal(str(detail.get("precio_unitario", 0)))
+                    # Mapeo de llaves exactas enviadas por product-manager.js (FASE 3)
+                    precio_base = Decimal(str(detail.get("precio_unitario_base", 0)))
                     cantidad = int(detail.get("cantidad", 1))
+                    desc_pct = Decimal(str(detail.get("descuento_pct", 0)))
                     iva_tasa = Decimal(str(detail.get("iva_tasa", "19.00")))
 
-                    # Calcular IVA
-                    subtotal_sin_iva = precio_unit * cantidad
-                    iva_valor = subtotal_sin_iva * (iva_tasa / Decimal("100"))
-                    subtotal_con_iva = subtotal_sin_iva + iva_valor
-
+                    # El modelo SaleDetail.save() se encargará del redondeo estricto
                     new_detail = SaleDetail.objects.create(
                         venta=venta,
                         producto_id=detail["producto_id"],
                         cantidad=cantidad,
-                        precio_unitario=precio_unit,
+                        precio_unitario=precio_base,
+                        descuento_tasa=desc_pct,
                         iva_tasa=iva_tasa,
-                        subtotal_sin_iva=subtotal_sin_iva,
-                        iva_valor=iva_valor,
-                        subtotal=subtotal_con_iva,
+                        # Pasamos los valores calculados por el JS como respaldo,
+                        # pero el modelo los recalculará para asegurar integridad.
+                        subtotal_sin_iva=Decimal(str(detail.get("subtotal_base", 0))),
+                        iva_valor=Decimal(str(detail.get("iva_valor", 0))),
+                        subtotal=Decimal(str(detail.get("subtotal", 0))),
                     )
                     created_details.append(new_detail)
 
@@ -309,24 +310,22 @@ class SaleController:
                 from decimal import Decimal
 
                 for detail in new_details:
-                    precio_unit = Decimal(str(detail.get("precio_unitario", 0)))
+                    # Mapeo de llaves exactas enviadas por product-manager.js (FASE 3)
+                    precio_base = Decimal(str(detail.get("precio_unitario_base", 0)))
                     cantidad = int(detail.get("cantidad", 1))
+                    desc_pct = Decimal(str(detail.get("descuento_pct", 0)))
                     iva_tasa = Decimal(str(detail.get("iva_tasa", "19.00")))
-
-                    # Calcular IVA
-                    subtotal_sin_iva = precio_unit * cantidad
-                    iva_valor = subtotal_sin_iva * (iva_tasa / Decimal("100"))
-                    subtotal_con_iva = subtotal_sin_iva + iva_valor
 
                     SaleDetail.objects.create(
                         venta_id=sale_id,
                         producto_id=detail["producto_id"],
                         cantidad=cantidad,
-                        precio_unitario=precio_unit,
+                        precio_unitario=precio_base,
+                        descuento_tasa=desc_pct,
                         iva_tasa=iva_tasa,
-                        subtotal_sin_iva=subtotal_sin_iva,
-                        iva_valor=iva_valor,
-                        subtotal=subtotal_con_iva,
+                        subtotal_sin_iva=Decimal(str(detail.get("subtotal_base", 0))),
+                        iva_valor=Decimal(str(detail.get("iva_valor", 0))),
+                        subtotal=Decimal(str(detail.get("subtotal", 0))),
                     )
 
                 # Recalcular totales
@@ -360,7 +359,7 @@ class SaleController:
         if not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
 
-        user = request.user
+
 
         if request.method == "POST":
             # Verificar si tiene factura DIAN asociada

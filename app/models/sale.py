@@ -1,3 +1,5 @@
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
@@ -14,20 +16,12 @@ class Sale(models.Model):
     cliente = models.ForeignKey(Client, on_delete=models.PROTECT, db_column="cliente_id")
     usuario = models.ForeignKey(UserAccount, on_delete=models.PROTECT, db_column="usuario_id")
     fecha = models.DateTimeField()
-    
+
     # Campos de totales e impuestos
-    subtotal = models.DecimalField(
-        max_digits=12, decimal_places=2,
-        null=True, blank=True,
-        help_text="Subtotal sin IVA"
-    )
-    iva_total = models.DecimalField(
-        max_digits=12, decimal_places=2,
-        null=True, blank=True,  
-        help_text="Total de IVA"
-    )
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Subtotal sin IVA")
+    iva_total = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Total de IVA")
     total = models.DecimalField(max_digits=12, decimal_places=2)
-    
+
     estado = models.CharField(max_length=20, default="completada")
     tipo_pago = models.CharField(max_length=20, default="efectivo")
     notas = models.TextField(blank=True, null=True)
@@ -37,42 +31,42 @@ class Sale(models.Model):
         verbose_name = "Venta"
         verbose_name_plural = "Ventas"
         indexes = [
-            models.Index(fields=['fecha'], name='idx_sale_fecha'),
-            models.Index(fields=['cliente'], name='idx_sale_cliente'),
-            models.Index(fields=['usuario'], name='idx_sale_usuario'),
-            models.Index(fields=['estado'], name='idx_sale_estado'),
-            models.Index(fields=['-fecha', 'estado'], name='idx_sale_fecha_estado'),
+            models.Index(fields=["fecha"], name="idx_sale_fecha"),
+            models.Index(fields=["cliente"], name="idx_sale_cliente"),
+            models.Index(fields=["usuario"], name="idx_sale_usuario"),
+            models.Index(fields=["estado"], name="idx_sale_estado"),
+            models.Index(fields=["-fecha", "estado"], name="idx_sale_fecha_estado"),
         ]
-    
+
     def calculate_totals(self):
         """Calcula subtotal, IVA y total desde los detalles."""
         from decimal import Decimal
-        
+
         details = self.detalles.all()
         if not details.exists():
-            self.subtotal = Decimal('0')
-            self.iva_total = Decimal('0')
-            self.total = Decimal('0')
+            self.subtotal = Decimal("0")
+            self.iva_total = Decimal("0")
+            self.total = Decimal("0")
             return
-        
-        subtotal_sin_iva = Decimal('0')
-        iva_total = Decimal('0')
-        
+
+        subtotal_sin_iva = Decimal("0")
+        iva_total = Decimal("0")
+
         for detail in details:
             if detail.subtotal_sin_iva and detail.iva_valor:
                 subtotal_sin_iva += detail.subtotal_sin_iva
                 iva_total += detail.iva_valor
             else:
                 # Legacy: calcular desde subtotal y tasa
-                tasa = detail.iva_tasa or Decimal('19.00')
+                tasa = detail.iva_tasa or Decimal("19.00")
                 detail.subtotal_sin_iva = detail.precio_unitario * detail.cantidad
-                detail.iva_valor = detail.subtotal_sin_iva * (tasa / Decimal('100'))
+                detail.iva_valor = detail.subtotal_sin_iva * (tasa / Decimal("100"))
                 detail.subtotal = detail.subtotal_sin_iva + detail.iva_valor
                 detail.save()
-                
+
                 subtotal_sin_iva += detail.subtotal_sin_iva
                 iva_total += detail.iva_valor
-        
+
         self.subtotal = subtotal_sin_iva
         self.iva_total = iva_total
         self.total = subtotal_sin_iva + iva_total
@@ -90,11 +84,11 @@ class Sale(models.Model):
                 {
                     "id": s.id,
                     "numero_factura": s.numero_factura,
-                "fecha": s.fecha,
-                "subtotal": s.subtotal or 0,
-                "iva": s.iva_total or 0,
-                "total": s.total,
-                "estado": s.estado,
+                    "fecha": s.fecha,
+                    "subtotal": s.subtotal or 0,
+                    "iva": s.iva_total or 0,
+                    "total": s.total,
+                    "estado": s.estado,
                     "tipo_pago": s.tipo_pago,
                     "cliente_nombre": s.cliente.nombre,
                     "cliente_documento": s.cliente.documento,
@@ -189,7 +183,12 @@ class Sale(models.Model):
                         venta=venta,
                         producto_id=detail["producto_id"],
                         cantidad=detail["cantidad"],
-                        precio_unitario=detail["precio_unitario"],
+                        precio_unitario=detail.get("precio_unitario_base"),
+                        descuento_tasa=detail.get("descuento_pct", 0.00),
+                        descuento_valor=detail.get("valor_descuento", 0.00),
+                        iva_tasa=detail.get("iva_tasa", 19.00),
+                        iva_valor=detail.get("iva_valor"),
+                        subtotal_sin_iva=detail.get("subtotal_base"),
                         subtotal=detail["subtotal"],
                     )
                 return venta.id
@@ -222,7 +221,12 @@ class Sale(models.Model):
                     venta_id=sale_id,
                     producto_id=detail["producto_id"],
                     cantidad=detail["cantidad"],
-                    precio_unitario=detail["precio_unitario"],
+                    precio_unitario=detail.get("precio_unitario_base"),
+                    descuento_tasa=detail.get("descuento_pct", 0.00),
+                    descuento_valor=detail.get("valor_descuento", 0.00),
+                    iva_tasa=detail.get("iva_tasa", 19.00),
+                    iva_valor=detail.get("iva_valor"),
+                    subtotal_sin_iva=detail.get("subtotal_base"),
                     subtotal=detail["subtotal"],
                 )
         return True
@@ -239,36 +243,50 @@ class Sale(models.Model):
 class SaleDetail(models.Model):
     """Modelo de Detalle de Venta"""
 
-    venta = models.ForeignKey(
-        Sale, on_delete=models.CASCADE, db_column="venta_id", related_name="detalles"
-    )
+    venta = models.ForeignKey(Sale, on_delete=models.CASCADE, db_column="venta_id", related_name="detalles")
     producto = models.ForeignKey(Product, on_delete=models.PROTECT, db_column="producto_id")
     cantidad = models.IntegerField()
-    precio_unitario = models.DecimalField(
-        max_digits=10, decimal_places=2,
-        help_text="Precio unitario SIN IVA"
-    )
-    
-    # Campos de impuestos
-    iva_tasa = models.DecimalField(
-        max_digits=5, decimal_places=2,
-        default=19.00,
-        help_text="Tasa de IVA (%)"
-    )
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, help_text="Precio unitario SIN IVA")
+
+    # Trazabilidad Tributaria (Actualizado FASE 1)
+    iva_tasa = models.DecimalField(max_digits=5, decimal_places=2, default=19.00, help_text="Tasa de IVA (%)")
     subtotal_sin_iva = models.DecimalField(
-        max_digits=10, decimal_places=2,
-        null=True, blank=True,
-        help_text="Subtotal sin IVA (cantidad * precio_unitario)"
+        max_digits=12, decimal_places=2, null=True, blank=True, help_text="Base Gravable x Cantidad"
     )
-    iva_valor = models.DecimalField(
-        max_digits=10, decimal_places=2,
-        null=True, blank=True,
-        help_text="Valor del IVA"
-    )
+    iva_valor = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Valor del IVA")
     subtotal = models.DecimalField(
-        max_digits=12, decimal_places=2,
-        help_text="Subtotal CON IVA (subtotal_sin_iva + iva_valor)"
+        max_digits=12, decimal_places=2, help_text="Total de la línea (Subtotal sin IVA + IVA Valor)"
     )
+
+    # Descuentos (Nuevo FASE 3)
+    descuento_tasa = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    descuento_valor = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    def save(self, *args, **kwargs):
+        # Aseguramos el redondeo estricto antes de guardar (Requerimiento DIAN)
+        if self.precio_unitario and self.cantidad:
+            # 1. Subtotal Bruto
+            bruto = (self.precio_unitario * self.cantidad).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+            # 2. Descuento
+            tasa_desc = self.descuento_tasa or Decimal("0.00")
+            self.descuento_valor = (bruto * (tasa_desc / Decimal("100"))).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
+
+            # 3. Base Gravable (Subtotal sin IVA)
+            self.subtotal_sin_iva = bruto - self.descuento_valor
+
+            # 4. IVA (Sobre la base descontada)
+            tasa_iva = self.iva_tasa or Decimal("0.00")
+            self.iva_valor = (self.subtotal_sin_iva * (tasa_iva / Decimal("100"))).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
+
+            # 5. Total Línea
+            self.subtotal = self.subtotal_sin_iva + self.iva_valor
+
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "detalle_ventas"
