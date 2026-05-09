@@ -10,7 +10,11 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "mi-clave-secreta-super-segura")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError(
+        "⚠️  SEGURIDAD: SECRET_KEY no está definida. " "Configúrala en el archivo .env o como variable de entorno."
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
@@ -550,7 +554,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-from datetime import timedelta
+from datetime import timedelta  # noqa: E402
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),

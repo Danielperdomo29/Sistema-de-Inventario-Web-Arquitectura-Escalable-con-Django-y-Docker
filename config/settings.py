@@ -3,7 +3,11 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DEBUG = True
-SECRET_KEY = "mi-clave-secreta-super-segura"
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError(
+        "⚠️  SEGURIDAD: SECRET_KEY no está definida. " "Configúrala en el archivo .env o como variable de entorno."
+    )
 ALLOWED_HOSTS = ["*"]
 ROOT_URLCONF = "config.urls"
 
@@ -34,11 +38,11 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",  # Required for auth
     "django.contrib.messages.middleware.MessageMiddleware",  # Required for admin
-    "allauth.account.middleware.AccountMiddleware", # Phase 5
+    "allauth.account.middleware.AccountMiddleware",  # Phase 5
 ]
 
 # Load env vars
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv()
 
@@ -64,7 +68,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app",
-    "app.fiscal", # Módulo Fiscal
+    "app.fiscal",  # Módulo Fiscal
     "facturacion",
     # Phase 5: Auth & Security
     "django.contrib.sites",
@@ -90,7 +94,7 @@ SITE_ID = 1
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "optional"
-LOGIN_REDIRECT_URL = "/" # Dashboard or Redirect View
+LOGIN_REDIRECT_URL = "/"  # Dashboard or Redirect View
 ACCOUNT_ADAPTER = "allauth_2fa.adapter.OTPAdapter"
 # 2FA Settings
 ALLAUTH_2FA_ALWAYS_REVEAL_BACKUP_TOKENS = False
@@ -116,50 +120,50 @@ if DEBUG:
 
 # Redis Cache (Fase 2 - Production Ready)
 CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {
-                'max_connections': 50,
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {
+                "max_connections": 50,
             },
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
         },
-        'KEY_PREFIX': 'inventario',
-        'TIMEOUT': 300,  # 5 minutos default
+        "KEY_PREFIX": "inventario",
+        "TIMEOUT": 300,  # 5 minutos default
     }
 }
 
 # Session en Redis (mejor performance que DB)
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
 # Query Logging para validación de performance
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'loggers': {
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',  # Solo en desarrollo
-            'propagate': False,
+    "loggers": {
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",  # Solo en desarrollo
+            "propagate": False,
         },
     },
 }
 # Celery Configuration (Fase 3 - Async Tasks)
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://127.0.0.1:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://127.0.0.1:6379/0')
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'America/Bogota'
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/0")
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "America/Bogota"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutos máximo por tarea
 CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # Warning a los 25 minutos
